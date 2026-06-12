@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris · 发邀请</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600&family=Hanken+Grotesk:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+    --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194; --pink:#e69ec8;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif;
+    --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;justify-content:center;align-items:flex-start;padding:22px 12px;-webkit-font-smoothing:antialiased}
+  .phone{position:relative;width:100%;max-width:428px;height:858px;border-radius:32px;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% -4%, #1b2240 0%, var(--void2) 42%, var(--void) 70%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 14% 10%, rgba(255,255,255,.6), transparent),radial-gradient(1px 1px at 82% 8%, rgba(201,168,97,.7), transparent),radial-gradient(1px 1px at 30% 18%, rgba(181,143,176,.5), transparent);}
+
+  /* 锁住的结果 teaser（背景） */
+  .locked{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;padding:46px 30px 0;text-align:center;filter:blur(.4px)}
+  .locked .nm{font-weight:500;letter-spacing:.3em;font-size:13px;color:var(--cream)}
+  .locked .nm b{color:var(--pink)}
+  .locked .big{margin-top:30px;font-family:var(--serif);font-size:72px;font-weight:600;color:var(--gold);opacity:.5;letter-spacing:.05em;filter:blur(3px)}
+  .locked .lk{margin-top:6px;display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--gold-soft)}
+  .locked .teaserdims{margin-top:22px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:10px;opacity:.6}
+  .locked .td{height:8px;background:#1b2130;border-radius:4px;overflow:hidden}
+  .locked .td i{display:block;height:100%;border-radius:4px;filter:blur(2px)}
+  .locked .hint{margin-top:24px;font-size:14px;color:var(--cream-dim);line-height:1.6}
+  .locked .hint b{color:var(--cream)}
+
+  /* 暗幕 */
+  .scrim{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg, rgba(4,5,10,.55) 0%, rgba(4,5,10,.78) 55%, rgba(4,5,10,.95) 100%)}
+
+  /* 分享面板 */
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:3;background:#11151f;border-top:1px solid #232c3e;
+    border-radius:26px 26px 32px 32px;padding:14px 22px 26px;box-shadow:0 -20px 50px rgba(0,0,0,.5)}
+  .grip{width:38px;height:4px;border-radius:3px;background:#333d4f;margin:0 auto 16px}
+  .stitle{font-family:var(--serif);font-size:23px;color:var(--cream);font-weight:600;text-align:center}
+  .ssub{text-align:center;font-size:12.5px;color:var(--mute);margin:7px 0 16px}
+  .msgprev{background:#0c111c;border:1px solid #222b3b;border-radius:14px;padding:13px 14px;font-size:13px;color:var(--cream-dim);line-height:1.6;margin-bottom:18px}
+  .msgprev b{color:var(--gold-soft)}
+  .msgprev .lnk{display:block;margin-top:8px;color:#5e83b8;font-size:12px}
+  .chrow{display:flex;justify-content:space-between;gap:6px}
+  .ch{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px}
+  .ch .ci{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:23px;color:#fff}
+  .ch .cl{font-size:10.5px;color:var(--cream-dim)}
+  .wechat{background:#3eb34f}.xhs{background:#ff2e4d}.ig{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)}.wa{background:#25d366}.copy{background:#222b3b;color:var(--gold)!important}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="locked">
+      <div class="nm">你 <span style="color:var(--pink)">×</span> <b>她</b> · 恋人盘</div>
+      <div class="big">？？<span style="font-size:28px">%</span></div>
+      <div class="lk">🔒 解锁需要 她 也测一下</div>
+      <div class="teaserdims">
+        <div class="td"><i style="width:95%;background:var(--pink)"></i></div>
+        <div class="td"><i style="width:42%;background:#f0a868"></i></div>
+        <div class="td"><i style="width:70%;background:#8fb6d8"></i></div>
+        <div class="td"><i style="width:58%;background:var(--gold-soft)"></i></div>
+      </div>
+      <div class="hint">你俩…<b>初步有点东西 👀</b><br>但要看准，得让她也测一下。</div>
+    </div>
+
+    <div class="scrim"></div>
+
+    <div class="sheet">
+      <div class="grip"></div>
+      <div class="stitle">邀请她一起测，解锁合盘</div>
+      <div class="ssub">把链接发给她，她测完，你俩的合盘就解锁</div>
+      <div class="msgprev">
+        💞 「我在 Iris 测了我们俩到底合不合，<b>就差你这一半了</b>，来测一下👀」
+        <span class="lnk">🔗 iris.app/r/8KQ2…（点开即测）</span>
+      </div>
+      <div class="chrow">
+        <div class="ch"><div class="ci wechat">💬</div><div class="cl">微信</div></div>
+        <div class="ch"><div class="ci xhs">书</div><div class="cl">小红书</div></div>
+        <div class="ch"><div class="ci ig">📷</div><div class="cl">Instagram</div></div>
+        <div class="ch"><div class="ci wa">📞</div><div class="cl">WhatsApp</div></div>
+        <div class="ch"><div class="ci copy">🔗</div><div class="cl">复制链接</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

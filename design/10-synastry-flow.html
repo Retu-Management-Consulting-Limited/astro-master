@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris · 合盘 · 全流程</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Hanken+Grotesk:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+    --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194; --iris:#b58fb0;
+    --pink:#e69ec8; --orange:#f0a868; --blue:#8fb6d8; --green:#7fc99a;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif;
+    --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;flex-wrap:wrap;gap:22px;justify-content:center;align-items:flex-start;padding:22px 12px;-webkit-font-smoothing:antialiased}
+  .cell{display:flex;flex-direction:column;align-items:center}
+  .label{color:#6e7681;font-size:11.5px;letter-spacing:.16em;margin-bottom:8px}
+  .phone{position:relative;width:384px;max-width:100%;height:790px;border-radius:30px;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% -4%, #1b2240 0%, var(--void2) 42%, var(--void) 70%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 26px 70px rgba(0,0,0,.55),0 0 0 1px #1a2030}
+  .phone::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.045;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 14% 10%, rgba(255,255,255,.6), transparent),radial-gradient(1px 1px at 82% 8%, rgba(201,168,97,.7), transparent),radial-gradient(1px 1px at 30% 18%, rgba(181,143,176,.5), transparent);}
+  .pbar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:20px 22px 6px;flex:0 0 auto}
+  .pbar .name{font-weight:500;letter-spacing:.32em;font-size:13px;color:var(--cream)}
+  .name2{color:var(--gold-soft)}
+  .scroll{position:relative;z-index:2;flex:1;overflow-y:auto;padding:6px 22px 14px}
+  .scroll::-webkit-scrollbar{width:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes grow{from{width:0}}
+
+  /* cosmic eye */
+  .ceye{position:relative;border-radius:50%}
+  .ceye .neb{position:absolute;inset:-8px;border-radius:50%;filter:blur(6px);background:radial-gradient(40% 46% at 70% 28%, rgba(214,146,72,.6), transparent 60%),radial-gradient(44% 44% at 26% 66%, rgba(150,78,38,.5), transparent 62%),radial-gradient(48% 50% at 76% 74%, rgba(120,60,32,.5), transparent 64%),radial-gradient(circle at 50% 50%, rgba(36,28,60,.5), rgba(8,10,20,.9) 72%)}
+  .ceye .ring{position:absolute;inset:6px;border-radius:50%;filter:blur(.4px);background:repeating-conic-gradient(from 0deg,#2a2448 0 1.2deg,#6a7a8e 1.2deg 2.2deg,#1f1a3a 2.2deg 3.5deg,#c9a861 3.5deg 4deg,#4a3b7a 4deg 5.3deg,#3a5560 5.3deg 6.6deg);-webkit-mask:radial-gradient(circle,transparent 27%,#000 29%,#000 84%,transparent 90%);mask:radial-gradient(circle,transparent 27%,#000 29%,#000 84%,transparent 90%);animation:spin 120s linear infinite}
+  .ceye .pup{position:absolute;left:50%;top:50%;width:30%;height:30%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 50% 44%,#0c0a12,#040406 72%);box-shadow:0 0 0 1px rgba(180,96,52,.55),0 0 16px rgba(150,80,44,.4)}
+
+  /* picker */
+  .ph{font-family:var(--serif);font-size:27px;color:var(--cream);font-weight:500;margin:10px 2px 5px}
+  .ph i{color:var(--gold-soft);font-style:italic}
+  .psub{font-size:13px;color:var(--mute);margin:0 2px 18px}
+  .ty{display:flex;align-items:center;gap:13px;background:var(--field);border:1px solid var(--field-bd);border-radius:14px;padding:14px 15px;margin-bottom:10px}
+  .ty .ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto;background:#161b29}
+  .ty .tt .a{font-size:15px;color:var(--cream);margin-bottom:2px}
+  .ty .tt .b{font-size:11.5px;color:var(--mute)}
+  .ty .arr{margin-left:auto;color:#4f5666}
+  .ty.sel{border-color:var(--gold);background:rgba(201,168,97,.07);box-shadow:0 0 0 3px rgba(201,168,97,.08)}
+  .ty.sel .arr{color:var(--gold)}
+
+  /* invite */
+  .inv{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 34px;position:relative;z-index:2}
+  .invbrand{position:absolute;top:22px;left:0;right:0;font-weight:500;letter-spacing:.4em;font-size:11.5px;color:var(--gold);text-indent:.4em}
+  .heart{font-size:28px;margin-bottom:16px}
+  .invq{font-family:var(--serif);font-size:29px;color:var(--cream);line-height:1.4}
+  .invq b{color:var(--gold-soft);font-style:italic;font-weight:600}
+  .invsub{margin-top:15px;font-weight:300;font-size:14px;line-height:1.7;color:var(--cream-dim);max-width:270px}
+  .invsub b{color:var(--cream)}
+  .invcta{margin-top:32px;width:100%;max-width:290px;padding:16px;border-radius:40px;border:none;background:linear-gradient(100deg,var(--gold-deep),var(--gold) 45%,var(--gold-soft) 60%,var(--gold) 75%);color:#1a1305;font-weight:600;font-size:15px;letter-spacing:.03em;box-shadow:0 10px 34px -10px rgba(201,168,97,.6)}
+  .invnote{margin-top:12px;font-size:11px;color:var(--mute)}
+
+  /* result */
+  .total{text-align:center;margin:6px 0 4px}
+  .total .tline{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin-bottom:3px}
+  .total .n{font-family:var(--serif);font-size:56px;font-weight:600;color:var(--gold);line-height:1;text-shadow:0 0 30px rgba(201,168,97,.3)}
+  .total .n small{font-size:22px}
+  .total .vibe{margin-top:7px;font-size:12.5px}
+  .dims{margin-top:18px;display:flex;flex-direction:column;gap:11px}
+  .dim .top{display:flex;justify-content:space-between;font-size:12.5px;color:var(--cream-dim);margin-bottom:5px}
+  .dim .top b{font-weight:600}
+  .dim .track{height:7px;background:#1b2130;border-radius:4px;overflow:hidden}
+  .dim .fill{height:100%;border-radius:4px;animation:grow 1.1s .5s both}
+  .reading{margin-top:22px}
+  .reading p{font-family:var(--serif);font-weight:500;font-size:18px;line-height:1.6;color:var(--cream-dim);margin-bottom:12px}
+  .reading p b{color:var(--cream);font-weight:600}
+  .catch{font-style:italic;color:var(--green);border-left:2px solid var(--green);padding-left:13px}
+  .rshare{margin:20px 0 5px;text-align:center;font-size:12.5px;color:var(--gold-soft)}
+  .rnote{text-align:center;font-size:10px;color:#566073}
+</style>
+</head>
+<body>
+
+  <!-- ① 选类型 -->
+  <div class="cell">
+    <div class="label">① 选关系类型</div>
+    <div class="phone">
+      <div class="pbar"><span class="name">合盘</span></div>
+      <div class="scroll">
+        <div class="ph">你想看你俩，<br><i>哪一种「合」？</i></div>
+        <div class="psub">选不同关系，我看的维度也不同</div>
+        <div class="ty"><div class="ic">💞</div><div class="tt"><div class="a">恋人 / 暧昧</div><div class="b">合不合、爱不爱、走不走得下去</div></div><div class="arr">›</div></div>
+        <div class="ty sel"><div class="ic">🤝</div><div class="tt"><div class="a">合伙搞事业</div><div class="b">能不能一起赚钱、谁主导、合不合财</div></div><div class="arr">›</div></div>
+        <div class="ty"><div class="ic">💼</div><div class="tt"><div class="a">共事 / 同事</div><div class="b">配不配合、会不会互相内耗</div></div><div class="arr">›</div></div>
+        <div class="ty"><div class="ic">👯</div><div class="tt"><div class="a">朋友</div><div class="b">交不交心、处不处得久</div></div><div class="arr">›</div></div>
+        <div class="ty"><div class="ic">👩‍👧</div><div class="tt"><div class="a">家人</div><div class="b">懂不懂彼此、能不能和解</div></div><div class="arr">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 邀请落地（B 收到） -->
+  <div class="cell">
+    <div class="label">② 邀请落地 · B 收到</div>
+    <div class="phone">
+      <div class="inv">
+        <div class="invbrand">IRIS</div>
+        <div class="ceye" style="width:120px;height:120px;margin-bottom:22px"><div class="neb"></div><div class="ring"></div><div class="pup"></div></div>
+        <div class="heart">💞</div>
+        <div class="invq"><b>小漾</b> 想看<br>你俩合不合</div>
+        <div class="invsub">她已经测好了自己。<br><b>只差你这一半</b>，就能解锁你们的合盘。</div>
+        <button class="invcta">测测我，解锁合盘 →</button>
+        <div class="invnote">30 秒 · 不用想，跟着问就行</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 恋人结果 -->
+  <div class="cell">
+    <div class="label">③ 结果 · 恋人</div>
+    <div class="phone">
+      <div class="pbar"><span class="name">你 <span class="name2">×</span> 他 · 恋人盘</span></div>
+      <div class="scroll">
+        <div class="total"><div class="tline">恋爱契合度</div><div class="n">78<small>%</small></div><div class="vibe" style="color:var(--pink)">高压电式的吸引，但都在等安全感</div></div>
+        <div class="dims">
+          <div class="dim"><div class="top"><span>❤️‍🔥 心动</span><b style="color:var(--pink)">95</b></div><div class="track"><div class="fill" style="width:95%;background:var(--pink)"></div></div></div>
+          <div class="dim"><div class="top"><span>🛟 安全感</span><b style="color:var(--orange)">42</b></div><div class="track"><div class="fill" style="width:42%;background:var(--orange)"></div></div></div>
+          <div class="dim"><div class="top"><span>💬 懂你</span><b style="color:var(--blue)">70</b></div><div class="track"><div class="fill" style="width:70%;background:var(--blue)"></div></div></div>
+          <div class="dim"><div class="top"><span>⏳ 长久</span><b style="color:var(--gold-soft)">58</b></div><div class="track"><div class="fill" style="width:58%;background:var(--gold-soft)"></div></div></div>
+        </div>
+        <div class="reading">
+          <p>你俩不是不来电，<b>是太来电</b>——电到都怕被烧到。心动 95、安全感才 42，这道落差就是你们卡住的全部原因。</p>
+          <p class="catch">这不是没救。是你们俩，得有一个人，先承认"我在乎"。</p>
+        </div>
+        <div class="rshare">📤 把这份合盘存成卡</div>
+        <div class="rnote">说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 合伙结果 -->
+  <div class="cell">
+    <div class="label">④ 结果 · 合伙（维度换 · 含合财）</div>
+    <div class="phone">
+      <div class="pbar"><span class="name">你 <span class="name2">🤝</span> 阿哲 · 合伙盘</span></div>
+      <div class="scroll">
+        <div class="total"><div class="tline">合伙契合度</div><div class="n">73<small>%</small></div><div class="vibe" style="color:var(--green)">一个敢冲、一个稳得住 —— 但钱要先说清</div></div>
+        <div class="dims">
+          <div class="dim"><div class="top"><span>🤝 默契</span><b style="color:var(--blue)">82</b></div><div class="track"><div class="fill" style="width:82%;background:var(--blue)"></div></div></div>
+          <div class="dim"><div class="top"><span>🧩 互补</span><b style="color:var(--green)">90</b></div><div class="track"><div class="fill" style="width:90%;background:var(--green)"></div></div></div>
+          <div class="dim"><div class="top"><span>🔒 信任</span><b style="color:var(--gold-soft)">64</b></div><div class="track"><div class="fill" style="width:64%;background:var(--gold-soft)"></div></div></div>
+          <div class="dim"><div class="top"><span>💰 合财</span><b style="color:var(--orange)">55</b></div><div class="track"><div class="fill" style="width:55%;background:var(--orange)"></div></div></div>
+        </div>
+        <div class="reading">
+          <p>一个踩油门、一个踩刹车——<b>互补到能成事</b>。但「合财」只有 55：你们对钱的安全感不一样，这道缝不说开，迟早为分钱翻脸。</p>
+          <p class="catch">能成事。但先把"钱怎么分、谁拍板"摊到桌上——你们缺的是把丑话说在前头的勇气。</p>
+        </div>
+        <div class="rshare">📤 把这份合伙盘存成卡</div>
+        <div class="rnote">说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
