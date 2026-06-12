@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris · 输入</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+    --cream:#efe7d4; --cream-dim:#b9b09a; --mute:#7a8194; --iris:#b58fb0;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif;
+    --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;justify-content:center;align-items:flex-start;padding:22px 12px;-webkit-font-smoothing:antialiased}
+  .phone{position:relative;width:100%;max-width:428px;height:858px;border-radius:32px;overflow:hidden;
+    background:radial-gradient(120% 70% at 50% -6%, #18203a 0%, var(--void2) 40%, var(--void) 68%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:
+      radial-gradient(1px 1px at 14% 12%, rgba(255,255,255,.6), transparent),
+      radial-gradient(1px 1px at 82% 9%, rgba(201,168,97,.7), transparent),
+      radial-gradient(1px 1px at 30% 20%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 90% 30%, rgba(255,255,255,.4), transparent);}
+  .phone::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  .wrap{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;padding:30px 30px 30px}
+
+  .top{display:flex;align-items:center;gap:10px;opacity:0;animation:fade .8s .05s forwards}
+  .eye-mini{width:38px;height:38px;border-radius:50%;position:relative;overflow:hidden;flex:0 0 auto;
+    background:radial-gradient(circle at 50% 50%, #2a2160 0%, #0a0e1a 70%);box-shadow:0 0 0 1px var(--gold), 0 0 14px rgba(201,138,70,.4)}
+  .eye-mini::before{content:"";position:absolute;inset:6px;border-radius:50%;
+    background:repeating-conic-gradient(from 0deg,#2a2448 0 3deg,#6a7a8e 3deg 5deg,#c9a861 5deg 6deg,#4a3b7a 6deg 9deg);
+    -webkit-mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);
+    mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);animation:spin 60s linear infinite}
+  .eye-mini::after{content:"";position:absolute;left:50%;top:50%;width:11px;height:11px;transform:translate(-50%,-50%);border-radius:50%;background:#04050c;box-shadow:0 0 0 1px rgba(180,96,52,.6)}
+  .top .name{font-weight:500;letter-spacing:.4em;font-size:12px;color:var(--gold);text-indent:.4em}
+  .dots{margin-left:auto;display:flex;gap:6px}
+  .dots i{width:6px;height:6px;border-radius:50%;background:#2a3142;display:block}
+  .dots i.on{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+
+  .head{margin-top:46px;opacity:0;animation:rise 1s .3s forwards}
+  .h1{font-family:var(--serif);color:var(--cream);font-weight:500;font-size:34px;line-height:1.3}
+  .h1 .g{color:var(--gold-soft);font-style:italic}
+  .hsub{margin-top:14px;font-weight:300;font-size:14.5px;line-height:1.7;color:var(--cream-dim)}
+
+  form{margin-top:34px;display:flex;flex-direction:column;gap:18px}
+  .field{opacity:0;animation:rise 1s forwards}
+  .f1{animation-delay:.55s}.f2{animation-delay:.7s}.f3{animation-delay:.85s}
+  label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:9px;font-weight:500}
+  .inp{width:100%;background:var(--field);border:1px solid var(--field-bd);border-radius:13px;
+    padding:15px 15px;color:var(--cream);font-size:15.5px;font-family:var(--sans);color-scheme:dark;
+    transition:border-color .2s, box-shadow .2s}
+  .inp::placeholder{color:#566073}
+  .inp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,97,.12)}
+  .row{display:flex;gap:12px}.row .field{flex:1;margin:0}
+  .unknown{display:flex;align-items:center;gap:9px;margin-top:11px;cursor:pointer}
+  .chk{width:18px;height:18px;border-radius:6px;border:1px solid #39414f;flex:0 0 auto;position:relative}
+  .chk.on{background:var(--gold);border-color:var(--gold)}
+  .chk.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#1a1305;font-size:12px;font-weight:700}
+  .unknown span{font-size:13px;color:var(--cream-dim)}
+  .unknown span b{color:var(--iris);font-weight:400}
+
+  .foot{margin-top:auto;opacity:0;animation:rise 1s 1s forwards}
+  .cta{position:relative;overflow:hidden;width:100%;padding:17px;border-radius:40px;border:none;cursor:pointer;
+    background:linear-gradient(100deg,var(--gold-deep),var(--gold) 45%,var(--gold-soft) 60%,var(--gold) 75%);
+    color:#1a1305;font-weight:600;font-size:15.5px;letter-spacing:.04em;box-shadow:0 10px 34px -10px rgba(201,168,97,.6)}
+  .cta::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:shimmer 5s ease-in-out infinite}
+  .priv{margin-top:14px;text-align:center;font-size:11.5px;color:var(--mute);letter-spacing:.02em}
+
+  @keyframes fade{to{opacity:1}}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes shimmer{0%,72%{left:-60%}100%{left:130%}}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="wrap">
+      <div class="top">
+        <div class="eye-mini"></div>
+        <span class="name">IRIS</span>
+        <div class="dots"><i class="on"></i><i></i><i></i></div>
+      </div>
+
+      <div class="head">
+        <div class="h1">你出生的那一刻，<br><span class="g">藏着整个你。</span></div>
+        <p class="hsub">告诉我准确的时间和地点——越准，我看得越深。</p>
+      </div>
+
+      <form onsubmit="return false">
+        <div class="field f1">
+          <label>出生日期</label>
+          <input class="inp" type="date" value="1998-06-13">
+        </div>
+
+        <div class="field f2">
+          <label>出生时间</label>
+          <input class="inp" type="time" value="08:40">
+          <div class="unknown" onclick="this.querySelector('.chk').classList.toggle('on')">
+            <span class="chk"></span>
+            <span>我不知道准确时间 —— <b>没关系，待会几个问题帮你校准</b></span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field f3">
+            <label>国家</label>
+            <input class="inp" type="text" placeholder="如 澳大利亚" value="澳大利亚">
+          </div>
+          <div class="field f3">
+            <label>城市</label>
+            <input class="inp" type="text" placeholder="如 墨尔本" value="墨尔本">
+          </div>
+        </div>
+      </form>
+
+      <div class="foot">
+        <button class="cta">让 Iris 看你的盘 →</button>
+        <div class="priv">🔒 只用来排你的盘 · 永远不会公开</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
