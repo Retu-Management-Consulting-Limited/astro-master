@@ -1,4 +1,4 @@
-# Iris · 设计系统（DESIGN-SYSTEM）
+# Molly · 设计系统（DESIGN-SYSTEM）
 
 > 从 7+ 屏 hi-fi 中沉淀的设计语言。工程实作与后续屏一律照此。
 > 美学方向：**暗夜天体 × 奢华编辑感（Dark Celestial Luxe）** —— 沉、神秘、高级；金 × 暗夜不跳色。
@@ -58,7 +58,7 @@ UI / 正文：  'Hanken Grotesk' + 'Noto Sans SC'（sans，干净，非 Inter）
 - **输入框**：bg --field、border --field-bd、radius 12–13、`color-scheme:dark`、focus 金边 + `box-shadow:0 0 0 3px rgba(201,168,97,.12)`。
 - **进度/度量**（懂你度/校准度/题进度）：轨 #1d2333、填充金渐变。
 - **Tab bar**：4 项（今日 ☾ / 本命 ✶ / 对话 [eye] / 我的 ✦），active 金；顶边 1px + 底渐变。
-- **消息气泡**：Iris 左（#141a28 + 左下尖角）；用户右（蓝渐变 + 右下尖角）；**记忆回放气泡**金边 + 「🕰️ 她记得」标签。
+- **消息气泡**：Molly 左（#141a28 + 左下尖角）；用户右（蓝渐变 + 右下尖角）；**记忆回放气泡**金边 + 「🕰️ 她记得」标签。
 - **选项卡（校准）**：选中＝金边 + 金 radio 填充 + `box-shadow 0 0 0 3px rgba(201,168,97,.08)`。
 
 ## 6. 动效（catalog）
@@ -75,7 +75,7 @@ pulse  : 高亮微明灭（5s）
 
 ## 7. 盘面（chart）
 
-金双环 + 12 分隔 + 东方旋转方块 + 星尘；**高亮驱动**：只亮 3–5 个亮点（金/粉 glow halo `radial-gradient` + glyph），其余星暗化 #586074；亮点相位线点缀。「盘越亮 = Iris 越懂你」（校准可视化）。
+金双环 + 12 分隔 + 东方旋转方块 + 星尘；**高亮驱动**：只亮 3–5 个亮点（金/粉 glow halo `radial-gradient` + glyph），其余星暗化 #586074；亮点相位线点缀。「盘越亮 = Molly 越懂你」（校准可视化）。
 
 ## 8. 语气
 
