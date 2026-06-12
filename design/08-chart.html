@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris · 本命</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+    --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194; --iris:#b58fb0; --pink:#e69ec8;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif;
+    --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;justify-content:center;align-items:flex-start;padding:22px 12px;-webkit-font-smoothing:antialiased}
+  .phone{position:relative;width:100%;max-width:428px;height:858px;border-radius:32px;overflow:hidden;
+    background:radial-gradient(120% 55% at 50% 14%, #1c2444 0%, var(--void2) 44%, var(--void) 72%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(1px 1px at 14% 9%, rgba(255,255,255,.6), transparent),radial-gradient(1px 1px at 82% 7%, rgba(201,168,97,.7), transparent),radial-gradient(1px 1px at 22% 30%, rgba(255,255,255,.4), transparent),radial-gradient(1px 1px at 90% 26%, rgba(181,143,176,.5), transparent);}
+  .phone::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  .pbar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:22px 22px 8px;flex:0 0 auto}
+  .eye-mini{width:32px;height:32px;border-radius:50%;position:relative;overflow:hidden;flex:0 0 auto;background:radial-gradient(circle at 50% 50%, #2a2160 0%, #0a0e1a 70%);box-shadow:0 0 0 1px var(--gold), 0 0 12px rgba(201,138,70,.4)}
+  .eye-mini::before{content:"";position:absolute;inset:4px;border-radius:50%;background:repeating-conic-gradient(from 0deg,#2a2448 0 3deg,#6a7a8e 3deg 5deg,#c9a861 5deg 6deg,#4a3b7a 6deg 9deg);-webkit-mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);animation:spin 50s linear infinite}
+  .eye-mini::after{content:"";position:absolute;left:50%;top:50%;width:9px;height:9px;transform:translate(-50%,-50%);border-radius:50%;background:#04050c;box-shadow:0 0 0 1px rgba(180,96,52,.6)}
+  .pbar .name{font-weight:500;letter-spacing:.4em;font-size:12px;color:var(--gold);text-indent:.4em}
+  .pbar .cal{margin-left:auto;font-size:11px;color:var(--cream-dim)}
+  .pbar .cal b{color:var(--gold)}
+
+  .scroll{position:relative;z-index:2;flex:1;overflow-y:auto;padding:0 20px 12px}
+  .scroll::-webkit-scrollbar{width:0}
+  .chartwrap{display:flex;flex-direction:column;align-items:center;padding:6px 0 8px;opacity:0;animation:fade 1.4s .3s forwards}
+  .sig{margin-top:2px;font-size:12.5px;color:var(--cream-dim);letter-spacing:.04em}
+  .sig b{color:var(--gold)}
+  .brighten{margin-top:8px;font-size:11px;color:var(--mute)}
+  .brighten b{color:var(--gold)}
+
+  .glow{filter:drop-shadow(0 0 5px currentColor)}
+  .hl{animation:pulse 5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.92}50%{opacity:1}}
+
+  .sec{margin-top:18px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);opacity:0;animation:rise 1s .7s forwards}
+  .sec span{color:var(--gold)}
+  .hlcard{display:flex;align-items:center;gap:13px;background:var(--field);border:1px solid var(--field-bd);border-radius:14px;padding:13px 15px;margin-top:10px;opacity:0;animation:rise .9s forwards}
+  .h1{animation-delay:.8s}.h2{animation-delay:.92s}.h3{animation-delay:1.04s}
+  .hlcard .gly{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto;background:#161b29}
+  .hlcard .tt{flex:1}
+  .hlcard .tt .a{font-size:14px;margin-bottom:2px}
+  .hlcard .tt .b{font-size:12px;color:var(--mute)}
+  .hlcard .arr{color:#4f5666}
+  .pinkc .gly{color:var(--pink);box-shadow:inset 0 0 0 1px rgba(230,158,200,.4)} .pinkc .a{color:var(--pink)}
+  .goldc .gly{color:var(--gold-soft);box-shadow:inset 0 0 0 1px rgba(201,168,97,.4)} .goldc .a{color:var(--gold-soft)}
+
+  .themes{margin-top:20px;opacity:0;animation:rise 1s 1.2s forwards}
+  .trow{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid rgba(255,255,255,.05);font-size:14.5px;color:var(--cream-dim)}
+  .trow .i{font-size:16px}.trow .lk{margin-left:auto;color:#4f5666;font-size:13px}
+  .trow.open{color:var(--cream)}.trow.open .lk{color:var(--gold)}
+
+  .share{margin:20px 0 6px;text-align:center;font-size:13px;color:var(--gold-soft);opacity:0;animation:rise 1s 1.4s forwards}
+
+  .tabbar{position:relative;z-index:4;flex:0 0 auto;display:flex;justify-content:space-around;padding:10px 8px 16px;border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,#080a12,rgba(8,10,18,.6))}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:#5a6173;flex:1}
+  .tab.on{color:var(--gold)} .tab .ic{font-size:17px;line-height:1}
+  .tab .eyeic{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:inset 0 0 0 1px #5a6173}
+
+  @keyframes fade{to{opacity:1}}
+  @keyframes rise{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:none}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="pbar"><div class="eye-mini"></div><span class="name">IRIS</span><span class="cal">校准 <b>78%</b> · 盘会越来越亮 ✨</span></div>
+
+    <div class="scroll">
+      <div class="chartwrap">
+        <svg width="290" height="290" viewBox="0 0 320 320">
+          <defs>
+            <radialGradient id="gg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#c9a861" stop-opacity=".85"/><stop offset="100%" stop-color="#c9a861" stop-opacity="0"/></radialGradient>
+            <radialGradient id="gp" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#e69ec8" stop-opacity=".85"/><stop offset="100%" stop-color="#e69ec8" stop-opacity="0"/></radialGradient>
+          </defs>
+          <!-- 星点 -->
+          <g fill="#fff" opacity=".55"><circle cx="40" cy="60" r="1"/><circle cx="280" cy="48" r="1.1"/><circle cx="290" cy="200" r="1"/><circle cx="44" cy="240" r="1"/><circle cx="160" cy="20" r="1"/></g>
+          <!-- 金双环 -->
+          <circle cx="160" cy="160" r="142" fill="none" stroke="#c9a861" stroke-width="1.4"/>
+          <circle cx="160" cy="160" r="132" fill="none" stroke="#c9a861" stroke-width=".5" opacity=".55"/>
+          <circle cx="160" cy="160" r="62" fill="none" stroke="#c9a861" stroke-width=".7" opacity=".7"/>
+          <rect x="100" y="100" width="120" height="120" fill="none" stroke="#c9a861" stroke-width=".5" opacity=".22" transform="rotate(45 160 160)"/>
+          <!-- 12 分隔 -->
+          <g stroke="#c9a861" stroke-width=".4" opacity=".24">
+            <line x1="160" y1="28" x2="160" y2="292"/><line x1="28" y1="160" x2="292" y2="160"/>
+            <line x1="67" y1="67" x2="253" y2="253"/><line x1="253" y1="67" x2="67" y2="253"/>
+            <line x1="94" y1="36" x2="226" y2="284"/><line x1="226" y1="36" x2="94" y2="284"/>
+            <line x1="36" y1="94" x2="284" y2="226"/><line x1="284" y1="94" x2="36" y2="226"/>
+          </g>
+          <!-- 亮点相位线（金星-冥王，粉） -->
+          <line x1="96" y1="216" x2="232" y2="120" stroke="#e69ec8" stroke-width="1" opacity=".55"/>
+          <!-- 暗化次要星 -->
+          <g fill="#586074">
+            <circle cx="246" cy="110" r="3"/><circle cx="120" cy="250" r="3"/><circle cx="240" cy="210" r="3"/>
+          </g>
+          <!-- 高亮1 金星天蝎七宫 (粉) -->
+          <circle cx="96" cy="216" r="20" fill="url(#gp)"/>
+          <circle cx="96" cy="216" r="5" fill="#e69ec8"/>
+          <text x="96" y="220" font-size="10" fill="#1a0e17" text-anchor="middle" font-weight="bold">♀</text>
+          <!-- 高亮2 月亮双鱼十二宫 (金) -->
+          <circle cx="232" cy="120" r="20" fill="url(#gg)"/>
+          <circle cx="232" cy="120" r="5" fill="#e0c98a"/>
+          <text x="232" y="124" font-size="10" fill="#1a1305" text-anchor="middle" font-weight="bold">☽</text>
+          <!-- 高亮3 十宫聚集 (金) -->
+          <circle cx="160" cy="50" r="18" fill="url(#gg)"/>
+          <circle cx="160" cy="50" r="4.5" fill="#e0c98a"/>
+          <text x="160" y="54" font-size="9" fill="#1a1305" text-anchor="middle" font-weight="bold">✦</text>
+          <!-- 高亮4 太阳双子 -->
+          <circle cx="206" cy="74" r="17" fill="url(#gg)"/>
+          <circle cx="206" cy="74" r="4.5" fill="#e0c98a"/>
+          <text x="206" y="78" font-size="9" fill="#1a1305" text-anchor="middle" font-weight="bold">☉</text>
+          <!-- 高亮5 北交点 -->
+          <circle cx="70" cy="120" r="16" fill="url(#gg)"/>
+          <circle cx="70" cy="120" r="4" fill="#e0c98a"/>
+          <text x="70" y="124" font-size="8" fill="#1a1305" text-anchor="middle" font-weight="bold">☊</text>
+        </svg>
+        <div class="sig">♏ 上升天蝎 · <b>☉</b> 双子 · <b>☽</b> 双鱼</div>
+        <div class="brighten">你用得越久，<b>盘越亮、Iris 越懂你</b></div>
+      </div>
+
+      <div class="sec">✨ <span>你盘上最亮的几处（点开看）</span></div>
+      <div class="hlcard pinkc h1"><div class="gly">♀</div><div class="tt"><div class="a">金星天蝎 · 七宫</div><div class="b">你的感情，从不浅尝</div></div><div class="arr">›</div></div>
+      <div class="hlcard goldc h2"><div class="gly">☽</div><div class="tt"><div class="a">月亮双鱼 · 十二宫</div><div class="b">你把情绪藏得最深</div></div><div class="arr">›</div></div>
+      <div class="hlcard goldc h3"><div class="gly">✦</div><div class="tt"><div class="a">十宫三星聚集</div><div class="b">事业是你人生的主轴</div></div><div class="arr">›</div></div>
+
+      <div class="themes">
+        <div class="trow open"><span class="i">💔</span>感情与关系<span class="lk">已解锁 ›</span></div>
+        <div class="trow open"><span class="i">💰</span>财富与时机<span class="lk">已解锁 ›</span></div>
+        <div class="trow"><span class="i">🌧️</span>孤独与归属<span class="lk">🔒</span></div>
+        <div class="trow"><span class="i">🧭</span>自我与方向<span class="lk">🔒</span></div>
+      </div>
+
+      <div class="share">📤 把我的星盘存成图</div>
+    </div>
+
+    <div class="tabbar">
+      <div class="tab"><span class="ic">☾</span>今日</div>
+      <div class="tab on"><span class="ic">✶</span>本命</div>
+      <div class="tab"><span class="eyeic"></span>对话</div>
+      <div class="tab"><span class="ic">✦</span>我的</div>
+    </div>
+  </div>
+</body>
+</html>
