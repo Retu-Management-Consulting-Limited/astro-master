@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris · loading + 注册触发</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+    --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194; --gold2:#e0c98a;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif;
+    --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;flex-wrap:wrap;gap:26px;justify-content:center;align-items:flex-start;padding:22px 12px;-webkit-font-smoothing:antialiased}
+  .cell{display:flex;flex-direction:column;align-items:center}
+  .label{color:#6e7681;font-size:11.5px;letter-spacing:.16em;margin-bottom:8px}
+  .phone{position:relative;width:404px;max-width:100%;height:820px;border-radius:32px;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% 30%, #1b2240 0%, var(--void2) 44%, var(--void) 72%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 28px 80px rgba(0,0,0,.6),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 14% 12%, rgba(255,255,255,.6), transparent),radial-gradient(1px 1px at 82% 9%, rgba(201,168,97,.7), transparent),radial-gradient(1px 1px at 22% 70%, rgba(255,255,255,.4), transparent),radial-gradient(1px 1px at 88% 64%, rgba(181,143,176,.5), transparent),radial-gradient(1px 1px at 50% 88%, rgba(255,255,255,.4), transparent);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes breath{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.05);opacity:1}}
+  @keyframes glowb{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
+  @keyframes barmove{0%{transform:translateX(-100%)}100%{transform:translateX(320%)}}
+  @keyframes fadeio{0%,100%{opacity:0}30%,70%{opacity:1}}
+  @keyframes up{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+
+  /* ① loading */
+  .load{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;padding:40px}
+  .lglow{position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle, rgba(201,138,70,.22), rgba(99,80,150,.12) 44%, transparent 66%);animation:glowb 5s ease-in-out infinite}
+  .ceye{position:relative;width:150px;height:150px;border-radius:50%;animation:breath 6s ease-in-out infinite}
+  .ceye .neb{position:absolute;inset:-10px;border-radius:50%;filter:blur(7px);background:radial-gradient(40% 46% at 70% 28%, rgba(214,146,72,.6), transparent 60%),radial-gradient(44% 44% at 26% 66%, rgba(150,78,38,.5), transparent 62%),radial-gradient(48% 50% at 76% 74%, rgba(120,60,32,.5), transparent 64%),radial-gradient(circle at 50% 50%, rgba(36,28,60,.5), rgba(8,10,20,.9) 72%)}
+  .ceye .ring{position:absolute;inset:8px;border-radius:50%;filter:blur(.4px);background:repeating-conic-gradient(from 0deg,#2a2448 0 1.2deg,#6a7a8e 1.2deg 2.2deg,#1f1a3a 2.2deg 3.5deg,#c9a861 3.5deg 4deg,#4a3b7a 4deg 5.3deg,#3a5560 5.3deg 6.6deg);-webkit-mask:radial-gradient(circle,transparent 27%,#000 29%,#000 84%,transparent 90%);mask:radial-gradient(circle,transparent 27%,#000 29%,#000 84%,transparent 90%);animation:spin 14s linear infinite}
+  .ceye .pup{position:absolute;left:50%;top:50%;width:30%;height:30%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 50% 44%,#0c0a12,#040406 72%);box-shadow:0 0 0 1px rgba(180,96,52,.55),0 0 18px rgba(150,80,44,.45)}
+  .lline{margin-top:42px;font-family:var(--serif);font-style:italic;font-size:25px;color:var(--gold-soft);text-align:center;text-shadow:0 0 22px rgba(201,168,97,.25)}
+  .ltrack{margin-top:26px;width:160px;height:2px;background:#1d2333;border-radius:2px;overflow:hidden;position:relative}
+  .ltrack i{position:absolute;left:0;top:0;height:100%;width:40%;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:barmove 1.8s ease-in-out infinite}
+  .lcap{margin-top:18px;font-size:12.5px;color:var(--mute);height:16px}
+  .lcap span{animation:fadeio 3s ease-in-out infinite}
+
+  /* ② 首读 + 注册触发 */
+  .frbg{position:absolute;inset:0;z-index:1;padding:30px 26px;filter:blur(.6px);opacity:.85}
+  .frbg .qd{width:30px;height:1px;background:var(--gold);margin:18px auto;position:relative}
+  .frbg .q{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.45;color:var(--gold-soft);text-align:center;margin-bottom:24px}
+  .frbg .chips{display:flex;flex-direction:column;gap:9px}
+  .frbg .chip{background:rgba(124,150,170,.08);border:1px solid #2b3a4e;border-radius:12px;padding:12px 14px;color:#a9c4dd;font-size:13.5px}
+  .frbg .chip.tap{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,97,.12);color:var(--gold-soft)}
+  .scrim{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg, rgba(4,5,10,.45), rgba(4,5,10,.85))}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:3;background:#11151f;border-top:1px solid #232c3e;border-radius:26px 26px 32px 32px;padding:14px 26px 26px;box-shadow:0 -20px 50px rgba(0,0,0,.5);animation:up 1s .2s both}
+  .grip{width:38px;height:4px;border-radius:3px;background:#333d4f;margin:0 auto 16px}
+  .sh{font-family:var(--serif);font-size:25px;color:var(--cream);font-weight:600;text-align:center}
+  .ss{text-align:center;font-size:13.5px;color:var(--cream-dim);line-height:1.6;margin:9px 0 18px}
+  .ss b{color:var(--cream)}
+  .ninp{width:100%;background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:14px;color:var(--cream);font-size:15.5px;margin-bottom:11px}
+  .ninp::placeholder{color:#566073}
+  .lbtn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:14px;border-radius:13px;font-size:14.5px;border:1px solid #2b3445;background:#141925;color:var(--cream);margin-bottom:9px}
+  .lbtn.primary{border:none;background:linear-gradient(100deg,var(--gold-deep),var(--gold) 50%,var(--gold-soft) 70%);color:#1a1305;font-weight:600}
+  .snote{text-align:center;font-size:11px;color:var(--mute);margin-top:4px}
+</style>
+</head>
+<body>
+
+  <!-- ① loading 仪式屏 -->
+  <div class="cell">
+    <div class="label">① loading 仪式屏（排盘中 / 解读中通用）</div>
+    <div class="phone">
+      <div class="load">
+        <div class="lglow"></div>
+        <div class="ceye"><div class="neb"></div><div class="ring"></div><div class="pup"></div></div>
+        <div class="lline">让我看看，<br>你是谁……</div>
+        <div class="ltrack"><i></i></div>
+        <div class="lcap"><span>正在读取你出生那一刻的星空…</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 首读 → 注册触发 -->
+  <div class="cell">
+    <div class="label">② 首读 ›〔点追问/存卡〕→ 注册触发</div>
+    <div class="phone">
+      <div class="frbg">
+        <div class="q">在国外这几年，<br>你最大的本事，<br>是让所有人都以为<br>你不需要任何人。</div>
+        <div class="qd"></div>
+        <div class="chips">
+          <div class="chip tap">为什么我宁愿自己扛，也不肯求人？ 👆</div>
+          <div class="chip">我到底属于哪里？</div>
+          <div class="chip">会有一个，接得住我的人吗？</div>
+        </div>
+      </div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="grip"></div>
+        <div class="sh">想让我接着说？</div>
+        <div class="ss">再往下，是<b>只属于你</b>的部分。<br>先给我个名字，我把这一切都记住——明天接着跟你说。</div>
+        <input class="ninp" type="text" placeholder="你想让我怎么叫你？">
+        <button class="lbtn primary">✉ 用邮箱继续</button>
+        <button class="lbtn">G &nbsp;用 Google 继续</button>
+        <div class="snote">🔒 只属于你 · 随时可删</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

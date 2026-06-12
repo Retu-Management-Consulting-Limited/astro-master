@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris · 注册 + 加桌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Hanken+Grotesk:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+    --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194; --green:#7fc99a;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif;
+    --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;flex-wrap:wrap;gap:26px;justify-content:center;align-items:flex-start;padding:22px 12px;-webkit-font-smoothing:antialiased}
+  .cell{display:flex;flex-direction:column;align-items:center}
+  .label{color:#6e7681;font-size:11.5px;letter-spacing:.16em;margin-bottom:8px}
+  .phone{position:relative;width:404px;max-width:100%;height:820px;border-radius:32px;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% -4%, #1b2240 0%, var(--void2) 42%, var(--void) 70%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 28px 80px rgba(0,0,0,.6),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 14% 10%, rgba(255,255,255,.6), transparent),radial-gradient(1px 1px at 82% 8%, rgba(201,168,97,.7), transparent),radial-gradient(1px 1px at 30% 18%, rgba(181,143,176,.5), transparent);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes up{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+  .eye-mini{width:34px;height:34px;border-radius:50%;position:relative;overflow:hidden;flex:0 0 auto;background:radial-gradient(circle at 50% 50%, #2a2160 0%, #0a0e1a 70%);box-shadow:0 0 0 1px var(--gold), 0 0 14px rgba(201,138,70,.4)}
+  .eye-mini::before{content:"";position:absolute;inset:5px;border-radius:50%;background:repeating-conic-gradient(from 0deg,#2a2448 0 3deg,#6a7a8e 3deg 5deg,#c9a861 5deg 6deg,#4a3b7a 6deg 9deg);-webkit-mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);animation:spin 50s linear infinite}
+  .eye-mini::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;background:#04050c;box-shadow:0 0 0 1px rgba(180,96,52,.6)}
+
+  /* ① 注册 */
+  .rpbar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:24px 26px 6px}
+  .rpbar .name{font-weight:500;letter-spacing:.4em;font-size:12px;color:var(--gold);text-indent:.4em}
+  .rwrap{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;padding:8px 30px 30px}
+  .rsucc{margin-top:30px;display:inline-flex;align-self:flex-start;align-items:center;gap:8px;background:rgba(127,201,154,.1);border:1px solid rgba(127,201,154,.28);border-radius:30px;padding:7px 14px;font-size:12px;color:var(--green);opacity:0;animation:rise 1s .2s forwards}
+  .rh{margin-top:18px;font-family:var(--serif);font-size:32px;color:var(--cream);font-weight:500;line-height:1.34;opacity:0;animation:rise 1s .35s forwards}
+  .rh i{color:var(--gold-soft);font-style:italic}
+  .rsub{margin-top:13px;font-weight:300;font-size:14.5px;color:var(--cream-dim);line-height:1.7;opacity:0;animation:rise 1s .5s forwards}
+  .field{margin-top:26px;opacity:0;animation:rise 1s .65s forwards}
+  .flab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+  .inp{width:100%;background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:15px;color:var(--cream);font-size:16px;font-family:var(--sans)}
+  .inp::placeholder{color:#566073}
+  .inp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,97,.12)}
+  .or{display:flex;align-items:center;gap:12px;margin:26px 0 16px;color:var(--mute);font-size:12px;opacity:0;animation:rise 1s .8s forwards}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:#1f2735}
+  .btns{display:flex;flex-direction:column;gap:11px;opacity:0;animation:rise 1s .92s forwards}
+  .lbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px;border-radius:13px;font-size:15px;font-weight:500;border:1px solid #2b3445;background:#11151f;color:var(--cream)}
+  .lbtn.primary{border:none;background:linear-gradient(100deg,var(--gold-deep),var(--gold) 50%,var(--gold-soft) 70%);color:#1a1305;font-weight:600}
+  .rfoot{margin-top:auto;text-align:center;font-size:11.5px;color:var(--mute);opacity:0;animation:rise 1s 1.1s forwards}
+
+  /* ② PWA 加桌弹窗 */
+  .pcal{position:absolute;inset:0;z-index:1;padding:60px 26px;opacity:.5;filter:blur(1.5px)}
+  .pcal .g{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .pcal .g div{aspect-ratio:1;border-radius:8px}
+  .scrim{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg, rgba(4,5,10,.5), rgba(4,5,10,.86))}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:3;background:#11151f;border-top:1px solid #232c3e;border-radius:26px 26px 32px 32px;padding:14px 26px 26px;box-shadow:0 -20px 50px rgba(0,0,0,.5);animation:up 1s .2s both}
+  .grip{width:38px;height:4px;border-radius:3px;background:#333d4f;margin:0 auto 18px}
+  .picon{font-size:32px;text-align:center;margin-bottom:10px}
+  .stitle{font-family:var(--serif);font-size:25px;color:var(--cream);font-weight:600;text-align:center}
+  .gd{margin:14px 0;text-align:center;background:rgba(127,201,154,.1);border:1px solid rgba(127,201,154,.3);border-radius:12px;padding:11px;font-size:13.5px;color:var(--green)}
+  .gd b{color:#ade3c2}
+  .pdesc{text-align:center;font-size:14px;color:var(--cream-dim);line-height:1.6;margin-bottom:20px}
+  .pdesc b{color:var(--cream)}
+  .pcta{width:100%;padding:16px;border-radius:40px;border:none;background:linear-gradient(100deg,var(--gold-deep),var(--gold) 50%,var(--gold-soft) 70%);color:#1a1305;font-weight:600;font-size:15.5px;margin-bottom:12px}
+  .ios{display:flex;align-items:center;justify-content:center;gap:8px;background:#0c111c;border:1px dashed #2a3444;border-radius:11px;padding:10px;font-size:12px;color:#8b94a8;margin-bottom:12px}
+  .ios b{color:#a9b4c8}
+  .ploss{text-align:center;font-size:11px;color:#5a6173}
+</style>
+</head>
+<body>
+
+  <!-- ① 注册（首读后，收昵称） -->
+  <div class="cell">
+    <div class="label">① 注册 · 首读后（收昵称，先体验后注册）</div>
+    <div class="phone">
+      <div class="rpbar"><div class="eye-mini"></div><span class="name">IRIS</span></div>
+      <div class="rwrap">
+        <div class="rsucc">✓ 你的盘已经准备好了</div>
+        <div class="rh">给我一个名字，<br><i>我把这一切，都记住。</i></div>
+        <div class="rsub">这些只是开始。留住你的盘，明天我接着跟你说——还有好多没讲完。</div>
+        <div class="field">
+          <div class="flab">你想让我怎么叫你？</div>
+          <input class="inp" type="text" placeholder="小名、网名，随你" value="">
+        </div>
+        <div class="or">用什么留住你的盘</div>
+        <div class="btns">
+          <button class="lbtn primary">✉ 用邮箱继续</button>
+          <button class="lbtn">G &nbsp;用 Google 继续</button>
+          <button class="lbtn"> &nbsp;用 Apple 继续</button>
+        </div>
+        <div class="rfoot">🔒 你的盘只属于你 · 随时可删，绝不公开</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② PWA 加桌弹窗（财运日历为饵） -->
+  <div class="cell">
+    <div class="label">② PWA 加桌 · 财运日历为饵</div>
+    <div class="phone">
+      <div class="pcal">
+        <div class="g">
+          <div style="background:#88c9a1"></div><div style="background:#d9dee7"></div><div style="background:#e0908d"></div><div style="background:#c8e6d3"></div><div style="background:#d9dee7"></div><div style="background:#d44a46"></div><div style="background:#88c9a1"></div>
+          <div style="background:#d9dee7"></div><div style="background:#c9302c"></div><div style="background:#e0908d"></div><div style="background:#d9dee7"></div><div style="background:#1a7a3a"></div><div style="background:#3fa860"></div><div style="background:#d9dee7"></div>
+          <div style="background:#e0908d"></div><div style="background:#c8e6d3"></div><div style="background:#d9dee7"></div><div style="background:#e0908d"></div><div style="background:#88c9a1"></div><div style="background:#d9dee7"></div><div style="background:#c8e6d3"></div>
+        </div>
+      </div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="grip"></div>
+        <div class="picon">📅✨</div>
+        <div class="stitle">把财运日历放上桌面</div>
+        <div class="gd">你这个月有 <b>2 个搞钱黄金日</b>：6/12 · 6/24</div>
+        <div class="pdesc">加到桌面，到点我第一时间提醒你——<br><b>别白白错过能搞钱的日子。</b></div>
+        <button class="pcta">加到桌面（手把手教你）</button>
+        <div class="ios">iOS：点底部 <b>⬆️ 分享</b> → 「添加到主屏幕」</div>
+        <div class="ploss">不加，明天的财运得你自己记得来翻</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
