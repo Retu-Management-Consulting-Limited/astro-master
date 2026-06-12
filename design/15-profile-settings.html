@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris · 我的 + 设置</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+    --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194; --green:#7fc99a; --red:#e5736f;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif;
+    --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;flex-wrap:wrap;gap:26px;justify-content:center;align-items:flex-start;padding:22px 12px;-webkit-font-smoothing:antialiased}
+  .cell{display:flex;flex-direction:column;align-items:center}
+  .label{color:#6e7681;font-size:11.5px;letter-spacing:.16em;margin-bottom:8px}
+  .phone{position:relative;width:404px;max-width:100%;height:820px;border-radius:32px;overflow:hidden;
+    background:radial-gradient(120% 55% at 50% -4%, #1b2240 0%, var(--void2) 44%, var(--void) 72%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 28px 80px rgba(0,0,0,.6),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 14% 10%, rgba(255,255,255,.6), transparent),radial-gradient(1px 1px at 82% 8%, rgba(201,168,97,.7), transparent),radial-gradient(1px 1px at 30% 18%, rgba(181,143,176,.5), transparent);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .bigeye{width:60px;height:60px;border-radius:50%;position:relative;overflow:hidden;flex:0 0 auto;background:radial-gradient(circle at 50% 50%, #2a2160 0%, #0a0e1a 72%);box-shadow:0 0 0 1px var(--gold),0 0 18px rgba(201,138,70,.4)}
+  .bigeye::before{content:"";position:absolute;inset:7px;border-radius:50%;background:repeating-conic-gradient(from 0deg,#2a2448 0 3deg,#6a7a8e 3deg 5deg,#c9a861 5deg 6deg,#4a3b7a 6deg 9deg);-webkit-mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);animation:spin 60s linear infinite}
+  .bigeye::after{content:"";position:absolute;left:50%;top:50%;width:17px;height:17px;transform:translate(-50%,-50%);border-radius:50%;background:#04050c;box-shadow:0 0 0 1px rgba(180,96,52,.6)}
+
+  .scroll{position:relative;z-index:2;flex:1;overflow-y:auto;padding:24px 22px 12px}
+  .scroll::-webkit-scrollbar{width:0}
+  .stitle{font-family:var(--serif);font-size:26px;color:var(--cream);font-weight:600;margin:2px 2px 18px}
+
+  /* profile */
+  .me{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .me .info .nm{font-size:18px;color:var(--cream);font-weight:600}
+  .me .info .sub{font-size:12px;color:var(--mute);margin-top:3px}
+  .portrait{background:linear-gradient(180deg, rgba(201,168,97,.08), rgba(201,168,97,.02));border:1px solid rgba(201,168,97,.32);border-radius:18px;padding:16px;margin-bottom:18px;box-shadow:0 0 30px -14px rgba(201,168,97,.4)}
+  .portrait .pt{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+  .portrait .pq{font-family:var(--serif);font-style:italic;font-size:19px;color:var(--gold-soft);line-height:1.45;margin-bottom:10px}
+  .portrait .know{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--cream-dim)}
+  .portrait .pg{flex:1;max-width:120px;height:5px;background:#1d2333;border-radius:3px;overflow:hidden}
+  .portrait .pg i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft))}
+  .portrait .more{margin-left:auto;color:var(--gold);font-size:12px}
+
+  .menu{display:flex;flex-direction:column}
+  .mrow{display:flex;align-items:center;gap:14px;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,.05);font-size:15px;color:var(--cream-dim)}
+  .mrow .mi{font-size:18px;width:24px;text-align:center}
+  .mrow .arr{margin-left:auto;color:#4f5666}
+  .mrow .badge{margin-left:auto;background:#1f2a44;color:#9ecbff;border-radius:10px;padding:2px 8px;font-size:11px}
+
+  .tabbar{position:relative;z-index:4;flex:0 0 auto;display:flex;justify-content:space-around;padding:10px 8px 16px;border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,#080a12,rgba(8,10,18,.6))}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:#5a6173;flex:1}.tab.on{color:var(--gold)}.tab .ic{font-size:17px}
+  .tab .eyeic{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:inset 0 0 0 1px #5a6173}
+
+  /* settings */
+  .sgrp{margin-bottom:22px}
+  .sglab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 2px 9px}
+  .scard{background:var(--field);border:1px solid var(--field-bd);border-radius:14px;overflow:hidden}
+  .srow{display:flex;align-items:center;gap:12px;padding:14px 15px;font-size:14.5px;color:var(--cream);border-bottom:1px solid rgba(255,255,255,.05)}
+  .srow:last-child{border-bottom:none}
+  .srow .sv{margin-left:auto;color:var(--mute);font-size:13px}
+  .srow .arr{margin-left:auto;color:#4f5666}
+  .srow.danger{color:var(--red)}
+  .tog{margin-left:auto;width:42px;height:24px;border-radius:13px;background:#2a3344;position:relative;flex:0 0 auto}
+  .tog.on{background:var(--gold-deep)}
+  .tog::after{content:"";position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:#cdd3dc;transition:.2s;left:2px}
+  .tog.on::after{left:20px;background:#1a1305}
+  .ai{background:rgba(143,182,216,.06);border:1px solid rgba(143,182,216,.2);border-radius:12px;padding:12px 14px;font-size:12.5px;color:#9fb6cf;line-height:1.6}
+</style>
+</head>
+<body>
+
+  <!-- ④ 我的首页 -->
+  <div class="cell">
+    <div class="label">④ 我的 · 首页</div>
+    <div class="phone">
+      <div class="scroll">
+        <div class="me">
+          <div class="bigeye"></div>
+          <div class="info"><div class="nm">小满</div><div class="sub">认识 38 天 · ♏ 上升天蝎</div></div>
+        </div>
+
+        <div class="portrait">
+          <div class="pt">🫀 我眼中的你</div>
+          <div class="pq">"一个把所有人都照顾好了，唯独忘了自己的人。"</div>
+          <div class="know">懂你 <span class="pg"><i></i></span> 62% ↑ <span class="more">看完整 →</span></div>
+        </div>
+
+        <div class="menu">
+          <div class="mrow"><span class="mi">🕰️</span>历史回看<span class="badge">一年前的今天</span></div>
+          <div class="mrow"><span class="mi">📤</span>我的卡片<span class="arr">12 ›</span></div>
+          <div class="mrow"><span class="mi">💞</span>合盘<span class="arr">›</span></div>
+          <div class="mrow"><span class="mi">⚙️</span>设置<span class="arr">›</span></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><span class="ic">☾</span>今日</div>
+        <div class="tab"><span class="ic">✶</span>本命</div>
+        <div class="tab"><span class="eyeic"></span>对话</div>
+        <div class="tab on"><span class="ic">✦</span>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设置 -->
+  <div class="cell">
+    <div class="label">④ 我的 › 设置（含 AI 揭露 · 数据可删）</div>
+    <div class="phone">
+      <div class="scroll">
+        <div class="stitle">设置</div>
+
+        <div class="sgrp">
+          <div class="sglab">账户</div>
+          <div class="scard">
+            <div class="srow">昵称<span class="sv">小满 ›</span></div>
+            <div class="srow">邮箱<span class="sv">x***@gmail.com</span></div>
+          </div>
+        </div>
+
+        <div class="sgrp">
+          <div class="sglab">通知</div>
+          <div class="scard">
+            <div class="srow">每日星象提醒<span class="tog on"></span></div>
+            <div class="srow">财运黄金日提醒<span class="tog on"></span></div>
+            <div class="srow">合盘 · 对方测好了<span class="tog on"></span></div>
+          </div>
+        </div>
+
+        <div class="sgrp">
+          <div class="sglab">隐私与数据</div>
+          <div class="scard">
+            <div class="srow">查看 Iris 对我的了解<span class="arr">›</span></div>
+            <div class="srow">导出我的数据<span class="arr">›</span></div>
+            <div class="srow danger">删除我的盘与全部数据<span class="arr" style="color:var(--red)">›</span></div>
+          </div>
+        </div>
+
+        <div class="sgrp">
+          <div class="sglab">关于</div>
+          <div class="ai">✦ Iris 是一位<strong style="color:#cfe0f0">由 AI 驱动</strong>的占星向导。她的解读用于自我探索与陪伴，不构成医疗、法律或投资建议。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
