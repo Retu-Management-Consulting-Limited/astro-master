@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris · 金句卡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44; --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif; --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;justify-content:center;align-items:flex-start;padding:22px 12px;-webkit-font-smoothing:antialiased}
+  .phone{position:relative;width:100%;max-width:428px;height:858px;border-radius:32px;overflow:hidden;background:#070910;display:flex;flex-direction:column;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 1px #1a2030}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+  .pbar{position:relative;z-index:3;display:flex;align-items:center;padding:22px 24px 6px;flex:0 0 auto}
+  .pbar .x{font-size:20px;color:var(--mute)} .pbar .t{flex:1;text-align:center;font-size:14px;color:var(--cream);font-weight:500} .pbar .sp{width:20px}
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 26px;position:relative;z-index:2}
+
+  /* ===== 金句卡（图+文）===== */
+  .card{width:318px;height:424px;border-radius:20px;overflow:hidden;position:relative;
+    background:radial-gradient(120% 70% at 50% 26%, #233057 0%, #141a32 40%, #0a0d1c 70%, #06070f 100%);
+    box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 0 1px rgba(201,168,97,.2);animation:rise 1s .2s both}
+  .card .stars{position:absolute;inset:0;background-image:radial-gradient(1px 1px at 18% 12%,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 80% 14%,rgba(201,168,97,.8),transparent),radial-gradient(1px 1px at 30% 30%,rgba(255,255,255,.5),transparent),radial-gradient(1.5px 1.5px at 70% 24%,rgba(181,143,176,.7),transparent),radial-gradient(1px 1px at 12% 40%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 88% 38%,rgba(255,255,255,.45),transparent)}
+  .card .ded{position:absolute;top:20px;left:0;right:0;text-align:center;font-size:11px;color:#8b9bb4;letter-spacing:.05em}
+
+  .illus{position:absolute;top:40px;left:0;right:0;height:172px}
+  .quote{position:absolute;top:222px;left:28px;right:28px;text-align:center;font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.58;color:#f0e6cf}
+  .quote .g{color:var(--gold-soft)}
+  .sig{position:absolute;bottom:60px;left:0;right:0;text-align:center;font-size:11px;color:#8b9bb4;letter-spacing:.06em}
+  .wm{position:absolute;bottom:18px;left:22px;right:22px;display:flex;justify-content:space-between;align-items:center}
+  .wm .l{font-size:10px;color:#6e7681} .wm .h{font-size:10px;color:var(--gold)}
+
+  .tpls{display:flex;gap:9px;margin-top:16px;animation:rise 1s .4s both}
+  .tp{width:30px;height:40px;border-radius:6px;border:1px solid #2a3344;cursor:pointer}
+  .tp.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,97,.25)}
+  .tp.a{background:radial-gradient(circle at 50% 26%,#233057,#06070f)} .tp.b{background:radial-gradient(circle at 50% 26%,#3a2233,#0a0e1a)} .tp.c{background:radial-gradient(circle at 50% 26%,#22323a,#0a0e1a)} .tp.d{background:linear-gradient(160deg,#d9cdb6,#efe7d4)}
+
+  .dock{position:relative;z-index:3;flex:0 0 auto;padding:14px 22px 24px;border-top:1px solid rgba(255,255,255,.06)}
+  .chrow{display:flex;justify-content:space-around;gap:6px}
+  .ch{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .ch .ci{width:54px;height:54px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:23px;color:#fff}
+  .ch .cl{font-size:11px;color:var(--cream-dim)}
+  .wechat{background:#3eb34f}.xhs{background:#ff2e4d}.ig{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888)}.save{background:#1c2230;color:var(--gold)!important;border:1px solid #2b3445}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="pbar"><span class="x">✕</span><span class="t">分享这一句</span><span class="sp"></span></div>
+    <div class="stage">
+      <div class="card">
+        <div class="stars"></div>
+        <div class="ded">致 · 漂在墨尔本，假装很好的你</div>
+
+        <svg class="illus" viewBox="0 0 318 172" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="moon" cx="50%" cy="42%" r="58%">
+              <stop offset="0%" stop-color="#fbf1d6"/><stop offset="42%" stop-color="#e6cf94"/><stop offset="78%" stop-color="#c9a861"/><stop offset="100%" stop-color="#8a6f3a"/>
+            </radialGradient>
+            <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#e6cf94" stop-opacity=".5"/><stop offset="60%" stop-color="#c9a861" stop-opacity=".12"/><stop offset="100%" stop-color="#c9a861" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- 月晕 -->
+          <circle cx="159" cy="74" r="96" fill="url(#halo)"/>
+          <!-- 月 -->
+          <circle cx="159" cy="74" r="58" fill="url(#moon)"/>
+          <!-- 月面环形山（淡） -->
+          <circle cx="142" cy="60" r="9" fill="#bd9c55" opacity=".4"/>
+          <circle cx="176" cy="86" r="6" fill="#bd9c55" opacity=".35"/>
+          <circle cx="168" cy="52" r="4" fill="#bd9c55" opacity=".3"/>
+          <!-- 飞鸟点缀 -->
+          <path d="M196 40 q5 -4 10 0 q5 -4 10 0" fill="none" stroke="#8a6f3a" stroke-width="1.2" opacity=".5"/>
+          <path d="M212 52 q4 -3 8 0 q4 -3 8 0" fill="none" stroke="#8a6f3a" stroke-width="1" opacity=".4"/>
+          <!-- 月下独立的身影（剪影 + 金边） -->
+          <g>
+            <!-- 头发 -->
+            <path d="M152 116 q-6 14 -4 40 M166 116 q6 14 4 40" fill="none" stroke="#0a0c16" stroke-width="5" stroke-linecap="round"/>
+            <!-- 头 -->
+            <circle cx="159" cy="110" r="8.5" fill="#0a0c16" stroke="#c9a861" stroke-width=".7"/>
+            <!-- 连衣裙身形 -->
+            <path d="M150 120 Q159 115 168 120 L178 172 L140 172 Z" fill="#0a0c16" stroke="#c9a861" stroke-width=".7"/>
+            <!-- 一缕长发垂落 -->
+            <path d="M151 118 q-4 26 -2 50" fill="none" stroke="#0a0c16" stroke-width="3" stroke-linecap="round"/>
+          </g>
+        </svg>
+
+        <div class="quote">你最大的本事，<br>是让所有人都以为<br><span class="g">你不需要任何人。</span></div>
+        <div class="sig">☉ 双子　☽ 双鱼·十二宫　↑ 天蝎</div>
+        <div class="wm"><span class="l">👁 Iris · 看穿你的本命</span><span class="h">@Iris占星</span></div>
+      </div>
+
+      <div class="tpls"><div class="tp a on"></div><div class="tp b"></div><div class="tp c"></div><div class="tp d"></div></div>
+    </div>
+    <div class="dock">
+      <div class="chrow">
+        <div class="ch"><div class="ci wechat">💬</div><div class="cl">微信</div></div>
+        <div class="ch"><div class="ci xhs">书</div><div class="cl">小红书</div></div>
+        <div class="ch"><div class="ci ig">📷</div><div class="cl">Instagram</div></div>
+        <div class="ch"><div class="ci save">⤓</div><div class="cl">保存图片</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
