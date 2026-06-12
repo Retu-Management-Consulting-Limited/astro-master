@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molly · 补屏</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44; --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194;
+    --pink:#e69ec8; --blue:#8fb6d8; --green:#7fc99a;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif; --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;flex-wrap:wrap;gap:22px;justify-content:center;align-items:flex-start;padding:22px 12px;-webkit-font-smoothing:antialiased}
+  .cell{display:flex;flex-direction:column;align-items:center}
+  .label{color:#6e7681;font-size:11px;letter-spacing:.14em;margin-bottom:8px}
+  .phone{position:relative;width:344px;max-width:100%;height:600px;border-radius:30px;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% 0%, #1b2240 0%, var(--void2) 44%, var(--void) 72%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 16% 10%, rgba(255,255,255,.5), transparent),radial-gradient(1px 1px at 82% 8%, rgba(201,168,97,.6), transparent),radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,.35), transparent)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pbar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:18px 20px 8px;flex:0 0 auto;border-bottom:1px solid rgba(255,255,255,.05)}
+  .pbar .bk{font-size:18px;color:var(--mute)} .pbar .t{font-size:14px;color:var(--cream);font-weight:600;letter-spacing:.02em}
+  .scroll{position:relative;z-index:2;flex:1;overflow-y:auto;padding:16px 20px 14px}
+  .scroll::-webkit-scrollbar{width:0}
+
+  /* A 主题解读 */
+  .gly{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--pink);margin-bottom:12px}
+  .gly .o{width:26px;height:26px;border-radius:50%;background:#1f1622;display:flex;align-items:center;justify-content:center}
+  .rd p{font-family:var(--serif);font-weight:500;font-size:18.5px;line-height:1.62;color:var(--cream-dim);margin-bottom:13px}
+  .rd p b{color:var(--cream);font-weight:600}
+  .rd .catch{font-style:italic;color:var(--green);border-left:2px solid var(--green);padding-left:13px}
+  .chips{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .chip{background:rgba(124,150,170,.08);border:1px solid #2b3a4e;border-radius:12px;padding:11px 13px;color:#a9c4dd;font-size:13px}
+  .lock{margin-top:12px;background:rgba(201,168,97,.06);border:1px dashed #5a4d2e;border-radius:12px;padding:12px;font-size:12.5px;color:var(--gold-soft);text-align:center}
+  .save{margin-top:14px;text-align:center;font-size:12.5px;color:var(--gold-soft)}
+
+  /* B 历史 */
+  .anniv{background:linear-gradient(180deg,rgba(201,168,97,.1),rgba(201,168,97,.02));border:1px solid rgba(201,168,97,.34);border-radius:15px;padding:14px;margin-bottom:14px}
+  .anniv .h{font-size:11px;letter-spacing:.1em;color:var(--gold);margin-bottom:7px}
+  .anniv .b{font-family:var(--serif);font-size:16px;color:var(--cream);line-height:1.5}
+  .hrow{display:flex;gap:12px;padding:13px 2px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .hrow .d{font-size:11px;color:var(--mute);width:44px;flex:0 0 auto;padding-top:2px}
+  .hrow .c{font-size:13.5px;color:var(--cream-dim);line-height:1.5}
+  .hrow .c b{color:var(--cream)}
+
+  /* C 卡片 grid */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .mc{aspect-ratio:3/4;border-radius:12px;position:relative;overflow:hidden;padding:12px;display:flex;align-items:center;text-align:center;box-shadow:0 0 0 1px rgba(201,168,97,.18)}
+  .mc .q{font-family:var(--serif);font-size:12.5px;line-height:1.5;color:#f0e6cf}
+  .mc1{background:radial-gradient(120% 70% at 50% 24%,#233057,#06070f)}
+  .mc2{background:radial-gradient(120% 70% at 50% 24%,#3a2233,#0a0e1a)}
+  .mc3{background:radial-gradient(120% 70% at 50% 24%,#2f2a16,#0a0e1a)}
+  .mc4{background:radial-gradient(120% 70% at 50% 24%,#22323a,#0a0e1a)}
+  .mc .wm{position:absolute;bottom:6px;left:0;right:0;font-size:8px;color:#6e7681}
+
+  /* D push */
+  .lockbg{position:absolute;inset:0;z-index:1;background:radial-gradient(130% 80% at 50% 16%, #243056 0%, #0d1226 46%, #060814 100%)}
+  .lockbg::after{content:"";position:absolute;inset:0;background-image:radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 75% 22%,rgba(201,168,97,.6),transparent)}
+  .clock{position:relative;z-index:2;margin-top:60px;text-align:center;color:#e9eef6}
+  .clock .t{font-size:54px;font-weight:300} .clock .d{font-size:13px;color:#aeb8cc}
+  .push{position:relative;z-index:2;margin:46px 16px 0;background:rgba(28,34,48,.82);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:13px;display:flex;gap:11px;align-items:flex-start;box-shadow:0 14px 40px rgba(0,0,0,.4)}
+  .push .ic{width:36px;height:36px;border-radius:50%;flex:0 0 auto;position:relative;overflow:hidden;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:0 0 0 1px var(--gold)}
+  .push .ic::before{content:"";position:absolute;inset:5px;border-radius:50%;background:repeating-conic-gradient(from 0deg,#2a2448 0 3deg,#6a7a8e 3deg 5deg,#c9a861 5deg 6deg,#4a3b7a 6deg 9deg);-webkit-mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%)}
+  .push .ic::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;background:#04050c}
+  .push .head{display:flex;justify-content:space-between;font-size:10.5px;color:#9aa6bc;margin-bottom:3px}
+  .push .head b{color:#e9eef6} .push .ttl{font-size:13.5px;color:#fff;font-weight:600;margin-bottom:2px}
+  .push .txt{font-size:12.5px;color:#cdd4e2;line-height:1.5}
+</style>
+</head>
+<body>
+
+  <!-- A 主题深度解读 -->
+  <div class="cell">
+    <div class="label">1 · 主题深度解读（点亮点/主题 → 这块）</div>
+    <div class="phone">
+      <div class="pbar"><span class="bk">←</span><span class="t">感情与关系</span></div>
+      <div class="scroll">
+        <div class="gly"><span class="o">♀</span>金星天蝎 · 第七宫</div>
+        <div class="rd">
+          <p>你在感情里，<b>从不浅尝</b>。你要的不是"喜欢"，是彻底的交融——要么不爱，要么把整个自己都押进去。</p>
+          <p>所以你最怕的从不是被拒绝，是<b>"不确定"</b>。模糊，比分手更折磨你。</p>
+          <p class="catch">这不是你太作，是你爱得太真。别为了好相处，把自己改小。</p>
+        </div>
+        <div class="chips">
+          <div class="chip">为什么我总爱上不确定的人？</div>
+          <div class="chip">怎么不被一段感情消耗掉自己？</div>
+        </div>
+        <div class="lock">🔒 更深的一层：你和 TA 之间，到底卡在哪</div>
+        <div class="save">📤 把这段存成卡片</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B 历史回看 -->
+  <div class="cell">
+    <div class="label">2 · 历史回看</div>
+    <div class="phone">
+      <div class="pbar"><span class="bk">←</span><span class="t">🕰️ 历史回看</span></div>
+      <div class="scroll">
+        <div class="anniv">
+          <div class="h">✦ 一年前的今天</div>
+          <div class="b">去年今天，你为他失眠，跟我说"我是不是走不出来了"。<br>现在，你能笑着提起他了。</div>
+        </div>
+        <div class="hrow"><div class="d">6/10</div><div class="c">你问我<b>该不该接那个 offer</b> · 我们聊了很久</div></div>
+        <div class="hrow"><div class="d">6/5</div><div class="c">合盘 · <b>你 × 阿哲</b>（合伙 73%）</div></div>
+        <div class="hrow"><div class="d">5/28</div><div class="c">你的<b>暗面</b>解读 · 莉莉丝在八宫</div></div>
+        <div class="hrow"><div class="d">5/19</div><div class="c">第一次见你 · <b>开场速读</b></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C 我的卡片 filled -->
+  <div class="cell">
+    <div class="label">3 · 我的卡片（已存）</div>
+    <div class="phone">
+      <div class="pbar"><span class="bk">←</span><span class="t">📤 我的卡片 · 12</span></div>
+      <div class="scroll">
+        <div class="grid">
+          <div class="mc mc1"><div class="q">你最大的本事，是让所有人都以为你不需要任何人</div><div class="wm">👁 Molly</div></div>
+          <div class="mc mc2"><div class="q">你要的从不是浅浅的喜欢，是彻底的交融</div><div class="wm">👁 Molly</div></div>
+          <div class="mc mc3"><div class="q">你不是野心大，是你天生就该站在高处</div><div class="wm">👁 Molly</div></div>
+          <div class="mc mc4"><div class="q">一个人扛，是你的本能，不是你的错</div><div class="wm">👁 Molly</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D 每日 push -->
+  <div class="cell">
+    <div class="label">4 · 每日星象 push</div>
+    <div class="phone">
+      <div class="lockbg"></div>
+      <div class="clock"><div class="t">8:02</div><div class="d">周五 · 6月13日</div></div>
+      <div class="push">
+        <div class="ic"></div>
+        <div style="flex:1">
+          <div class="head"><b>MOLLY</b><span>现在</span></div>
+          <div class="ttl">🌙 今天月亮入天蝎</div>
+          <div class="txt">情绪会偏深——我有三句话给你，点开看今天。👀</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
