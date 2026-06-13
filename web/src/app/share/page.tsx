@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
+import { useChartGuard } from "@/lib/guard";
 import { buildCardSVG, svgToPngBlob, type Template, type CardData } from "@/lib/share/card";
 
 const HOUSE_ZH = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
@@ -9,14 +10,12 @@ const TPLS: Template[] = ["a", "b", "c", "d"];
 
 export default function SharePage() {
   const router = useRouter();
-  const chart = useFunnel((s) => s.chart);
+  const { chart, ready } = useChartGuard();
   const firstRead = useFunnel((s) => s.firstRead);
   const birthForm = useFunnel((s) => s.birthForm);
   const [tpl, setTpl] = useState<Template>("a");
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => { if (!chart) router.replace("/input"); }, [chart, router]);
 
   const data: CardData | null = useMemo(() => {
     if (!chart) return null;
@@ -29,7 +28,7 @@ export default function SharePage() {
     return { dedication, quote, signs };
   }, [chart, firstRead, birthForm]);
 
-  if (!data) return null;
+  if (!ready || !data) return null;
 
   const cardSVG = buildCardSVG(data, tpl);
 

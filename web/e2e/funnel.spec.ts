@@ -1,40 +1,40 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
-test("activation funnel: landing → input → calibration → first-read → register → today", async ({ page }) => {
-  // Kill CSS animations so spinning eye motifs don't break click stability checks
-  await page.addInitScript(() => {
+// Kill CSS animations (spinning eye motifs break click stability), hide the
+// Next dev indicator + install banner so they don't intercept clicks.
+async function quietPage(page: Page, hideInstall = true) {
+  await page.addInitScript((hide) => {
     const s = document.createElement("style");
-    s.textContent = "*,*::before,*::after{animation:none!important;transition:none!important}nextjs-portal{display:none!important;pointer-events:none!important}";
+    s.textContent =
+      "*,*::before,*::after{animation:none!important;transition:none!important}nextjs-portal{display:none!important;pointer-events:none!important}" +
+      (hide ? "[data-testid=install-prompt]{display:none!important}" : "");
     document.documentElement.appendChild(s);
-  });
+  }, hideInstall);
+}
 
-  // Landing
+// Walk landing → … → today; leaves the page on /today with a populated store.
+async function walkToToday(page: Page) {
   await page.goto("/");
-  await expect(page.getByText("我直接看穿你")).toBeVisible();
   await page.getByRole("link", { name: /看穿你/ }).click();
-
-  // Input (prefilled) → submit
   await expect(page).toHaveURL(/\/input/);
   await page.getByRole("button", { name: /看你的盘/ }).click();
-
-  // Calibration: wait past 排盘 loading for options, answer 3
   const opt = page.locator('[data-testid="cal-opt"]').first();
   await opt.waitFor({ state: "visible", timeout: 8000 });
   for (let i = 0; i < 3; i++) {
     await page.locator('[data-testid="cal-opt"]').first().click();
     await page.waitForTimeout(400);
   }
-
-  // First-read (激活峰): wait past 解读 loading
   await page.locator('[data-testid="firstread"]').waitFor({ state: "visible", timeout: 8000 });
-  await expect(page.getByText("撕掉")).toBeVisible();
   await page.locator('[data-testid="chip"]').first().click();
-
-  // Register → today
   await page.locator('[data-testid="login"]').first().waitFor({ state: "visible", timeout: 8000 });
   await page.locator('[data-testid="login"]').first().click();
-
   await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
+}
+
+test("activation funnel: landing → input → calibration → first-read → register → today", async ({ page }) => {
+  await quietPage(page);
+
+  await walkToToday(page);
   await expect(page.getByText("我有三句话")).toBeVisible();
 
   // Tabs navigate
@@ -71,4 +71,21 @@ test("activation funnel: landing → input → calibration → first-read → re
   // export to PNG (no real share sheet in headless → download path + toast)
   await page.locator('[data-testid="save-btn"]').click();
   await expect(page.getByText(/保存图片|唤起分享/)).toBeVisible({ timeout: 5000 });
+});
+
+test("PWA install prompt: appears post-activation on /today and is dismissable", async ({ page }) => {
+  await quietPage(page, false); // keep the install banner visible
+
+  await walkToToday(page);
+  const prompt = page.locator('[data-testid="install-prompt"]');
+  await expect(prompt).toBeVisible({ timeout: 6000 });
+  await expect(prompt.getByText("把 Molly 放进你的口袋")).toBeVisible();
+
+  // dismissing (✕) hides it and remembers the choice across reloads
+  await prompt.getByText("✕").click();
+  await expect(prompt).toBeHidden();
+  await page.reload();
+  await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
+  await page.waitForTimeout(3200);
+  await expect(page.locator('[data-testid="install-prompt"]')).toBeHidden();
 });

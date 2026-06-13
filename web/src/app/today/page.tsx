@@ -1,22 +1,19 @@
 "use client";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
+import { useChartGuard } from "@/lib/guard";
 import { TabBar } from "@/components/TabBar";
 import { dayWealth } from "@/lib/astro/wealth";
 
 export default function TodayPage() {
   const router = useRouter();
-  const chart = useFunnel((s) => s.chart);
+  const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
+  if (!ready || !chart) return null;
 
-  useEffect(() => {
-    if (!chart) router.replace("/input");
-  }, [chart, router]);
-
-  const moon = chart?.placements.find((p) => p.body === "Moon");
-  const tw = chart ? dayWealth(chart, 2026, 6, 13) : null;
-  const fortune = tw?.level === "wang"
+  const moon = chart.placements.find((p) => p.body === "Moon");
+  const tw = dayWealth(chart, 2026, 6, 13);
+  const fortune = tw.level === "wang"
     ? { c: "var(--green)", b: "#a8e0bf", label: "旺", txt: "该收的款、该谈的薪今天去推" }
     : tw?.level === "shen"
     ? { c: "var(--red)", b: "#f0a8a5", label: "慎", txt: "今天别冲动消费，想下单先睡一觉" }

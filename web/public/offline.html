@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molly · 暂时离线</title>
+<style>
+  html,body{margin:0;height:100%;background:#04050a;color:#efe7d4;font-family:system-ui,-apple-system,'Noto Sans SC',sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px;text-align:center}
+  .eye{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#e0c98a 0%,#c9a861 38%,#1a2547 72%,#0c1124 100%);box-shadow:0 0 40px -8px rgba(201,168,97,.5)}
+  h1{font-size:19px;font-weight:600;color:#e0c98a;margin:0}
+  p{font-size:14px;color:#9aa2b4;margin:0;line-height:1.7;max-width:280px}
+  button{margin-top:6px;background:linear-gradient(180deg,#e0c98a,#c9a861);color:#1a1408;border:none;border-radius:12px;padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eye"></div>
+    <h1>你暂时离线了</h1>
+    <p>星图需要一点信号才能为你转动。连上网络，Molly 就回来。</p>
+    <button onclick="location.reload()">重新连接</button>
+  </div>
+</body>
+</html>

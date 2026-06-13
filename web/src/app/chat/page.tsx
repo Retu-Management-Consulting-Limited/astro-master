@@ -1,15 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useFunnel } from "@/lib/store";
+import { useState } from "react";
+import { useChartGuard } from "@/lib/guard";
 import { TabBar } from "@/components/TabBar";
 
 interface Msg { from: "me" | "molly"; text: string; recall?: boolean }
 
 export default function ChatPage() {
-  const router = useRouter();
-  const chart = useFunnel((s) => s.chart);
-  useEffect(() => { if (!chart) router.replace("/input"); }, [chart, router]);
+  const { chart, ready } = useChartGuard();
 
   const [msgs, setMsgs] = useState<Msg[]>([
     { from: "me", text: "我最近又开始想前任了…是不是很没出息" },
@@ -27,7 +24,7 @@ export default function ChatPage() {
     setTimeout(() => setMsgs((m) => [...m, { from: "molly", text: "我听见了。给我一点时间，把这个跟你的盘对上——你这种问法，本身就说明你已经知道答案了。" }]), 500);
   }
 
-  if (!chart) return null;
+  if (!ready || !chart) return null;
   return (
     <main className="phone" data-testid="chat">
       <div className="starfield" />

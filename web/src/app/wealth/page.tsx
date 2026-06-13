@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useFunnel } from "@/lib/store";
+import { useChartGuard } from "@/lib/guard";
 import { monthWealth, type DayWealth } from "@/lib/astro/wealth";
 
 const TODAY = 13;
@@ -21,10 +21,9 @@ function color(d: DayWealth): { bg: string; fg: string } {
 
 export default function WealthPage() {
   const router = useRouter();
-  const chart = useFunnel((s) => s.chart);
-  useEffect(() => { if (!chart) router.replace("/input"); }, [chart, router]);
+  const { chart, ready } = useChartGuard();
   const m = useMemo(() => (chart ? monthWealth(chart, 2026, 6) : null), [chart]);
-  if (!chart || !m) return null;
+  if (!ready || !chart || !m) return null;
 
   const today = m.days.find((d) => d.day === TODAY)!;
   const wangToday = today.level === "wang";

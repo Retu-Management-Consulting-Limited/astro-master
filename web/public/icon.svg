@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0%" stop-color="#10182e"/><stop offset="55%" stop-color="#070a14"/><stop offset="100%" stop-color="#04050a"/>
+    </radialGradient>
+    <radialGradient id="iris" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f3e3b4"/><stop offset="38%" stop-color="#e0c98a"/><stop offset="70%" stop-color="#c9a861"/><stop offset="100%" stop-color="#7d6334"/>
+    </radialGradient>
+    <radialGradient id="neb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2a3a6b"/><stop offset="60%" stop-color="#1a2547"/><stop offset="100%" stop-color="#0c1124"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- scattered stars -->
+  <g fill="#fff">
+    <circle cx="120" cy="110" r="2.4" opacity=".7"/><circle cx="400" cy="128" r="2" opacity=".6"/>
+    <circle cx="96" cy="300" r="1.8" opacity=".5"/><circle cx="430" cy="330" r="2.2" opacity=".6"/>
+    <circle cx="360" cy="408" r="1.8" opacity=".5"/><circle cx="150" cy="410" r="2" opacity=".5"/>
+  </g>
+  <circle cx="300" cy="120" r="2.6" fill="#c9a861" opacity=".85"/>
+  <!-- outer gold ring (almond eye hint) -->
+  <ellipse cx="256" cy="256" rx="168" ry="120" fill="none" stroke="#c9a861" stroke-width="6" opacity=".55"/>
+  <!-- iris -->
+  <circle cx="256" cy="256" r="96" fill="url(#iris)"/>
+  <!-- cosmic pupil -->
+  <circle cx="256" cy="256" r="52" fill="url(#neb)"/>
+  <circle cx="256" cy="256" r="52" fill="none" stroke="#3a4a7d" stroke-width="2" opacity=".6"/>
+  <circle cx="240" cy="240" r="10" fill="#fff" opacity=".85"/>
+  <circle cx="276" cy="270" r="4" fill="#cfe0f0" opacity=".7"/>
+</svg>

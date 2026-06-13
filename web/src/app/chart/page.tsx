@@ -1,7 +1,5 @@
 "use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useFunnel } from "@/lib/store";
+import { useChartGuard } from "@/lib/guard";
 import { detectHighlights } from "@/lib/astro/highlights";
 import { TabBar } from "@/components/TabBar";
 import type { BodyName } from "@/lib/astro/chart";
@@ -17,10 +15,8 @@ function pos(lon: number, r: number) {
 }
 
 export default function ChartPage() {
-  const router = useRouter();
-  const chart = useFunnel((s) => s.chart);
-  useEffect(() => { if (!chart) router.replace("/input"); }, [chart, router]);
-  if (!chart) return null;
+  const { chart, ready } = useChartGuard();
+  if (!ready || !chart) return null;
 
   const highlights = detectHighlights(chart);
   const glowBodies = new Set(highlights.flatMap((h) => h.bodies));

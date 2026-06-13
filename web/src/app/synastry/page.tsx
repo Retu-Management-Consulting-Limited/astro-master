@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFunnel } from "@/lib/store";
+import { useChartGuard } from "@/lib/guard";
 import { computeChart } from "@/lib/astro/chart";
 import { synastry, type RelType, type SynResult } from "@/lib/astro/synastry";
 
@@ -31,12 +31,11 @@ function reading(r: SynResult): { vibe: string; body: string; catchLine: string 
 
 export default function SynastryPage() {
   const router = useRouter();
-  const chart = useFunnel((s) => s.chart);
+  const { chart, ready } = useChartGuard();
   const [type, setType] = useState<RelType | null>(null);
-  useEffect(() => { if (!chart) router.replace("/input"); }, [chart, router]);
 
   const result = useMemo(() => (chart && type ? synastry(chart, PARTNER, type) : null), [chart, type]);
-  if (!chart) return null;
+  if (!ready || !chart) return null;
 
   return (
     <main className="phone" data-testid="synastry">

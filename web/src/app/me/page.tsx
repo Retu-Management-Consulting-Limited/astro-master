@@ -1,15 +1,14 @@
 "use client";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
+import { useChartGuard } from "@/lib/guard";
 import { TabBar } from "@/components/TabBar";
 
 export default function MePage() {
   const router = useRouter();
-  const chart = useFunnel((s) => s.chart);
+  const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
-  useEffect(() => { if (!chart) router.replace("/input"); }, [chart, router]);
-  if (!chart) return null;
+  if (!ready || !chart) return null;
 
   const rows = [
     { ic: "🕰️", t: "历史回看", badge: "一年前的今天" },
