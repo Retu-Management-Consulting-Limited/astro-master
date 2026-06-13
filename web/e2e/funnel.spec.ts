@@ -89,3 +89,27 @@ test("PWA install prompt: appears post-activation on /today and is dismissable",
   await page.waitForTimeout(3200);
   await expect(page.locator('[data-testid="install-prompt"]')).toBeHidden();
 });
+
+test("settings: AI disclosure + data deletion wipes everything → landing", async ({ page }) => {
+  await quietPage(page);
+  await walkToToday(page);
+
+  await page.locator('a[href="/me"]').click();
+  await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 5000 });
+  await page.locator('[data-testid="row-me/settings"]').click();
+  await expect(page.locator('[data-testid="settings"]')).toBeVisible({ timeout: 5000 });
+
+  // AI disclosure must be present (product responsibility)
+  await expect(page.getByText(/由 AI 驱动/)).toBeVisible();
+  await expect(page.getByText(/不构成医疗、法律或投资建议/)).toBeVisible();
+
+  // Delete all data → confirm → back to landing, store wiped
+  page.once("dialog", (d) => d.accept());
+  await page.locator('[data-testid="delete-data"]').click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 5000 });
+  await expect(page.getByText("我直接看穿你")).toBeVisible();
+
+  // Visiting a gated page now redirects to /input (data really gone)
+  await page.goto("/today");
+  await expect(page).toHaveURL(/\/input/, { timeout: 5000 });
+});

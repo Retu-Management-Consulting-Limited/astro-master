@@ -14,7 +14,7 @@ export default function MePage() {
     { ic: "🕰️", t: "历史回看", badge: "一年前的今天" },
     { ic: "📤", t: "我的卡片", arr: "12 ›", href: "/share" },
     { ic: "💞", t: "合盘", arr: "›", href: "/synastry" },
-    { ic: "⚙️", t: "设置", arr: "›" },
+    { ic: "⚙️", t: "设置", arr: "›", href: "/me/settings" },
   ];
 
   return (
