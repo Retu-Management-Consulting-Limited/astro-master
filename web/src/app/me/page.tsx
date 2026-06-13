@@ -2,16 +2,18 @@
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
+import { metLabel } from "@/lib/relationship";
 import { TabBar } from "@/components/TabBar";
 
 export default function MePage() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
+  const joinedAt = useFunnel((s) => s.joinedAt);
   if (!ready || !chart) return null;
 
   const rows = [
-    { ic: "🕰️", t: "历史回看", badge: "一年前的今天" },
+    { ic: "🕰️", t: "历史回看", badge: "翻翻看", href: "/history" },
     { ic: "📤", t: "我的卡片", arr: "12 ›", href: "/share" },
     { ic: "💞", t: "合盘", arr: "›", href: "/synastry" },
     { ic: "⚙️", t: "设置", arr: "›", href: "/me/settings" },
@@ -26,7 +28,7 @@ export default function MePage() {
           <div className="eye-mini" style={{ width: 60, height: 60 }} />
           <div>
             <div style={{ fontSize: 18, color: "var(--cream)", fontWeight: 600 }}>{nickname ?? "你"}</div>
-            <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 3 }}>认识 38 天 · ♅ 上升{chart.ascSign}</div>
+            <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 3 }}>{metLabel(joinedAt)} · ♅ 上升{chart.ascSign}</div>
           </div>
         </div>
 

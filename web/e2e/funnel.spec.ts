@@ -69,6 +69,14 @@ test("activation funnel: landing → input → calibration → first-read → re
   // 金句卡 share card — goBack from synastry returns to /me
   await page.goBack();
   await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 5000 });
+
+  // 历史回看: honest day-1 timeline echoing the first-read quote
+  await page.locator('[data-testid="row-history"]').click();
+  await expect(page.locator('[data-testid="history"]')).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText("第一天 · 你让我看你的盘")).toBeVisible();
+  await page.goBack();
+  await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 5000 });
+
   await page.locator('[data-testid="row-share"]').click();
   await expect(page.locator('[data-testid="share"]')).toBeVisible({ timeout: 5000 });
   await expect(page.locator('[data-testid="share-card"] svg')).toBeVisible();

@@ -18,6 +18,7 @@ interface FunnelState {
   firstRead?: FirstRead;
   ascCandidate?: string;
   nickname?: string;
+  joinedAt?: number;  // epoch ms of first chart — honest "认识 N 天"
   hasHydrated: boolean;
   setChart: (b: BirthInput, bf: BirthForm, c: Chart) => void;
   setFirstRead: (r: FirstRead) => void;
@@ -36,12 +37,13 @@ export const useFunnel = create<FunnelState>()(
   persist(
     (set) => ({
       hasHydrated: false,
-      setChart: (birth, birthForm, chart) => set({ birth, birthForm, chart }),
+      setChart: (birth, birthForm, chart) =>
+        set((s) => ({ birth, birthForm, chart, joinedAt: s.joinedAt ?? Date.now() })),
       setFirstRead: (firstRead) => set({ firstRead }),
       setAsc: (ascCandidate) => set({ ascCandidate }),
       setNickname: (nickname) => set({ nickname }),
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
-      reset: () => set({ birth: undefined, birthForm: undefined, chart: undefined, firstRead: undefined, ascCandidate: undefined, nickname: undefined }),
+      reset: () => set({ birth: undefined, birthForm: undefined, chart: undefined, firstRead: undefined, ascCandidate: undefined, nickname: undefined, joinedAt: undefined }),
     }),
     {
       name: "molly-funnel",
@@ -62,6 +64,7 @@ export const useFunnel = create<FunnelState>()(
         firstRead: s.firstRead,
         ascCandidate: s.ascCandidate,
         nickname: s.nickname,
+        joinedAt: s.joinedAt,
       }),
       onRehydrateStorage: () => (state) => state?.setHasHydrated(true),
     },
