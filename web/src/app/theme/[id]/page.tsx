@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { generateThemeRead, THEME_IDS, type ThemeId, type ThemeRead } from "@/lib/reading/theme";
-import { fetchThemeRead } from "@/lib/reading/remote";
+import { fetchThemeRead, AI_ON } from "@/lib/reading/remote";
+import { MollyThinking } from "@/components/MollyThinking";
 
 export default function ThemePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -13,15 +14,23 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
   const nickname = useFunnel((s) => s.nickname);
   const themeId = (THEME_IDS as string[]).includes(id) ? (id as ThemeId) : null;
   const [r, setR] = useState<ThemeRead | null>(null);
+  const [refining, setRefining] = useState(false);
 
   // instant deterministic stub, then upgrade in place to Claude's prose (AI on)
   useEffect(() => {
     if (!chart || !themeId) return;
     setR(generateThemeRead(chart, themeId));
     let alive = true;
-    fetchThemeRead(chart, themeId, nickname).then((real) => {
-      if (alive && real) setR(real);
-    });
+    if (AI_ON) {
+      setRefining(true);
+      fetchThemeRead(chart, themeId, nickname)
+        .then((real) => {
+          if (alive && real) setR(real);
+        })
+        .finally(() => {
+          if (alive) setRefining(false);
+        });
+    }
     return () => {
       alive = false;
     };
@@ -56,6 +65,13 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
         <div data-testid="theme-read" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12.5, color: "var(--gold-soft)", background: "rgba(201,168,97,.08)", border: "1px solid rgba(201,168,97,.28)", borderRadius: 20, padding: "6px 13px", margin: "8px 0 18px" }}>
           {r.planetLabel}
         </div>
+
+        {refining && (
+          <MollyThinking
+            phrases={[`正在顺着「${r.title}」读你…`, "她在看，这块对你意味着什么…", "把你的星位，翻成你能用的话…", "快好了，她想说得更贴你…"]}
+            style={{ marginBottom: 16 }}
+          />
+        )}
 
         {r.paragraphs.map((p, i) => (
           <p key={i} style={{ fontFamily: "var(--serif)", fontSize: p.catch ? 19 : 17.5, fontWeight: p.catch ? 500 : 400, fontStyle: p.catch ? "italic" : "normal", lineHeight: 1.75, marginBottom: 15, color: p.catch ? "var(--gold-soft)" : p.accent ? "var(--cream)" : "var(--cream-dim)", borderLeft: p.catch ? "2px solid var(--gold)" : "none", paddingLeft: p.catch ? 14 : 0 }}>

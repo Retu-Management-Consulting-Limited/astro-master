@@ -4,8 +4,11 @@ import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { fetchChatReply, AI_ON } from "@/lib/reading/remote";
 import { TabBar } from "@/components/TabBar";
+import { MollyThinking } from "@/components/MollyThinking";
 
 interface Msg { from: "me" | "molly"; text: string; recall?: boolean }
+
+const CHAT_THINKING = ["Molly 在想…", "她把这句话，放进你的盘里看…", "在你的月亮里，找一个只对你说的答案…", "在斟酌——怎么说，才对你…"];
 
 const FALLBACK_REPLY = "我听见了。给我一点时间，把这个跟你的盘对上——你这种问法，本身就说明你已经知道答案了。";
 
@@ -67,13 +70,7 @@ export default function ChatPage() {
             )}
           </div>
         ))}
-        {typing && (
-          <div data-testid="typing" style={{ maxWidth: "86%", marginBottom: 14, marginRight: "auto" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, borderRadius: 16, borderBottomLeftRadius: 5, padding: "12px 15px", background: "#141a28", border: "1px solid #232c3e", color: "var(--mute)", fontSize: 13 }}>
-              <span className="eye-mini" style={{ width: 13, height: 13 }} /> Molly 正在想…
-            </div>
-          </div>
-        )}
+        {typing && <MollyThinking variant="bubble" phrases={CHAT_THINKING} />}
         {!typing && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, margin: "6px 2px 4px" }}>
             {["那我还要不要再联系他？", "怎么才算真的放下？"].map((c) => (

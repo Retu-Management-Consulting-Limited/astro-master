@@ -5,6 +5,7 @@ import { useFunnel } from "@/lib/store";
 import { generateFirstRead, type FirstRead } from "@/lib/reading/generate";
 import { fetchFirstRead, AI_ON } from "@/lib/reading/remote";
 import { LoadingRitual } from "@/components/LoadingRitual";
+import { MollyThinking } from "@/components/MollyThinking";
 
 export default function ReadingPage() {
   const router = useRouter();
@@ -69,8 +70,18 @@ export default function ReadingPage() {
         <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>为你校准 · 上升 <b style={{ color: "var(--gold)" }}>{ascCandidate ?? read.ascSign}</b></span>
       </div>
       {refining && (
-        <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 7, padding: "8px 26px 0", fontSize: 11, color: "var(--gold-soft)" }}>
-          <span className="eye-mini" style={{ width: 13, height: 13 }} /> Molly 正在亲手为你重写这一段（约一分钟）…
+        <div style={{ position: "relative", zIndex: 3, padding: "10px 24px 0" }}>
+          <MollyThinking
+            phrases={[
+              "正在对齐你的星盘…",
+              chart?.placements.find((p) => p.body === "Moon")?.sign
+                ? `她在读你的月亮·${chart.placements.find((p) => p.body === "Moon")!.sign}…`
+                : "她在读你的月亮…",
+              "把你的样子，和你的盘对上…",
+              "在斟酌——怎么说，才不伤你、又够准…",
+              "快好了，她想把这一段，写得更像你…",
+            ]}
+          />
         </div>
       )}
 
