@@ -55,8 +55,20 @@ test("activation funnel: landing → input → calibration → first-read → re
   // 合盘
   await page.goBack();
   await page.locator('a[href="/me"]').click();
-  await page.locator('[data-testid="to-synastry"]').click();
+  await page.locator('[data-testid="row-synastry"]').click();
   await expect(page.locator('[data-testid="synastry"]')).toBeVisible({ timeout: 5000 });
   await page.locator('[data-testid="syn-type"]').first().click();
   await expect(page.locator('[data-testid="syn-result"]')).toBeVisible();
+
+  // 金句卡 share card — goBack from synastry returns to /me
+  await page.goBack();
+  await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 5000 });
+  await page.locator('[data-testid="row-share"]').click();
+  await expect(page.locator('[data-testid="share"]')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('[data-testid="share-card"] svg')).toBeVisible();
+  // switch template
+  await page.locator('[data-testid="tpl"]').nth(1).click();
+  // export to PNG (no real share sheet in headless → download path + toast)
+  await page.locator('[data-testid="save-btn"]').click();
+  await expect(page.getByText(/保存图片|唤起分享/)).toBeVisible({ timeout: 5000 });
 });

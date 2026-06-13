@@ -72,6 +72,7 @@ export default function SynastryPage() {
 }
 
 function Result({ result }: { result: SynResult }) {
+  const router = useRouter();
   const r = reading(result);
   const typeLabel = TYPES.find((t) => t.id === result.type)!.t;
   return (
@@ -93,7 +94,7 @@ function Result({ result }: { result: SynResult }) {
         <p style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 18.5, lineHeight: 1.6, color: "var(--cream-dim)", marginBottom: 13 }}>{r.body}</p>
         <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{r.catchLine}</p>
       </div>
-      <div style={{ margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)" }}>📤 把这份合盘存成卡</div>
+      <div onClick={() => router.push("/share")} style={{ margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</div>
       <div style={{ textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
     </div>
   );

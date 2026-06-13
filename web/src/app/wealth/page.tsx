@@ -84,7 +84,7 @@ export default function WealthPage() {
         )}
 
         <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "18px 0 4px" }}>财运仅供参考 · 投资有风险，最终决定还是你做</div>
-        <div style={{ textAlign: "center", fontSize: 13, color: "var(--gold-soft)" }}>📤 晒我的搞钱黄金日</div>
+        <div onClick={() => router.push("/share")} style={{ textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 晒我的搞钱黄金日</div>
       </div>
     </main>
   );

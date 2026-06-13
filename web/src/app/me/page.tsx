@@ -13,7 +13,7 @@ export default function MePage() {
 
   const rows = [
     { ic: "🕰️", t: "历史回看", badge: "一年前的今天" },
-    { ic: "📤", t: "我的卡片", arr: "12 ›" },
+    { ic: "📤", t: "我的卡片", arr: "12 ›", href: "/share" },
     { ic: "💞", t: "合盘", arr: "›", href: "/synastry" },
     { ic: "⚙️", t: "设置", arr: "›" },
   ];
@@ -41,7 +41,7 @@ export default function MePage() {
 
         <div>
           {rows.map((r) => (
-            <div key={r.t} data-testid={r.href === "/synastry" ? "to-synastry" : undefined} onClick={() => r.href && router.push(r.href)} style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 4px", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: 15, color: "var(--cream-dim)", cursor: r.href ? "pointer" : "default" }}>
+            <div key={r.t} data-testid={r.href ? `row-${r.href.slice(1)}` : undefined} onClick={() => r.href && router.push(r.href)} style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 4px", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: 15, color: "var(--cream-dim)", cursor: r.href ? "pointer" : "default" }}>
               <span style={{ fontSize: 18, width: 24, textAlign: "center" }}>{r.ic}</span>{r.t}
               {r.badge ? <span style={{ marginLeft: "auto", background: "#1f2a44", color: "#9ecbff", borderRadius: 10, padding: "2px 8px", fontSize: 11 }}>{r.badge}</span> : <span style={{ marginLeft: "auto", color: "#4f5666" }}>{r.arr}</span>}
             </div>
