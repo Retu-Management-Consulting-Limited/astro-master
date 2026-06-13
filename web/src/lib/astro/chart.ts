@@ -138,4 +138,9 @@ export function computeChart(b: BirthInput): Chart {
   };
 }
 
+// transit longitude of a body at an arbitrary date (for daily/财运/行运 engines)
+export function bodyLongitude(body: BodyName, date: Date): number {
+  return eclipticLongitude(body, date);
+}
+
 export { SIGNS_ZH, BODIES };

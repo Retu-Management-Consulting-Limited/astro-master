@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { TabBar } from "@/components/TabBar";
+import { dayWealth } from "@/lib/astro/wealth";
 
 export default function TodayPage() {
   const router = useRouter();
@@ -14,6 +15,12 @@ export default function TodayPage() {
   }, [chart, router]);
 
   const moon = chart?.placements.find((p) => p.body === "Moon");
+  const tw = chart ? dayWealth(chart, 2026, 6, 13) : null;
+  const fortune = tw?.level === "wang"
+    ? { c: "var(--green)", b: "#a8e0bf", label: "旺", txt: "该收的款、该谈的薪今天去推" }
+    : tw?.level === "shen"
+    ? { c: "var(--red)", b: "#f0a8a5", label: "慎", txt: "今天别冲动消费，想下单先睡一觉" }
+    : { c: "var(--blue)", b: "#cfe0f0", label: "平", txt: "钱上没大事，按计划走就好" };
 
   return (
     <main className="phone" data-testid="today">
@@ -50,8 +57,8 @@ export default function TodayPage() {
           <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 9, color: "var(--gold)", display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} />今天</div>
           <div style={{ fontSize: 15.5, color: "var(--cream)", lineHeight: 1.68 }}>金星刑你的天顶——<b style={{ color: "var(--gold-soft)" }}>今天别急着在工作上表态</b>。有人会试探你的底，沉住气，话留三分。</div>
           <div style={{ marginTop: 11, fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18, color: "var(--gold-soft)", lineHeight: 1.5 }}>这不是坏日子，是宇宙让你先稳住自己。</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 13, padding: "9px 12px", borderRadius: 11, background: "rgba(127,201,154,.1)", border: "1px solid rgba(127,201,154,.3)", fontSize: 12.5, color: "var(--green)" }}>
-            <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--green)", boxShadow: "0 0 8px var(--green)" }} /><span>今日财运 <b style={{ color: "#a8e0bf" }}>旺</b> · 该收的款、该谈的薪今天去推</span><span style={{ marginLeft: "auto", color: "#5f8f73" }}>查日历 →</span>
+          <div onClick={() => router.push("/wealth")} data-testid="fortune-chip" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 13, padding: "9px 12px", borderRadius: 11, background: "rgba(127,201,154,.07)", border: `1px solid ${fortune.c}55`, fontSize: 12.5, color: fortune.c, cursor: "pointer" }}>
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: fortune.c, boxShadow: `0 0 8px ${fortune.c}` }} /><span>今日财运 <b style={{ color: fortune.b }}>{fortune.label}</b> · {fortune.txt}</span><span style={{ marginLeft: "auto", color: "#5f8f73" }}>查日历 →</span>
           </div>
         </div>
 
