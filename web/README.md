@@ -51,27 +51,30 @@ src/
 
 排盘、亮点、财运、合盘、主题解读全部是**纯函数 + 真实星体位置**，有单测覆盖。
 
+## 真大师解读（Molly AI）
+
+解读走 **server route `app/api/reading/route.ts`**：Claude 只写**文案**，所有星位事实由真实星盘确定性算出后传进去（绝不让模型编星位）。前端是**渐进增强**——先秒出确定性 stub，AI 回来后**原地替换**，所以再慢也不卡流程。
+
+- **开关**：`.env.local` 里 `NEXT_PUBLIC_MOLLY_AI=1`（不设=纯 stub，测试/CI 即此）
+- **鉴权**：用 **Agent SDK**（`@anthropic-ai/claude-agent-sdk`）。`ANTHROPIC_API_KEY` 未设时自动复用本机 **Claude Code 订阅登录**（pilot/本地）；生产填 API key 即走 API。
+- **模型**：`MOLLY_MODEL=haiku|sonnet|opus`（默认 sonnet）。route 已用 `settingSources:[] / mcpServers:{} / cwd=tmpdir` 关掉工作区配置加载，并接了 `abortController`（客户端断开即杀子进程）。
+
+> ⚠️ **订阅鉴权仅限本地 pilot**。Anthropic 不允许用 claude.ai 登录给产品的终端用户服务；有真实用户前请改成 `ANTHROPIC_API_KEY`。
+>
+> ⏱️ **延迟**：Agent SDK 每次调用要冷启动引擎子进程，单次约 **40–90s**（不是模型慢，是 SDK 不为快速 completion 设计）。pilot 自测文案够用（stub 秒出、后台替换）。要低延迟（2–5s）把 `run()` 换成直连 `@anthropic-ai/sdk` 的 API 调用即可——同一个 route，改一个函数。
+
 ## 还没接的（stub）
 
-代码里用 `TODO(key)` / `TODO(geo)` / `TODO(push)` / `TODO(invite)` / `TODO(obs)` 标注。
-当前所有 AI 解读是**确定性 stub**（编织真实星位），接入 Claude 后替换文案、保留结构：
+代码里用 `TODO(geo)` / `TODO(push)` / `TODO(invite)` / `TODO(font-embed)` 标注。
 
 | 标记 | 位置 | 接什么 |
 |---|---|---|
-| `TODO(key)` | `lib/reading/generate.ts`、`theme.ts`、`app/chat` | Claude 解读（建议走 server route，密钥不进客户端） |
 | `TODO(geo)` | `lib/astro/geocode.ts` | 真实地理编码 + 历史时区（现为内置城市表） |
 | `TODO(push)` | `app/me/settings` | Web Push 订阅（每日星象 / 财运 / 合盘提醒） |
 | `TODO(invite)` | `app/synastry` | 合盘邀请链接 → 对方真实出生数据 |
 | `TODO(font-embed)` | `lib/share/card.ts` | 金句卡 PNG 嵌入品牌衬线字体（导出避免 canvas 跨域污染，现用通用 serif） |
 
-### 接 Claude 时
-
-```bash
-cp .env.example .env.local      # 填 ANTHROPIC_API_KEY
-```
-
-解读应走 **server route / server action**（`claude-opus-4-8` 或同档），不要把密钥放进客户端 bundle。
-生成时以「真实星盘 + 累积 self-model」为条件，沿用各 stub 的输出结构（`FirstRead` / `ThemeRead`）。
+readings 仍保留确定性 stub 作为**即时兜底**（AI 关闭、超时或失败时用）。
 
 ## 设计来源
 

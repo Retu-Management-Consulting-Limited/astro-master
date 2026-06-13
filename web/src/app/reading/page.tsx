@@ -1,27 +1,61 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
-import { generateFirstRead } from "@/lib/reading/generate";
+import { generateFirstRead, type FirstRead } from "@/lib/reading/generate";
+import { fetchFirstRead, AI_ON } from "@/lib/reading/remote";
 import { LoadingRitual } from "@/components/LoadingRitual";
 
 export default function ReadingPage() {
   const router = useRouter();
   const chart = useFunnel((s) => s.chart);
   const ascCandidate = useFunnel((s) => s.ascCandidate);
+  const nickname = useFunnel((s) => s.nickname);
   const setFirstRead = useFunnel((s) => s.setFirstRead);
+  const [read, setRead] = useState<FirstRead | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refining, setRefining] = useState(false);
 
   useEffect(() => {
-    if (!chart) router.replace("/input");
-  }, [chart, router]);
+    if (!chart) {
+      router.replace("/input");
+      return;
+    }
+    let cancelled = false;
 
-  const read = useMemo(() => (chart ? generateFirstRead(chart) : null), [chart]);
-  useEffect(() => {
-    if (read) setFirstRead(read);
-  }, [read, setFirstRead]);
+    // Progressive: show the instant deterministic stub after a brief ritual,
+    // then upgrade IN PLACE to Claude's reading when it arrives (no long wait).
+    const stub = generateFirstRead(chart);
+    const timer = setTimeout(() => {
+      if (cancelled) return;
+      setRead((prev) => prev ?? stub);
+      setFirstRead(stub);
+      setLoading(false);
+    }, 1400);
 
-  if (loading || !read) return <LoadingRitual line="我看到你了。<br/>给我一点时间……" sub="正在解读你的盘…" ms={1500} onDone={() => setLoading(false)} />;
+    if (AI_ON) {
+      setRefining(true);
+      fetchFirstRead(chart, nickname)
+        .then((real) => {
+          if (!cancelled && real) {
+            setRead(real);
+            setFirstRead(real);
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setRefining(false);
+        });
+    }
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [chart, nickname, router, setFirstRead]);
+
+  if (loading || !read)
+    return <LoadingRitual line="我看到你了。<br/>给我一点时间……" sub="正在解读你的盘…" ms={9_999_999} onDone={() => {}} />;
 
   const gate = () => router.push("/register");
 
@@ -34,6 +68,11 @@ export default function ReadingPage() {
         <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
         <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>为你校准 · 上升 <b style={{ color: "var(--gold)" }}>{ascCandidate ?? read.ascSign}</b></span>
       </div>
+      {refining && (
+        <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 7, padding: "8px 26px 0", fontSize: 11, color: "var(--gold-soft)" }}>
+          <span className="eye-mini" style={{ width: 13, height: 13 }} /> Molly 正在亲手为你重写这一段（约一分钟）…
+        </div>
+      )}
 
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "26px 28px 12px" }}>
         <div className="reveal" style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontWeight: 600, fontSize: 26, color: "var(--cream)", lineHeight: 1.35, marginBottom: 22, animationDelay: ".4s" }}>{read.lead}</div>

@@ -9,8 +9,9 @@ export interface FirstRead {
   chips: string[];
 }
 
-// NOTE: deterministic STUB. Design-accurate, weaves in real placements.
-// TODO(key): replace with Claude generation (server route) conditioned on chart + self-model.
+// Deterministic baseline reading — design-accurate, weaves in real placements.
+// Serves as the instant render AND the fallback when AI is off/unavailable.
+// Real Molly readings come from /api/reading (see lib/reading/remote.ts).
 
 const find = (c: Chart, b: string) => c.placements.find((p) => p.body === b) as Placement;
 

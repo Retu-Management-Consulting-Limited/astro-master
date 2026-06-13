@@ -1,16 +1,34 @@
 "use client";
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
-import { generateThemeRead, THEME_IDS, type ThemeId } from "@/lib/reading/theme";
+import { generateThemeRead, THEME_IDS, type ThemeId, type ThemeRead } from "@/lib/reading/theme";
+import { fetchThemeRead } from "@/lib/reading/remote";
 
 export default function ThemePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { chart, ready } = useChartGuard();
+  const nickname = useFunnel((s) => s.nickname);
+  const themeId = (THEME_IDS as string[]).includes(id) ? (id as ThemeId) : null;
+  const [r, setR] = useState<ThemeRead | null>(null);
+
+  // instant deterministic stub, then upgrade in place to Claude's prose (AI on)
+  useEffect(() => {
+    if (!chart || !themeId) return;
+    setR(generateThemeRead(chart, themeId));
+    let alive = true;
+    fetchThemeRead(chart, themeId, nickname).then((real) => {
+      if (alive && real) setR(real);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [chart, themeId, nickname]);
+
   if (!ready || !chart) return null;
 
-  const themeId = (THEME_IDS as string[]).includes(id) ? (id as ThemeId) : null;
   if (!themeId) {
     return (
       <main className="phone" data-testid="theme">
@@ -23,7 +41,7 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
     );
   }
 
-  const r = generateThemeRead(chart, themeId);
+  if (!r) return null;
 
   return (
     <main className="phone" data-testid="theme">

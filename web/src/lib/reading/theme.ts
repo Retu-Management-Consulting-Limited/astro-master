@@ -1,8 +1,8 @@
 import type { Chart, BodyName, Placement } from "@/lib/astro/chart";
 
-// 主题深度解读 — deterministic STUB woven with the user's real placements.
-// TODO(key): replace prose with Claude (server route) conditioned on the full
-// chart + accumulated self-model. The placement selection + structure stays.
+// 主题深度解读 — deterministic baseline woven with the user's real placements.
+// Instant render + fallback; real readings come from /api/reading, which keeps
+// this scaffold's placement facts and swaps only the prose.
 
 export type ThemeId = "love" | "wealth" | "lonely" | "self";
 
