@@ -1,6 +1,13 @@
 import { test, expect } from "@playwright/test";
 
 test("activation funnel: landing → input → calibration → first-read → register → today", async ({ page }) => {
+  // Kill CSS animations so spinning eye motifs don't break click stability checks
+  await page.addInitScript(() => {
+    const s = document.createElement("style");
+    s.textContent = "*,*::before,*::after{animation:none!important;transition:none!important}nextjs-portal{display:none!important;pointer-events:none!important}";
+    document.documentElement.appendChild(s);
+  });
+
   // Landing
   await page.goto("/");
   await expect(page.getByText("我直接看穿你")).toBeVisible();
@@ -31,10 +38,25 @@ test("activation funnel: landing → input → calibration → first-read → re
   await expect(page.getByText("我有三句话")).toBeVisible();
 
   // Tabs navigate
-  await page.getByRole("link", { name: /本命/ }).click();
+  await page.locator('a[href="/chart"]').click();
   await expect(page.locator('[data-testid="chart"]')).toBeVisible({ timeout: 5000 });
-  await page.getByRole("link", { name: /对话/ }).click();
+  await page.locator('a[href="/chat"]').click();
   await expect(page.locator('[data-testid="chat"]')).toBeVisible({ timeout: 5000 });
-  await page.getByRole("link", { name: /我的/ }).click();
+  await page.locator('a[href="/me"]').click();
   await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 5000 });
+
+  // 财运日历
+  await page.locator('a[href="/today"]').click();
+  await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 5000 });
+  await page.locator('[data-testid="fortune-chip"]').click();
+  await expect(page.locator('[data-testid="wealth"]')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('[data-testid="wealth-day"]').first()).toBeVisible();
+
+  // 合盘
+  await page.goBack();
+  await page.locator('a[href="/me"]').click();
+  await page.locator('[data-testid="to-synastry"]').click();
+  await expect(page.locator('[data-testid="synastry"]')).toBeVisible({ timeout: 5000 });
+  await page.locator('[data-testid="syn-type"]').first().click();
+  await expect(page.locator('[data-testid="syn-result"]')).toBeVisible();
 });
