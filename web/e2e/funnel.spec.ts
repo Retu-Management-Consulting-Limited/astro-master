@@ -29,4 +29,12 @@ test("activation funnel: landing → input → calibration → first-read → re
 
   await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
   await expect(page.getByText("我有三句话")).toBeVisible();
+
+  // Tabs navigate
+  await page.getByRole("link", { name: /本命/ }).click();
+  await expect(page.locator('[data-testid="chart"]')).toBeVisible({ timeout: 5000 });
+  await page.getByRole("link", { name: /对话/ }).click();
+  await expect(page.locator('[data-testid="chat"]')).toBeVisible({ timeout: 5000 });
+  await page.getByRole("link", { name: /我的/ }).click();
+  await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 5000 });
 });
