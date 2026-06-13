@@ -1,0 +1,94 @@
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useFunnel } from "@/lib/store";
+
+function TabBar({ active }: { active: string }) {
+  const tabs = [
+    { id: "today", ic: "☾", label: "今日" },
+    { id: "chart", ic: "✶", label: "本命" },
+    { id: "chat", ic: "eye", label: "对话" },
+    { id: "me", ic: "✦", label: "我的" },
+  ];
+  return (
+    <div style={{ position: "relative", zIndex: 4, flex: "0 0 auto", display: "flex", justifyContent: "space-around", padding: "10px 8px 16px", borderTop: "1px solid rgba(255,255,255,.06)", background: "linear-gradient(0deg,#080a12,rgba(8,10,18,.6))" }}>
+      {tabs.map((t) => (
+        <div key={t.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, fontSize: 10.5, color: active === t.id ? "var(--gold)" : "#5a6173", flex: 1 }}>
+          {t.ic === "eye" ? <span className="eye-mini" style={{ width: 18, height: 18 }} /> : <span style={{ fontSize: 17 }}>{t.ic}</span>}
+          {t.label}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function TodayPage() {
+  const router = useRouter();
+  const chart = useFunnel((s) => s.chart);
+  const nickname = useFunnel((s) => s.nickname);
+
+  useEffect(() => {
+    if (!chart) router.replace("/input");
+  }, [chart, router]);
+
+  const moon = chart?.placements.find((p) => p.body === "Moon");
+
+  return (
+    <main className="phone" data-testid="today">
+      <div className="starfield" />
+      <div className="grain" />
+      <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "24px 22px 10px" }}>
+        <div className="eye-mini" />
+        <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: "var(--cream-dim)" }}>
+          懂你 <span style={{ width: 40, height: 4, background: "#1d2333", borderRadius: 3, overflow: "hidden" }}><i style={{ display: "block", height: "100%", width: "62%", background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} /></span> <b style={{ color: "var(--gold)" }}>62%</b> ↑
+        </div>
+      </div>
+
+      <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "8px 20px 12px" }}>
+        <div style={{ fontFamily: "var(--serif)", fontSize: 24, color: "var(--cream)", fontWeight: 500, margin: "6px 4px 12px" }}>
+          {nickname ?? "你"}，<i style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>我有三句话</i>给你。
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(143,182,216,.07)", border: "1px solid rgba(143,182,216,.18)", borderRadius: 11, padding: "9px 12px", fontSize: 12.5, color: "var(--blue)", marginBottom: 16 }}>
+          🌙 <span>月亮入{moon?.sign ?? "天蝎"} · <b style={{ color: "#cfe0f0" }}>情绪偏深</b>，今天宜独处、忌硬撑</span>
+        </div>
+
+        {/* 昨 */}
+        <div style={{ borderRadius: 17, padding: "15px 16px", marginBottom: 12, border: "1px solid rgba(143,182,216,.28)", background: "var(--field)" }}>
+          <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 9, color: "var(--blue)", display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--blue)" }} />昨天 · 你说中了吗<span style={{ marginLeft: "auto", fontSize: 10, letterSpacing: 0, color: "var(--green)", textTransform: "none" }}>答对 +1% 校准</span></div>
+          <div style={{ fontSize: 14.5, lineHeight: 1.62, color: "var(--cream-dim)" }}>我说你昨天会<b style={{ color: "var(--cream)" }}>特别想抓住一个确定的答案</b>——对吗？</div>
+          <div style={{ display: "flex", gap: 9, marginTop: 11 }}>
+            <span style={{ flex: 1, textAlign: "center", borderRadius: 10, padding: 8, fontSize: 12.5, border: "1px solid rgba(127,201,154,.4)", background: "rgba(127,201,154,.12)", color: "var(--green)" }}>嗯，是这样 ✓</span>
+            <span style={{ flex: 1, textAlign: "center", borderRadius: 10, padding: 8, fontSize: 12.5, border: "1px solid #2b3a4e", color: "#a9c4dd" }}>其实没有</span>
+          </div>
+        </div>
+
+        {/* 今 hero */}
+        <div style={{ borderRadius: 17, padding: "15px 16px", marginBottom: 12, border: "1px solid rgba(201,168,97,.4)", background: "linear-gradient(180deg, rgba(201,168,97,.07), rgba(201,168,97,.02))", boxShadow: "0 0 30px -12px rgba(201,168,97,.4)" }}>
+          <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 9, color: "var(--gold)", display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} />今天</div>
+          <div style={{ fontSize: 15.5, color: "var(--cream)", lineHeight: 1.68 }}>金星刑你的天顶——<b style={{ color: "var(--gold-soft)" }}>今天别急着在工作上表态</b>。有人会试探你的底，沉住气，话留三分。</div>
+          <div style={{ marginTop: 11, fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18, color: "var(--gold-soft)", lineHeight: 1.5 }}>这不是坏日子，是宇宙让你先稳住自己。</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 13, padding: "9px 12px", borderRadius: 11, background: "rgba(127,201,154,.1)", border: "1px solid rgba(127,201,154,.3)", fontSize: 12.5, color: "var(--green)" }}>
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--green)", boxShadow: "0 0 8px var(--green)" }} /><span>今日财运 <b style={{ color: "#a8e0bf" }}>旺</b> · 该收的款、该谈的薪今天去推</span><span style={{ marginLeft: "auto", color: "#5f8f73" }}>查日历 →</span>
+          </div>
+        </div>
+
+        {/* 明 */}
+        <div style={{ borderRadius: 17, padding: "15px 16px", marginBottom: 12, border: "1px solid rgba(181,143,176,.26)", background: "var(--field)" }}>
+          <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 9, color: "var(--irisc)", display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--irisc)" }} />明天</div>
+          <div style={{ fontSize: 14.5, lineHeight: 1.62, color: "var(--cream-dim)" }}>明早，月亮合你的金星——<b style={{ color: "#d6b8d2" }}>一道难得的温柔相位</b>。记得回来，我有话想跟你说。🔮</div>
+        </div>
+
+        {/* 心情打卡 */}
+        <div style={{ marginTop: 4, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 17, padding: "14px 16px" }}>
+          <div style={{ fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 11 }}>此刻的你，是哪一种？</div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            {["😌", "😮‍💨", "😔", "🔥", "🌧️"].map((e) => <div key={e} style={{ width: 46, height: 46, borderRadius: "50%", background: "#161b29", border: "1px solid #2b3242", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{e}</div>)}
+          </div>
+        </div>
+      </div>
+
+      <TabBar active="today" />
+    </main>
+  );
+}
