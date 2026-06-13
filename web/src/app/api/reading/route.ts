@@ -1,8 +1,8 @@
-import { tmpdir } from "node:os";
 import { NextResponse } from "next/server";
-import { query } from "@anthropic-ai/claude-agent-sdk";
 import { generateThemeRead, type ThemeId, THEME_IDS } from "@/lib/reading/theme";
 import type { Chart } from "@/lib/astro/chart";
+import { PERSONA, facts } from "@/lib/ai/molly";
+import { runLLM } from "@/lib/ai/llm";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -18,29 +18,6 @@ export const maxDuration = 120;
 //                              — Anthropic does not permit claude.ai login to serve
 //                              a product's end users; switch to a key before launch.
 // A bounded in-memory cache makes repeat reads of the same chart instant.
-
-const PLANET_ZH: Record<string, string> = {
-  Sun: "太阳", Moon: "月亮", Mercury: "水星", Venus: "金星", Mars: "火星",
-  Jupiter: "木星", Saturn: "土星", Uranus: "天王星", Neptune: "海王星", Pluto: "冥王星",
-};
-const HOUSE_ZH = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
-
-function facts(chart: Chart): string {
-  const lines = chart.placements
-    .filter((p) => PLANET_ZH[p.body])
-    .map((p) => `${PLANET_ZH[p.body]}落${p.sign}，第${HOUSE_ZH[p.house] ?? p.house}宫`);
-  const asp = (chart.aspects ?? [])
-    .slice(0, 4)
-    .map((a) => `${PLANET_ZH[a.a] ?? a.a} ${a.type} ${PLANET_ZH[a.b] ?? a.b}`);
-  return `上升${chart.ascSign}。\n${lines.join("；")}。${asp.length ? `\n主要相位：${asp.join("；")}。` : ""}`;
-}
-
-const PERSONA = `你是 Molly——一位能「看穿本命」的占星向导。你的声音：
-- 第二人称「你」，像一个比她自己更懂她的人在低声说话。
-- 精准、有体温、带一点钝痛感；先戳中她藏起来的那一面，再把它翻译成力量。
-- 句子短、有画面、有情绪；绝不写星座专栏式的空话或万能套话。
-- 一定紧扣我给你的真实星盘事实来写，不要编造任何星位。
-- 简体中文。解读正文里不要出现任何免责声明。`;
 
 interface AiCommon {
   lead?: string;
@@ -76,61 +53,7 @@ function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: strin
 }`;
 }
 
-const MODEL_ALIAS = (process.env.MOLLY_MODEL || "sonnet").toLowerCase();
-const MODEL_ID: Record<string, string> = {
-  haiku: "claude-haiku-4-5-20251001",
-  sonnet: "claude-sonnet-4-6",
-  opus: "claude-opus-4-8",
-};
-const USE_API = !!process.env.ANTHROPIC_API_KEY;
-
-// PROD path: direct Anthropic API. Fast (~2-5s). Used whenever an API key is set.
-async function runViaApi(prompt: string, ac: AbortController): Promise<string> {
-  const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const client = new Anthropic();
-  const msg = await client.messages.create(
-    {
-      model: MODEL_ID[MODEL_ALIAS] ?? MODEL_ID.sonnet,
-      max_tokens: 1024,
-      system: PERSONA,
-      messages: [{ role: "user", content: prompt }],
-    },
-    { signal: ac.signal },
-  );
-  return msg.content
-    .map((b) => (b.type === "text" ? b.text : ""))
-    .join("");
-}
-
-// PILOT path: Agent SDK reusing the local Claude Code subscription login (no API
-// key). Slow (~40-90s: SDK cold-starts an engine subprocess per call).
-async function runViaAgentSdk(prompt: string, abortController: AbortController): Promise<string> {
-  let out = "";
-  for await (const m of query({
-    prompt,
-    options: {
-      allowedTools: [],
-      maxTurns: 1,
-      permissionMode: "bypassPermissions",
-      model: MODEL_ALIAS,
-      systemPrompt: PERSONA,
-      // Pure completion: don't load this workspace's CLAUDE.md / settings / MCP.
-      settingSources: [],
-      mcpServers: {},
-      cwd: tmpdir(),
-      // Kill the engine subprocess if the client disconnects.
-      abortController,
-    },
-  })) {
-    if (m.type === "result") out = (m as { result?: string }).result ?? "";
-  }
-  return out;
-}
-
-// Auto-select: API key present → direct API; otherwise → subscription via SDK.
-function run(prompt: string, ac: AbortController): Promise<string> {
-  return USE_API ? runViaApi(prompt, ac) : runViaAgentSdk(prompt, ac);
-}
+const run = (prompt: string, ac: AbortController) => runLLM(prompt, PERSONA, ac);
 
 // Bounded in-memory cache: a chart's reading is stable, so repeat taps /
 // re-renders return instantly (and don't re-bill). Keyed by chart signature.

@@ -40,3 +40,29 @@ export async function fetchThemeRead(chart: Chart, themeId: ThemeId, nickname?: 
   if (!AI_ON) return null;
   return (await post({ kind: "theme", themeId, chart, nickname })) as ThemeRead | null;
 }
+
+export interface ChatMsg {
+  from: "me" | "molly";
+  text: string;
+}
+
+export async function fetchChatReply(chart: Chart, messages: ChatMsg[], nickname?: string): Promise<string | null> {
+  if (!AI_ON) return null;
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 120000);
+  try {
+    const r = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chart, nickname, messages }),
+      signal: ctrl.signal,
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return typeof j?.text === "string" && j.text ? j.text : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}

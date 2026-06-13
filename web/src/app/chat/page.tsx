@@ -1,12 +1,17 @@
 "use client";
 import { useState } from "react";
+import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
+import { fetchChatReply, AI_ON } from "@/lib/reading/remote";
 import { TabBar } from "@/components/TabBar";
 
 interface Msg { from: "me" | "molly"; text: string; recall?: boolean }
 
+const FALLBACK_REPLY = "我听见了。给我一点时间，把这个跟你的盘对上——你这种问法，本身就说明你已经知道答案了。";
+
 export default function ChatPage() {
   const { chart, ready } = useChartGuard();
+  const nickname = useFunnel((s) => s.nickname);
 
   const [msgs, setMsgs] = useState<Msg[]>([
     { from: "me", text: "我最近又开始想前任了…是不是很没出息" },
@@ -14,14 +19,28 @@ export default function ChatPage() {
     { from: "molly", recall: true, text: '而且——三个月前的今天，你为他失眠，跟我说<i style="color:#9aa4b8">"我是不是这辈子都走不出来了"</i>。<br/><br/>可你现在，<b style="color:var(--gold-soft)">能笑着提起他了</b>。你不是没出息，你是早就在往前走，只是自己没发现。' },
   ]);
   const [input, setInput] = useState("");
+  const [typing, setTyping] = useState(false);
 
   function send(text?: string) {
     const t = (text ?? input).trim();
-    if (!t) return;
+    if (!t || typing) return;
     setInput("");
-    setMsgs((m) => [...m, { from: "me", text: t }]);
-    // TODO(key): replace with Claude conditioned on chart + self-model
-    setTimeout(() => setMsgs((m) => [...m, { from: "molly", text: "我听见了。给我一点时间，把这个跟你的盘对上——你这种问法，本身就说明你已经知道答案了。" }]), 500);
+    const next: Msg[] = [...msgs, { from: "me", text: t }];
+    setMsgs(next);
+    setTyping(true);
+
+    if (AI_ON && chart) {
+      fetchChatReply(chart, next.map((m) => ({ from: m.from, text: m.text })), nickname)
+        .then((reply) => setMsgs((m) => [...m, { from: "molly", text: reply ?? FALLBACK_REPLY }]))
+        .catch(() => setMsgs((m) => [...m, { from: "molly", text: FALLBACK_REPLY }]))
+        .finally(() => setTyping(false));
+    } else {
+      // AI off → scripted reply (demo)
+      setTimeout(() => {
+        setMsgs((m) => [...m, { from: "molly", text: FALLBACK_REPLY }]);
+        setTyping(false);
+      }, 500);
+    }
   }
 
   if (!ready || !chart) return null;
@@ -48,11 +67,20 @@ export default function ChatPage() {
             )}
           </div>
         ))}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, margin: "6px 2px 4px" }}>
-          {["那我还要不要再联系他？", "怎么才算真的放下？"].map((c) => (
-            <button key={c} onClick={() => send(c)} style={{ textAlign: "left", background: "rgba(124,150,170,.08)", border: "1px solid #2b3a4e", borderRadius: 12, padding: "11px 13px", color: "#a9c4dd", fontSize: 13.5, cursor: "pointer" }}>{c}</button>
-          ))}
-        </div>
+        {typing && (
+          <div data-testid="typing" style={{ maxWidth: "86%", marginBottom: 14, marginRight: "auto" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, borderRadius: 16, borderBottomLeftRadius: 5, padding: "12px 15px", background: "#141a28", border: "1px solid #232c3e", color: "var(--mute)", fontSize: 13 }}>
+              <span className="eye-mini" style={{ width: 13, height: 13 }} /> Molly 正在想…
+            </div>
+          </div>
+        )}
+        {!typing && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, margin: "6px 2px 4px" }}>
+            {["那我还要不要再联系他？", "怎么才算真的放下？"].map((c) => (
+              <button key={c} onClick={() => send(c)} style={{ textAlign: "left", background: "rgba(124,150,170,.08)", border: "1px solid #2b3a4e", borderRadius: 12, padding: "11px 13px", color: "#a9c4dd", fontSize: 13.5, cursor: "pointer" }}>{c}</button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ position: "relative", zIndex: 3, padding: "12px 16px 14px", borderTop: "1px solid rgba(255,255,255,.05)" }}>

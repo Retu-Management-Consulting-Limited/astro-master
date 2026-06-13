@@ -51,17 +51,26 @@ src/
 
 排盘、亮点、财运、合盘、主题解读全部是**纯函数 + 真实星体位置**，有单测覆盖。
 
-## 真大师解读（Molly AI）
+## 真大师解读 + 对话（Molly AI）
 
-解读走 **server route `app/api/reading/route.ts`**：Claude 只写**文案**，所有星位事实由真实星盘确定性算出后传进去（绝不让模型编星位）。前端是**渐进增强**——先秒出确定性 stub，AI 回来后**原地替换**，所以再慢也不卡流程。
+两个 route 用**同一套**后端（`lib/ai/llm.ts` 的 `runLLM` + `lib/ai/molly.ts` 的人设/星盘事实）：
 
-- **开关**：`.env.local` 里 `NEXT_PUBLIC_MOLLY_AI=1`（不设=纯 stub，测试/CI 即此）
-- **鉴权**：用 **Agent SDK**（`@anthropic-ai/claude-agent-sdk`）。`ANTHROPIC_API_KEY` 未设时自动复用本机 **Claude Code 订阅登录**（pilot/本地）；生产填 API key 即走 API。
-- **模型**：`MOLLY_MODEL=haiku|sonnet|opus`（默认 sonnet）。route 已用 `settingSources:[] / mcpServers:{} / cwd=tmpdir` 关掉工作区配置加载，并接了 `abortController`（客户端断开即杀子进程）。
+- **`app/api/reading`** — 首读 + 主题深读。Claude 只写**文案**，星位由真实星盘确定性算好传进去（绝不让模型编星位）。前端**渐进增强**：先秒出 stub，AI 回来**原地替换**。带按星盘签名的有界缓存（同盘重复读秒回、不再计费）。
+- **`app/api/chat`** — Molly 实时对话，条件是她的星盘 + 对话历史。前端有「正在想…」指示，失败回退到脚本回复。
 
-> ⚠️ **订阅鉴权仅限本地 pilot**。Anthropic 不允许用 claude.ai 登录给产品的终端用户服务；有真实用户前请改成 `ANTHROPIC_API_KEY`。
+**自动选后端**（`runLLM`）：
+
+| 环境 | 走哪条 | 速度 |
+|---|---|---|
+| `ANTHROPIC_API_KEY` 已设 | 直连 `@anthropic-ai/sdk` API | ~2–5s（生产） |
+| 未设 | Agent SDK 复用本机 **Claude Code 订阅登录** | ~40–90s（本地 pilot） |
+
+- **开关**：`.env.local` 里 `NEXT_PUBLIC_MOLLY_AI=1`（不设=纯 stub / 脚本回复，测试/CI 即此）
+- **模型**：`MOLLY_MODEL=haiku|sonnet|opus`（默认 sonnet）。SDK 路径已 `settingSources:[] / mcpServers:{} / cwd=tmpdir` 跳过工作区配置，两路都接了 `abortController`（客户端断开即中止）。
+
+> ⚠️ **订阅鉴权仅限本地 pilot**。Anthropic 不允许用 claude.ai 登录给产品的终端用户服务；有真实用户前填 `ANTHROPIC_API_KEY` 即自动切到 API（也快很多），**别的不用改**。
 >
-> ⏱️ **延迟**：Agent SDK 每次调用要冷启动引擎子进程，单次约 **40–90s**（不是模型慢，是 SDK 不为快速 completion 设计）。pilot 自测文案够用（stub 秒出、后台替换）。要低延迟（2–5s）把 `run()` 换成直连 `@anthropic-ai/sdk` 的 API 调用即可——同一个 route，改一个函数。
+> ⏱️ Agent SDK 每次冷启动引擎子进程（~40–90s，不是模型慢）。pilot 自测够用（stub/脚本秒出、后台替换）。
 
 ## 还没接的（stub）
 
