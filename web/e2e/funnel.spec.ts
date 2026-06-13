@@ -40,6 +40,12 @@ test("activation funnel: landing → input → calibration → first-read → re
   // Tabs navigate
   await page.locator('a[href="/chart"]').click();
   await expect(page.locator('[data-testid="chart"]')).toBeVisible({ timeout: 5000 });
+  // 主题深读: tap a theme card → deep read woven with a real placement
+  await page.locator('[data-testid="theme-row"]').first().click();
+  await expect(page.locator('[data-testid="theme"]')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('[data-testid="theme-read"]')).toContainText("宫");
+  await page.goBack();
+  await expect(page.locator('[data-testid="chart"]')).toBeVisible({ timeout: 5000 });
   await page.locator('a[href="/chat"]').click();
   await expect(page.locator('[data-testid="chat"]')).toBeVisible({ timeout: 5000 });
   await page.locator('a[href="/me"]').click();

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useChartGuard } from "@/lib/guard";
 import { detectHighlights } from "@/lib/astro/highlights";
 import { TabBar } from "@/components/TabBar";
@@ -24,11 +25,11 @@ export default function ChartPage() {
   const moon = chart.placements.find((p) => p.body === "Moon")!;
 
   const themes = [
-    { ic: "💔", t: "感情与关系", open: true },
-    { ic: "💰", t: "财富与时机", open: true },
-    { ic: "🌧️", t: "孤独与归属", open: false },
-    { ic: "🧭", t: "自我与方向", open: false },
-  ];
+    { id: "love", ic: "💔", t: "感情与关系" },
+    { id: "wealth", ic: "💰", t: "财富与时机" },
+    { id: "lonely", ic: "🌧️", t: "孤独与归属" },
+    { id: "self", ic: "🧭", t: "自我与方向" },
+  ] as const;
 
   return (
     <main className="phone" data-testid="chart">
@@ -92,13 +93,13 @@ export default function ChartPage() {
 
         <div style={{ marginTop: 20 }}>
           {themes.map((t) => (
-            <div key={t.t} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 4px", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: 14.5, color: t.open ? "var(--cream)" : "var(--cream-dim)" }}>
+            <Link key={t.id} href={`/theme/${t.id}`} data-testid="theme-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 4px", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: 14.5, color: "var(--cream)", textDecoration: "none" }}>
               <span style={{ fontSize: 16 }}>{t.ic}</span>{t.t}
-              <span style={{ marginLeft: "auto", color: t.open ? "var(--gold)" : "#4f5666", fontSize: 13 }}>{t.open ? "已解锁 ›" : "🔒"}</span>
-            </div>
+              <span style={{ marginLeft: "auto", color: "var(--gold)", fontSize: 13 }}>深读 ›</span>
+            </Link>
           ))}
         </div>
-        <div style={{ margin: "20px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)" }}>📤 把我的星盘存成图</div>
+        <Link href="/share" style={{ display: "block", margin: "20px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", textDecoration: "none" }}>📤 把我的星盘存成图</Link>
       </div>
 
       <TabBar active="chart" />
