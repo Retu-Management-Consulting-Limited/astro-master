@@ -1,11 +1,12 @@
-import { tmpdir } from "node:os";
-import { query } from "@anthropic-ai/claude-agent-sdk";
-
 // Single dual-path LLM runner shared by /api/reading and /api/chat.
 //   • ANTHROPIC_API_KEY set → direct Anthropic API (fast ~2-5s, production)
 //   • no key                → Agent SDK reusing the local Claude Code
 //                             SUBSCRIPTION login (pilot, ~40-90s cold start)
 // Same prompt + system in both; caller passes the system persona.
+//
+// The Agent SDK bundles a native engine binary, so it's imported LAZILY (only
+// when actually using the subscription path). On a cloud deploy with an API key
+// the SDK is never imported → the serverless bundle stays lean.
 
 const MODEL_ALIAS = (process.env.MOLLY_MODEL || "sonnet").toLowerCase();
 const MODEL_ID: Record<string, string> = {
@@ -32,6 +33,8 @@ async function viaApi(prompt: string, system: string, ac: AbortController, maxTo
 }
 
 async function viaSdk(prompt: string, system: string, ac: AbortController): Promise<string> {
+  const { tmpdir } = await import("node:os");
+  const { query } = await import("@anthropic-ai/claude-agent-sdk");
   let out = "";
   for await (const m of query({
     prompt,

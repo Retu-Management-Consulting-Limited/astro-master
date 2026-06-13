@@ -6,7 +6,7 @@ async function quietPage(page: Page, hideInstall = true) {
   await page.addInitScript((hide) => {
     const s = document.createElement("style");
     s.textContent =
-      "*,*::before,*::after{animation:none!important;transition:none!important}nextjs-portal{display:none!important;pointer-events:none!important}" +
+      "*,*::before,*::after{animation:none!important;transition:none!important}nextjs-portal{display:none!important;pointer-events:none!important}[data-testid=feedback-fab]{display:none!important}" +
       (hide ? "[data-testid=install-prompt]{display:none!important}" : "");
     document.documentElement.appendChild(s);
   }, hideInstall);

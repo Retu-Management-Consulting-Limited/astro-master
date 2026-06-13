@@ -5,6 +5,7 @@ import { useChartGuard } from "@/lib/guard";
 import { fetchChatReply, AI_ON } from "@/lib/reading/remote";
 import { TabBar } from "@/components/TabBar";
 import { MollyThinking } from "@/components/MollyThinking";
+import { track } from "@/lib/track";
 
 interface Msg { from: "me" | "molly"; text: string; recall?: boolean }
 
@@ -31,6 +32,7 @@ export default function ChatPage() {
     const next: Msg[] = [...msgs, { from: "me", text: t }];
     setMsgs(next);
     setTyping(true);
+    track("chat_send");
 
     if (AI_ON && chart) {
       fetchChatReply(chart, next.map((m) => ({ from: m.from, text: m.text })), nickname)

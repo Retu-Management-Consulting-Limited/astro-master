@@ -85,6 +85,35 @@ src/
 
 readings 仍保留确定性 stub 作为**即时兜底**（AI 关闭、超时或失败时用）。
 
+## 部署 + 5–10 人内测（Vercel + Upstash）
+
+云上**用 API key**(不是订阅:订阅不能部署、且不许给真实用户服务)。代码已就绪:`runLLM` 见 key 自动走 API;Agent SDK 改为**惰性 import**(没 key 永不加载,serverless 包保持精简);缓存/测试者数据落 KV。
+
+**你来 provision(我无法用你的账号代做)：**
+1. **Anthropic API key** — console.anthropic.com → 一个 key。
+2. **Vercel 项目** — import 这个 repo(Root Directory 设 `web`)。
+3. **Upstash Redis**(免费档)— Vercel Marketplace 加 KV,或 upstash.com 建库。
+
+**Vercel 环境变量：**
+```
+ANTHROPIC_API_KEY=sk-ant-...        # 必须:走 API、快、合规
+MOLLY_MODEL=sonnet                  # 可选 haiku|sonnet|opus
+NEXT_PUBLIC_MOLLY_AI=1              # 开真解读
+NEXT_PUBLIC_MOLLY_TEST=1           # 开内测埋点 + 反馈按钮
+ADMIN_SECRET=<长随机串>             # 看数据用
+# KV：Vercel KV 会自动注入 KV_REST_API_URL/TOKEN;
+#     用 Upstash 独立库则填 UPSTASH_REDIS_REST_URL/TOKEN
+```
+
+**内测能力(均 env-gated,关了就没有)：**
+- 每访客一个 httpOnly `mid` cookie(`src/proxy.ts`)→ 服务端归因,无需前端感知
+- 埋点:`activated`(完成激活,带昵称+上升)/ `theme_view` / `chat_send` / `share` / `feedback`
+- 右下角浮动**反馈按钮** → 一句话反馈(带页面+testerId)
+- 看数据:`GET /api/admin/export?secret=ADMIN_SECRET` → 全部 tester/事件/反馈 JSON
+- 缓存 + 数据走 KV(跨重启、多实例共享)
+
+**给测试者**:发 Vercel 的网址即可,提醒「首读约 3 秒、右下角随手反馈」。
+
 ## 设计来源
 
 - 主纲：`../docs/2026-06-12-product-design-spec.md`

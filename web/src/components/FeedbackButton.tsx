@@ -1,0 +1,79 @@
+"use client";
+import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { TEST_MODE } from "@/lib/track";
+
+// Floating feedback affordance — internal test only (NEXT_PUBLIC_MOLLY_TEST=1).
+// A tap opens a one-line feedback box tagged with the current page + tester id.
+export function FeedbackButton() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [sent, setSent] = useState(false);
+
+  if (!TEST_MODE) return null;
+  // keep onboarding clean
+  if (pathname === "/") return null;
+
+  const send = async () => {
+    const t = text.trim();
+    if (!t) return;
+    try {
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: t, page: pathname }),
+      });
+    } catch {
+      /* ignore */
+    }
+    setSent(true);
+    setTimeout(() => {
+      setOpen(false);
+      setSent(false);
+      setText("");
+    }, 1200);
+  };
+
+  return (
+    <>
+      {!open && (
+        <button
+          data-testid="feedback-fab"
+          onClick={() => setOpen(true)}
+          style={{ position: "fixed", right: 14, bottom: 78, zIndex: 60, width: 42, height: 42, borderRadius: "50%", border: "1px solid rgba(201,168,97,.45)", background: "rgba(12,15,24,.92)", color: "var(--gold-soft)", fontSize: 18, cursor: "pointer", boxShadow: "0 6px 20px -8px rgba(0,0,0,.7)", backdropFilter: "blur(6px)" }}
+          aria-label="反馈"
+        >
+          💬
+        </button>
+      )}
+      {open && (
+        <div style={{ position: "fixed", right: 14, bottom: 78, zIndex: 60, width: "min(300px, calc(100vw - 28px))", background: "linear-gradient(180deg, rgba(18,22,38,.98), rgba(10,12,22,.98))", border: "1px solid rgba(201,168,97,.4)", borderRadius: 16, padding: 13, boxShadow: "0 18px 50px -12px rgba(0,0,0,.7)", backdropFilter: "blur(8px)" }}>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 9 }}>
+            <span style={{ fontSize: 12.5, color: "var(--gold-soft)", fontWeight: 600 }}>内测反馈</span>
+            <span onClick={() => setOpen(false)} style={{ marginLeft: "auto", color: "var(--mute)", cursor: "pointer", fontSize: 16 }}>✕</span>
+          </div>
+          {sent ? (
+            <div style={{ fontSize: 13, color: "var(--green)", padding: "10px 2px" }}>收到了，谢谢你 ✓</div>
+          ) : (
+            <>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="这一屏哪里好 / 哪里怪 / 卡住了？一句话就行"
+                rows={3}
+                style={{ width: "100%", resize: "none", background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 10, padding: "9px 11px", color: "var(--cream)", fontSize: 13, outline: "none", fontFamily: "inherit" }}
+              />
+              <button
+                onClick={send}
+                style={{ marginTop: 9, width: "100%", border: "none", borderRadius: 10, padding: "9px 0", fontSize: 13.5, fontWeight: 600, color: "#1a1408", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", cursor: "pointer" }}
+              >
+                发送
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </>
+  );
+}

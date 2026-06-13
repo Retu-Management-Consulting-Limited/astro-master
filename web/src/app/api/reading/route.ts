@@ -3,6 +3,7 @@ import { generateThemeRead, type ThemeId, THEME_IDS } from "@/lib/reading/theme"
 import type { Chart } from "@/lib/astro/chart";
 import { PERSONA, facts } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
+import { cacheGet, cacheSet } from "@/lib/server/store";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -55,24 +56,10 @@ function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: strin
 
 const run = (prompt: string, ac: AbortController) => runLLM(prompt, PERSONA, ac);
 
-// Bounded in-memory cache: a chart's reading is stable, so repeat taps /
-// re-renders return instantly (and don't re-bill). Keyed by chart signature.
-const CACHE = new Map<string, unknown>();
-const CACHE_MAX = 500;
+// A chart's reading is stable → cache it (KV in cloud, in-memory locally) so
+// repeat taps / re-renders return instantly and don't re-bill.
 function chartSig(chart: Chart): string {
   return chart.ascSign + "|" + chart.placements.map((p) => `${p.body}${p.sign}${p.house}`).join(",");
-}
-function cacheGet(key: string): unknown {
-  const v = CACHE.get(key);
-  if (v !== undefined) {
-    CACHE.delete(key); // LRU bump
-    CACHE.set(key, v);
-  }
-  return v;
-}
-function cacheSet(key: string, value: unknown): void {
-  CACHE.set(key, value);
-  if (CACHE.size > CACHE_MAX) CACHE.delete(CACHE.keys().next().value as string);
 }
 
 function parseAi(text: string): AiCommon {
@@ -110,7 +97,7 @@ export async function POST(req: Request) {
   }
 
   const cacheKey = `${kind}:${themeId ?? ""}:${chartSig(chart)}`;
-  const cached = cacheGet(cacheKey);
+  const cached = await cacheGet(cacheKey).catch(() => null);
   if (cached) return NextResponse.json(cached);
 
   const ac = new AbortController();
@@ -127,7 +114,7 @@ export async function POST(req: Request) {
       const ai = parseAi(await run(firstPrompt(chart, nickname), ac));
       result = { ascSign: chart.ascSign, lead: ai.lead ?? "", paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips };
     }
-    cacheSet(cacheKey, result);
+    await cacheSet(cacheKey, result).catch(() => {});
     return NextResponse.json(result);
   } catch (e) {
     return NextResponse.json({ error: String(e).slice(0, 200) }, { status: 500 });

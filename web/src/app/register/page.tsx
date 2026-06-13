@@ -2,14 +2,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
+import { identify, track } from "@/lib/track";
 
 export default function RegisterPage() {
   const router = useRouter();
   const setNickname = useFunnel((s) => s.setNickname);
+  const chart = useFunnel((s) => s.chart);
   const [name, setName] = useState("");
 
   function finish() {
-    setNickname(name.trim() || "你");
+    const nm = name.trim() || "你";
+    setNickname(nm);
+    identify({ name: nm, nickname: nm, ascSign: chart?.ascSign });
+    track("activated");
     router.push("/today");
   }
   const lbtn = { display: "flex", alignItems: "center", justifyContent: "center", gap: 10, width: "100%", padding: 15, borderRadius: 13, fontSize: 15, fontWeight: 500, border: "1px solid #2b3445", background: "#11151f", color: "var(--cream)", cursor: "pointer" } as const;

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { StoreHydration } from "@/components/StoreHydration";
+import { FeedbackButton } from "@/components/FeedbackButton";
 
 export const metadata: Metadata = {
   title: "Molly · 看穿你的本命",
@@ -36,6 +37,7 @@ export default function RootLayout({
         <StoreHydration />
         {children}
         <InstallPrompt />
+        <FeedbackButton />
       </body>
     </html>
   );

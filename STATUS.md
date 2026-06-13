@@ -96,14 +96,18 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 
 ---
 
-## 7. 上线前 checklist（按优先级）
+## 7. 内测 / 上线 checklist（按优先级）
 
-**必须（阻断上线）**
-- [ ] 配 `ANTHROPIC_API_KEY`,确认 `/api/reading` `/api/chat` 走 API 且 ~2–5s
-- [ ] 缓存升级到跨进程(Redis/KV)——现为内存 Map,重启即清、多实例不共享(`/api/reading` 的 `CACHE`)
+**内测就绪（代码已建,见 `web/README.md` 部署节）**
+- [x] `runLLM` 见 `ANTHROPIC_API_KEY` 自动走 API;Agent SDK 改惰性 import(serverless 包精简)
+- [x] 缓存 + 测试者数据/事件/反馈 → env-gated KV(Upstash/Vercel KV;无则内存兜底)
+- [x] 测试者 cookie(`src/proxy.ts`)+ 埋点(`/api/event`)+ 反馈(`/api/feedback`)+ 导出(`/api/admin/export`),均 `NEXT_PUBLIC_MOLLY_TEST` 门控
+- [ ] **你来 provision**：Anthropic API key + Vercel 项目(Root=`web`)+ Upstash Redis,填好 env 部署
+
+**真上线（阻断,内测之后）**
 - [ ] `TODO(geo)` 真实地理编码 + 历史时区(否则非内置城市的盘会错)
-- [ ] 真实账号体系(注册现为 stub,无邮箱/密码;数据现仅存 localStorage)
-- [ ] 隐私合规：数据存储落地 + 设置页「导出/删除」对接真实后端(现为本地)
+- [ ] 真实账号体系(注册现为 stub,无邮箱/密码;用户数据仍 localStorage,内测埋点是旁路捕获)
+- [ ] 隐私合规：用户数据存储落地 + 设置页「导出/删除」对接真实后端(现为本地)
 
 **强烈建议**
 - [ ] AI 内容审核 / 兜底(防 Claude 偶发离谱输出伤到用户)

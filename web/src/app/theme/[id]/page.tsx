@@ -6,6 +6,7 @@ import { useChartGuard } from "@/lib/guard";
 import { generateThemeRead, THEME_IDS, type ThemeId, type ThemeRead } from "@/lib/reading/theme";
 import { fetchThemeRead, AI_ON } from "@/lib/reading/remote";
 import { MollyThinking } from "@/components/MollyThinking";
+import { track } from "@/lib/track";
 
 export default function ThemePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -19,6 +20,7 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
   // instant deterministic stub, then upgrade in place to Claude's prose (AI on)
   useEffect(() => {
     if (!chart || !themeId) return;
+    track("theme_view", { id: themeId });
     setR(generateThemeRead(chart, themeId));
     let alive = true;
     if (AI_ON) {

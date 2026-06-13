@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { buildCardSVG, svgToPngBlob, type Template, type CardData } from "@/lib/share/card";
+import { track } from "@/lib/track";
 
 const HOUSE_ZH = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
 const TPLS: Template[] = ["a", "b", "c", "d"];
@@ -41,6 +42,7 @@ export default function SharePage() {
       const blob = await svgToPngBlob(svg, 318 * scale, 424 * scale);
       const file = new File([blob], "molly-card.png", { type: "image/png" });
       const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+      track("share", { tpl });
       if (nav.canShare?.({ files: [file] }) && navigator.share) {
         await navigator.share({ files: [file], text: "我的本命金句 · Molly 看穿你的本命" });
         setToast("已唤起分享");
