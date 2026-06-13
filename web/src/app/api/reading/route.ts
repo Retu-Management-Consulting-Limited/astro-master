@@ -5,16 +5,19 @@ import { generateThemeRead, type ThemeId, THEME_IDS } from "@/lib/reading/theme"
 import type { Chart } from "@/lib/astro/chart";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 // Molly's real-master interpretations. Claude writes ONLY the prose — every
 // astrological fact (signs, houses, the placement label) is computed
-// deterministically from the user's real chart and passed in. Auth resolves
-// from the environment: an existing Claude Code SUBSCRIPTION login (local/pilot)
-// when ANTHROPIC_API_KEY is unset, or the API key in production.
-// NOTE: subscription auth is for local/pilot only — Anthropic does not permit
-// using claude.ai login to serve a product's end users. Switch to ANTHROPIC_API_KEY
-// before real users hit this route.
+// deterministically from the user's real chart and passed in.
+//
+// Two auto-selected backends (see run()):
+//   • ANTHROPIC_API_KEY set  → direct Anthropic API. Fast (~2-5s). PRODUCTION.
+//   • no key                 → Agent SDK reusing the local Claude Code
+//                              SUBSCRIPTION login. Slow (~40-90s). LOCAL PILOT ONLY
+//                              — Anthropic does not permit claude.ai login to serve
+//                              a product's end users; switch to a key before launch.
+// A bounded in-memory cache makes repeat reads of the same chart instant.
 
 const PLANET_ZH: Record<string, string> = {
   Sun: "太阳", Moon: "月亮", Mercury: "水星", Venus: "金星", Mars: "火星",
@@ -73,7 +76,35 @@ function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: strin
 }`;
 }
 
-async function run(prompt: string, abortController: AbortController): Promise<string> {
+const MODEL_ALIAS = (process.env.MOLLY_MODEL || "sonnet").toLowerCase();
+const MODEL_ID: Record<string, string> = {
+  haiku: "claude-haiku-4-5-20251001",
+  sonnet: "claude-sonnet-4-6",
+  opus: "claude-opus-4-8",
+};
+const USE_API = !!process.env.ANTHROPIC_API_KEY;
+
+// PROD path: direct Anthropic API. Fast (~2-5s). Used whenever an API key is set.
+async function runViaApi(prompt: string, ac: AbortController): Promise<string> {
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
+  const client = new Anthropic();
+  const msg = await client.messages.create(
+    {
+      model: MODEL_ID[MODEL_ALIAS] ?? MODEL_ID.sonnet,
+      max_tokens: 1024,
+      system: PERSONA,
+      messages: [{ role: "user", content: prompt }],
+    },
+    { signal: ac.signal },
+  );
+  return msg.content
+    .map((b) => (b.type === "text" ? b.text : ""))
+    .join("");
+}
+
+// PILOT path: Agent SDK reusing the local Claude Code subscription login (no API
+// key). Slow (~40-90s: SDK cold-starts an engine subprocess per call).
+async function runViaAgentSdk(prompt: string, abortController: AbortController): Promise<string> {
   let out = "";
   for await (const m of query({
     prompt,
@@ -81,21 +112,44 @@ async function run(prompt: string, abortController: AbortController): Promise<st
       allowedTools: [],
       maxTurns: 1,
       permissionMode: "bypassPermissions",
-      model: process.env.MOLLY_MODEL || "sonnet",
+      model: MODEL_ALIAS,
       systemPrompt: PERSONA,
-      // Pure completion: don't load this workspace's CLAUDE.md / settings / MCP
-      // servers (that traversal + MCP spawn was making each call slow).
+      // Pure completion: don't load this workspace's CLAUDE.md / settings / MCP.
       settingSources: [],
       mcpServers: {},
       cwd: tmpdir(),
-      // Kill the engine subprocess if the client disconnects (otherwise the
-      // query keeps running server-side and orphans pile up).
+      // Kill the engine subprocess if the client disconnects.
       abortController,
     },
   })) {
     if (m.type === "result") out = (m as { result?: string }).result ?? "";
   }
   return out;
+}
+
+// Auto-select: API key present → direct API; otherwise → subscription via SDK.
+function run(prompt: string, ac: AbortController): Promise<string> {
+  return USE_API ? runViaApi(prompt, ac) : runViaAgentSdk(prompt, ac);
+}
+
+// Bounded in-memory cache: a chart's reading is stable, so repeat taps /
+// re-renders return instantly (and don't re-bill). Keyed by chart signature.
+const CACHE = new Map<string, unknown>();
+const CACHE_MAX = 500;
+function chartSig(chart: Chart): string {
+  return chart.ascSign + "|" + chart.placements.map((p) => `${p.body}${p.sign}${p.house}`).join(",");
+}
+function cacheGet(key: string): unknown {
+  const v = CACHE.get(key);
+  if (v !== undefined) {
+    CACHE.delete(key); // LRU bump
+    CACHE.set(key, v);
+  }
+  return v;
+}
+function cacheSet(key: string, value: unknown): void {
+  CACHE.set(key, value);
+  if (CACHE.size > CACHE_MAX) CACHE.delete(CACHE.keys().next().value as string);
 }
 
 function parseAi(text: string): AiCommon {
@@ -128,21 +182,30 @@ export async function POST(req: Request) {
   const { kind, themeId, chart, nickname } = body;
   if (!chart?.placements) return NextResponse.json({ error: "missing chart" }, { status: 400 });
 
+  if (kind === "theme" && (!themeId || !(THEME_IDS as string[]).includes(themeId))) {
+    return NextResponse.json({ error: "bad themeId" }, { status: 400 });
+  }
+
+  const cacheKey = `${kind}:${themeId ?? ""}:${chartSig(chart)}`;
+  const cached = cacheGet(cacheKey);
+  if (cached) return NextResponse.json(cached);
+
   const ac = new AbortController();
   req.signal.addEventListener("abort", () => ac.abort());
 
   try {
+    let result: unknown;
     if (kind === "theme") {
-      if (!themeId || !(THEME_IDS as string[]).includes(themeId)) {
-        return NextResponse.json({ error: "bad themeId" }, { status: 400 });
-      }
       const scaffold = generateThemeRead(chart, themeId as ThemeId);
       const ai = parseAi(await run(themePrompt(chart, themeId as ThemeId, scaffold.planetLabel, scaffold.title, nickname), ac));
       // keep the deterministic structural facts, swap in Claude's prose
-      return NextResponse.json({ ...scaffold, paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips });
+      result = { ...scaffold, paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips };
+    } else {
+      const ai = parseAi(await run(firstPrompt(chart, nickname), ac));
+      result = { ascSign: chart.ascSign, lead: ai.lead ?? "", paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips };
     }
-    const ai = parseAi(await run(firstPrompt(chart, nickname), ac));
-    return NextResponse.json({ ascSign: chart.ascSign, lead: ai.lead ?? "", paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips });
+    cacheSet(cacheKey, result);
+    return NextResponse.json(result);
   } catch (e) {
     return NextResponse.json({ error: String(e).slice(0, 200) }, { status: 500 });
   }
