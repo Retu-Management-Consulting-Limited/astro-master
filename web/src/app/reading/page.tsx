@@ -7,6 +7,7 @@ import { generateFirstRead, type FirstRead } from "@/lib/reading/generate";
 import { fetchFirstRead, AI_ON } from "@/lib/reading/remote";
 import { LoadingRitual } from "@/components/LoadingRitual";
 import { MollyThinking } from "@/components/MollyThinking";
+import { sanitizeRichText } from "@/lib/sanitize";
 import { track } from "@/lib/track";
 
 export default function ReadingPage() {
@@ -92,7 +93,7 @@ export default function ReadingPage() {
         <div className="reveal" style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontWeight: 600, fontSize: 26, color: "var(--cream)", lineHeight: 1.35, marginBottom: 22, animationDelay: ".4s" }}>{read.lead}</div>
         {read.paragraphs.map((p, i) => (
           <p key={i} className="reveal" style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 21, lineHeight: 1.62, color: "var(--cream-dim)", marginBottom: 18, animationDelay: `${0.9 + i * 0.6}s` }}
-            dangerouslySetInnerHTML={{ __html: p.text }} />
+            dangerouslySetInnerHTML={{ __html: sanitizeRichText(p.text) }} />
         ))}
 
         <div className="reveal" style={{ margin: "30px 0 8px", textAlign: "center", animationDelay: "3.4s" }}>

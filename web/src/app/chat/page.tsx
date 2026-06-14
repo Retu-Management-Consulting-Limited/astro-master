@@ -33,6 +33,14 @@ export default function ChatPage() {
     setMsgs((m) => (m.length ? m : [{ from: "molly", text: opener }]));
   }, [chart, nickname]);
   const [input, setInput] = useState("");
+  // Carry a follow-up question from a theme deep-read into the input (TH-1) so it
+  // isn't dropped on navigation. Prefill (not auto-send) keeps the user in control.
+  useEffect(() => {
+    try {
+      const ask = new URLSearchParams(window.location.search).get("ask");
+      if (ask) setInput(ask);
+    } catch {}
+  }, []);
   const [typing, setTyping] = useState(false);
 
   function send(text?: string) {
@@ -97,7 +105,7 @@ export default function ChatPage() {
 
       <div style={{ position: "relative", zIndex: 3, padding: "12px 16px 14px", borderTop: "1px solid rgba(255,255,255,.05)" }}>
         <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
-          <input data-testid="chat-input" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="跟 Molly 说说……" style={{ flex: 1, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 22, padding: "12px 16px", color: "var(--cream)", fontSize: 14, outline: "none" }} />
+          <input data-testid="chat-input" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) send(); }} placeholder="跟 Molly 说说……" style={{ flex: 1, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 22, padding: "12px 16px", color: "var(--cream)", fontSize: 14, outline: "none" }} />
           <button type="button" onClick={() => send()} aria-label="发送" disabled={typing || !input.trim()} style={{ width: 42, height: 42, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))", cursor: typing || !input.trim() ? "default" : "pointer", opacity: typing || !input.trim() ? 0.45 : 1 }}>➤</button>
         </div>
       </div>
