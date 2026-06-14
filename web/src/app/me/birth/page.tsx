@@ -16,13 +16,16 @@ export default function EditBirthPage() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const birthForm = useFunnel((s) => s.birthForm);
+  const storedGender = useFunnel((s) => s.gender);
   const setChart = useFunnel((s) => s.setChart);
+  const setGender = useFunnel((s) => s.setGender);
 
   const [date, setDate] = useState(birthForm?.date ?? "1998-06-13");
   const [time, setTime] = useState(birthForm?.time ?? "08:40");
   const [knownTime, setKnownTime] = useState(birthForm?.knownTime ?? false);
   const [country, setCountry] = useState(birthForm?.country ?? "");
   const [city, setCity] = useState(birthForm?.city ?? "");
+  const [gender, setG] = useState<"female" | "male">(storedGender ?? "female");
   const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -39,6 +42,7 @@ export default function EditBirthPage() {
         setErr(r.error);
         return;
       }
+      setGender(gender);
       setChart(r.birth, form, computeChart(r.birth));
       apiSync(snapshotOf(useFunnel.getState())); // persist to account if logged in
       track("birth_edited");
@@ -65,6 +69,14 @@ export default function EditBirthPage() {
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <div>
+            <label style={lbl}>你是</label>
+            <div style={{ display: "flex", gap: 10 }} data-testid="edit-gender">
+              {([["female", "女"], ["male", "男"]] as const).map(([g, t]) => (
+                <button key={g} type="button" data-testid={`edit-gender-${g}`} aria-pressed={gender === g} onClick={() => setG(g)} style={{ flex: 1, padding: "11px 0", borderRadius: 11, fontSize: 14, cursor: "pointer", border: gender === g ? "1px solid var(--gold)" : "1px solid var(--field-bd)", background: gender === g ? "rgba(201,168,97,.14)" : "var(--field)", color: gender === g ? "var(--gold-soft)" : "var(--cream-dim)", fontWeight: gender === g ? 600 : 400 }}>{t}</button>
+              ))}
+            </div>
+          </div>
           <div>
             <label style={lbl} htmlFor="edit-date">出生日期</label>
             <input id="edit-date" className="field-inp" type="date" autoComplete="bday" value={date} onChange={(e) => setDate(e.target.value)} />

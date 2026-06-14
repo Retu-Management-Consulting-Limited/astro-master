@@ -106,7 +106,7 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 |---|---|---|
 | ~~`TODO(geo)`~~ ✅ 已接 | `lib/astro/geo/` + `api/geocode` | 离线 GeoNames 双语库(3.3万城)+ Nominatim 兜底；出生当刻历史/DST offset 用 native Intl 算(中国 86-91 DST、分数时区全对) |
 | `TODO(push)` | `app/me/settings` | Web Push 订阅(每日星象/财运/合盘提醒) |
-| `TODO(invite)` | `app/synastry` | 合盘邀请链接 → 对方真实出生数据 |
+| ~~`TODO(invite)`~~ ✅ 已接 | `app/synastry` + `api/synastry/invite` | 合盘邀请链接 → 对方真实出生数据 → 真实合盘 |
 | `TODO(font-embed)` | `lib/share/card.ts` | 金句卡 PNG 嵌品牌衬线字体(现用通用 serif 避免 canvas 跨域污染) |
 | `TODO(key)` | `app/theme/[id]`,`lib/astro/wealth.ts` | 主题付费深读 / 更丰富的财运模型 + 文案 |
 | `TODO(obs)` | `app/error.tsx` | 错误上报(Sentry) |
@@ -130,7 +130,7 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 - [x] AI 内容审核 / 兜底 —— 危机短路(确定性,显式自伤信号→核实过的热线,不调 AI)+ SAFETY 系统条款 + 失败兜底(reading 回 stub、chat 回安全句,均非 500)。spec `2026-06-14-launch-guardrails-design.md`
 - [x] 限流 + 成本监控 —— 按身份(user/cookie/IP)固定窗口:读 30/天(超→发 stub 不阻断)、聊 60/时·300/天(超→429);成本按天聚合 tokens/分模型/估算$→ admin export。28 新测全绿、危机短路 live 验证
 - [ ] `TODO(push)` Web Push(留存核心:每日提醒)
-- [ ] `TODO(invite)` 合盘邀请(病毒增长)
+- [x] `TODO(invite)` 合盘邀请 —— A 生成邀请链接→B 填真实出生数据(走正确 offset geocode)→A 页轮询自动换成真实合盘；示例 partner 标注为兜底。invite 单测+路由+playwright A→B→A 闭环全绿
 - [ ] `TODO(obs)` 错误上报
 - [ ] 部署目标确认(Vercel 注意 serverless `maxDuration`;若仍用 SDK 路径会超时——再次提示:生产走 API)
 
@@ -139,7 +139,7 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 
 **打磨**
 - [ ] `TODO(font-embed)` 金句卡品牌字体(分享物料质感)
-- [ ] `TODO(key)` 主题付费深读(变现)+ 财运模型加厚
+- [ ] `TODO(key)` 主题付费深读(变现)+ 财运模型加厚 — **¥98 付费墙:Kevin 2026-06-14 决定放到后面阶段**(定价未定;代码维持「即将开放」stub;定价定后一个 PR 接上,见 `docs/2026-06-14-design-craft-pass.md` Rec7)
 - [ ] i18n 接线(next-intl 已装,英文未接)
 
 **未来 / 扩张（近期不做，目标人群仍为海外华人女性）**

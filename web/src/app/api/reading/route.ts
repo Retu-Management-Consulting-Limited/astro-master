@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { generateThemeRead, type ThemeId, THEME_IDS } from "@/lib/reading/theme";
 import { generateFirstRead } from "@/lib/reading/generate";
 import type { Chart } from "@/lib/astro/chart";
-import { PERSONA, SAFETY, facts } from "@/lib/ai/molly";
+import { SAFETY, facts, personaFor, pronoun, type Gender } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
 import { cacheGet, cacheSet } from "@/lib/server/store";
 import { resolveIdentity } from "@/lib/server/identity";
@@ -37,35 +37,34 @@ interface AiCommon {
   chips: string[];
 }
 
-function firstPrompt(chart: Chart, nickname?: string): string {
-  return `${nickname ? `用户昵称：${nickname}。\n` : ""}这是她的真实星盘事实：\n${facts(chart)}\n\n以 Molly 的口吻，为她写一段「第一次见面就被看穿」的解读。只输出如下 JSON，不要任何额外文字或代码块标记：
+function firstPrompt(chart: Chart, ta: string, nickname?: string): string {
+  return `${nickname ? `用户昵称：${nickname}。\n` : ""}这是${ta}的真实星盘事实：\n${facts(chart)}\n\n以 Molly 的口吻，为${ta}写一段「第一次见面就被看穿」的解读。只输出如下 JSON，不要任何额外文字或代码块标记：
 {
-  "lead": "一句话开场，第二人称，直接戳中她（≤22字）",
+  "lead": "一句话开场，第二人称，直接戳中${ta}（≤22字）",
   "paragraphs": [
-    {"text": "第一段：她在人前的样子（≤55字）", "accent": false},
-    {"text": "第二段：她真正怕的、藏起来的那一面（≤55字）", "accent": true},
-    {"text": "第三段：把它翻成她的力量，温柔但有锋（≤55字）", "catch": true}
+    {"text": "第一段：${ta}在人前的样子（≤55字）", "accent": false},
+    {"text": "第二段：${ta}真正怕的、藏起来的那一面（≤55字）", "accent": true},
+    {"text": "第三段：把它翻成${ta}的力量，温柔但有锋（≤55字）", "catch": true}
   ],
-  "quote": "一句能让她想截图发朋友圈的金句（≤30字）",
-  "chips": ["她此刻最想问的问题1", "问题2", "问题3"]
+  "quote": "一句能让${ta}想截图发朋友圈的金句（≤30字）",
+  "chips": ["${ta}此刻最想问的问题1", "问题2", "问题3"]
 }`;
 }
 
-function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: string, nickname?: string): string {
-  return `${nickname ? `用户昵称：${nickname}。\n` : ""}主题：${title}。关键星位：${label}。\n她的整盘事实：\n${facts(chart)}\n\n围绕这个主题，以 Molly 的口吻写一段深度解读。只输出如下 JSON，不要任何额外文字或代码块标记：
+function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: string, ta: string, nickname?: string): string {
+  return `${nickname ? `用户昵称：${nickname}。\n` : ""}主题：${title}。关键星位：${label}。\n${ta}的整盘事实：\n${facts(chart)}\n\n围绕这个主题，以 Molly 的口吻写一段深度解读。只输出如下 JSON，不要任何额外文字或代码块标记：
 {
   "paragraphs": [
-    {"text": "这个主题在她身上怎么显现（≤55字）", "accent": false},
-    {"text": "她在这里真正的恐惧/卡点（≤55字）", "accent": true},
+    {"text": "这个主题在${ta}身上怎么显现（≤55字）", "accent": false},
+    {"text": "${ta}在这里真正的恐惧/卡点（≤55字）", "accent": true},
     {"text": "把它翻成出路或力量，温柔有锋（≤55字）", "catch": true}
   ],
   "quote": "一句金句（≤30字）",
-  "chips": ["顺着这个主题她最想问的1", "问题2"]
+  "chips": ["顺着这个主题${ta}最想问的1", "问题2"]
 }`;
 }
 
-const SYSTEM = `${PERSONA}\n\n${SAFETY}`;
-const run = (prompt: string, ac: AbortController) => runLLM(prompt, SYSTEM, ac);
+const run = (prompt: string, system: string, ac: AbortController) => runLLM(prompt, system, ac);
 
 // A chart's reading is stable → cache it (KV in cloud, in-memory locally) so
 // repeat taps / re-renders return instantly and don't re-bill.
@@ -94,13 +93,13 @@ function parseAi(text: string): AiCommon {
 }
 
 export async function POST(req: Request) {
-  let body: { kind?: string; themeId?: string; chart?: Chart; nickname?: string };
+  let body: { kind?: string; themeId?: string; chart?: Chart; nickname?: string; gender?: Gender };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "bad body" }, { status: 400 });
   }
-  const { kind, themeId, chart, nickname } = body;
+  const { kind, themeId, chart, nickname, gender } = body;
   if (!chart?.placements) return NextResponse.json({ error: "missing chart" }, { status: 400 });
 
   if (kind === "theme" && (!themeId || !(THEME_IDS as string[]).includes(themeId))) {
@@ -122,17 +121,19 @@ export async function POST(req: Request) {
   const ac = new AbortController();
   req.signal.addEventListener("abort", () => ac.abort());
 
+  const system = `${personaFor(gender)}\n\n${SAFETY}`;
+  const ta = pronoun(gender);
   try {
     let result: unknown;
     if (kind === "theme") {
       const scaffold = generateThemeRead(chart, themeId as ThemeId);
-      const r = await run(themePrompt(chart, themeId as ThemeId, scaffold.planetLabel, scaffold.title, nickname), ac);
+      const r = await run(themePrompt(chart, themeId as ThemeId, scaffold.planetLabel, scaffold.title, ta, nickname), system, ac);
       if (r.usage) await logUsage({ route: "reading", ...r.usage }).catch(() => {});
       const ai = parseAi(r.text);
       // keep the deterministic structural facts, swap in Claude's prose
       result = { ...scaffold, paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips };
     } else {
-      const r = await run(firstPrompt(chart, nickname), ac);
+      const r = await run(firstPrompt(chart, ta, nickname), system, ac);
       if (r.usage) await logUsage({ route: "reading", ...r.usage }).catch(() => {});
       const ai = parseAi(r.text);
       result = { ascSign: chart.ascSign, lead: ai.lead ?? "", paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips };
