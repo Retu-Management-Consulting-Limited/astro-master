@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { apiMe, apiLogout, apiDeleteAccount, type Me } from "@/lib/auth-client";
+import { pushAvailable, isPushEnabled, enablePush, disablePush } from "@/lib/push-client";
 import { BackButton } from "@/components/BackButton";
 
 const NOTIF_KEY = "molly_notif";
@@ -33,14 +34,34 @@ export default function SettingsPage() {
       if (raw) setNotif({ ...DEFAULT_NOTIF, ...JSON.parse(raw) });
     } catch {}
     apiMe().then(setMe);
+    // Reflect the REAL push subscription state for the daily toggle.
+    isPushEnabled().then((en) => setNotif((n) => ({ ...n, daily: en })));
   }, []);
 
   if (!ready || !chart) return null;
 
+  // wealth/synastry are preference flags (ride the daily subscription for now).
   const flip = (k: keyof Notif) => {
     const next = { ...notif, [k]: !notif[k] };
     setNotif(next);
-    localStorage.setItem(NOTIF_KEY, JSON.stringify(next)); // TODO(push): real push subscription
+    localStorage.setItem(NOTIF_KEY, JSON.stringify(next));
+  };
+
+  // The daily toggle drives the real Web Push subscription.
+  const toggleDaily = async () => {
+    if (!pushAvailable()) {
+      flash("这台设备暂不支持推送（iOS 需先「添加到主屏幕」）");
+      return;
+    }
+    if (notif.daily) {
+      await disablePush();
+      setNotif((n) => ({ ...n, daily: false }));
+      flash("已关闭每日提醒");
+    } else {
+      const ok = await enablePush({ daily: true });
+      setNotif((n) => ({ ...n, daily: ok }));
+      flash(ok ? "每日提醒已开启 ✓" : "没能开启——请在系统里允许通知");
+    }
   };
 
   const flash = (m: string) => {
@@ -119,9 +140,10 @@ export default function SettingsPage() {
         </Group>
 
         <Group label="通知">
-          {row("每日星象提醒", <Toggle on={notif.daily} onClick={() => flip("daily")} label="每日星象提醒" />)}
+          {row("每日星象提醒", <Toggle on={notif.daily} onClick={toggleDaily} label="每日星象提醒" />)}
           {row("财运黄金日提醒", <Toggle on={notif.wealth} onClick={() => flip("wealth")} label="财运黄金日提醒" />)}
           {row("合盘 · 对方测好了", <Toggle on={notif.synastry} onClick={() => flip("synastry")} label="合盘 · 对方测好了提醒" />, undefined, false, true)}
+          <div style={{ padding: "8px 15px 12px", fontSize: 11, color: "var(--mute)", lineHeight: 1.6 }}>🔔 推送提醒即将开放——先帮你把偏好记着，开通后按这里通知你。</div>
         </Group>
 
         <Group label="隐私与数据">

@@ -1,30 +1,37 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { fetchChatReply, AI_ON } from "@/lib/reading/remote";
 import { TabBar } from "@/components/TabBar";
 import { MollyThinking } from "@/components/MollyThinking";
+import { ChatMessageBody } from "@/components/ChatMessageBody";
 import { useUnderstanding } from "@/lib/understanding";
 import { safeReply } from "@/lib/ai/safety";
+import { routeUserMessage } from "@/lib/ai/chatFlow";
 import { track } from "@/lib/track";
 
-interface Msg { from: "me" | "molly"; text: string; recall?: boolean }
+interface Msg { from: "me" | "molly"; text: string }
 
 const CHAT_THINKING = ["Molly 在想…", "她把这句话，放进你的盘里看…", "在你的月亮里，找一个只对你说的答案…", "在斟酌——怎么说，才对你…"];
 
 const FALLBACK_REPLY = "我听见了。给我一点时间，把这个跟你的盘对上——你这种问法，本身就说明你已经知道答案了。";
+const OPENERS = ["我最近有点焦虑", "聊聊我的感情", "我该怎么决定一件事"];
 
 export default function ChatPage() {
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
   const understand = useUnderstanding();
 
-  const [msgs, setMsgs] = useState<Msg[]>([
-    { from: "me", text: "我最近又开始想前任了…是不是很没出息" },
-    { from: "molly", text: '先停。"<b>没出息</b>"这个词，是你自己加上去的，不是事实。想念一个人，不是罪。' },
-    { from: "molly", recall: true, text: '而且——三个月前的今天，你为他失眠，跟我说<i style="color:#9aa4b8">"我是不是这辈子都走不出来了"</i>。<br/><br/>可你现在，<b style="color:var(--gold-soft)">能笑着提起他了</b>。你不是没出息，你是早就在往前走，只是自己没发现。' },
-  ]);
+  // Real first-time opener derived from the user's own chart — not a fabricated
+  // past conversation. No「她记得」recall until a real memory layer exists.
+  const [msgs, setMsgs] = useState<Msg[]>([]);
+  useEffect(() => {
+    if (!chart) return;
+    const moon = chart.placements.find((p) => p.body === "Moon");
+    const opener = `${nickname ? `${nickname}，` : ""}我在。你的月亮在${moon?.sign ?? "—"}——情绪比你表现出来的更深。今天想跟我说点什么？开心的、烦的，都行。`;
+    setMsgs((m) => (m.length ? m : [{ from: "molly", text: opener }]));
+  }, [chart, nickname]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
 
@@ -37,7 +44,17 @@ export default function ChatPage() {
     setTyping(true);
     track("chat_send");
 
-    if (AI_ON && chart) {
+    // Crisis short-circuit runs FIRST and independent of the AI toggle — the
+    // deterministic safety net must fire whether AI is on, off, or down (P0-2).
+    const route = routeUserMessage(t, { aiOn: AI_ON, hasChart: !!chart });
+    if (route.kind === "crisis") {
+      track("chat_crisis");
+      setMsgs((m) => [...m, { from: "molly", text: route.text }]);
+      setTyping(false);
+      return;
+    }
+
+    if (route.kind === "ai" && chart) {
       fetchChatReply(chart, next.map((m) => ({ from: m.from, text: m.text })), nickname)
         .then((reply) => setMsgs((m) => [...m, { from: "molly", text: safeReply(reply, FALLBACK_REPLY) }]))
         .catch(() => setMsgs((m) => [...m, { from: "molly", text: FALLBACK_REPLY }]))
@@ -65,20 +82,13 @@ export default function ChatPage() {
       <div aria-live="polite" style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "18px 18px 10px" }}>
         {msgs.map((m, i) => (
           <div key={i} style={{ maxWidth: "86%", marginBottom: 14, marginLeft: m.from === "me" ? "auto" : 0, marginRight: m.from === "me" ? 0 : "auto" }}>
-            {m.recall ? (
-              <div style={{ border: "1px solid rgba(201,168,97,.4)", background: "linear-gradient(180deg,rgba(201,168,97,.08),rgba(201,168,97,.02))", borderRadius: 16, borderBottomLeftRadius: 5, padding: "12px 14px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 8 }}>🕰️ 她记得</div>
-                <div style={{ color: "var(--cream-dim)", fontSize: 14.5, lineHeight: 1.66 }} dangerouslySetInnerHTML={{ __html: m.text }} />
-              </div>
-            ) : (
-              <div style={{ borderRadius: 16, padding: "12px 14px", fontSize: 14.5, lineHeight: 1.6, ...(m.from === "molly" ? { background: "#141a28", border: "1px solid #232c3e", borderBottomLeftRadius: 5, color: "var(--cream-dim)" } : { background: "linear-gradient(135deg,#243049,#1c2438)", border: "1px solid #33405c", borderBottomRightRadius: 5, color: "#cfe0f2" }) }} dangerouslySetInnerHTML={{ __html: m.text }} />
-            )}
+            <div style={{ borderRadius: 16, padding: "12px 14px", fontSize: 14.5, lineHeight: 1.6, whiteSpace: "pre-line", ...(m.from === "molly" ? { background: "#141a28", border: "1px solid #232c3e", borderBottomLeftRadius: 5, color: "var(--cream-dim)" } : { background: "linear-gradient(135deg,#243049,#1c2438)", border: "1px solid #33405c", borderBottomRightRadius: 5, color: "#cfe0f2" }) }}><ChatMessageBody from={m.from} text={m.text} /></div>
           </div>
         ))}
         {typing && <MollyThinking variant="bubble" phrases={CHAT_THINKING} />}
-        {!typing && (
+        {!typing && msgs.length <= 1 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, margin: "6px 2px 4px" }}>
-            {["那我还要不要再联系他？", "怎么才算真的放下？"].map((c) => (
+            {OPENERS.map((c) => (
               <button key={c} onClick={() => send(c)} style={{ textAlign: "left", background: "rgba(124,150,170,.08)", border: "1px solid #2b3a4e", borderRadius: 12, padding: "11px 13px", color: "#a9c4dd", fontSize: 13.5, cursor: "pointer" }}>{c}</button>
             ))}
           </div>

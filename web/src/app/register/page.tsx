@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useFunnel, snapshotOf } from "@/lib/store";
 import { identify, track } from "@/lib/track";
 import { apiRegister, apiLogin } from "@/lib/auth-client";
+import { enablePush, pushAvailable } from "@/lib/push-client";
 
 type Mode = "signup" | "login";
 
@@ -19,6 +20,8 @@ export default function RegisterPage() {
   const [pw, setPw] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [notifyStep, setNotifyStep] = useState(false); // post-signup permission ask
+  const [enabling, setEnabling] = useState(false);
 
   // Guest / local-only path — keeps activation friction-free. (E2E entry point.)
   function continueLocal() {
@@ -46,7 +49,12 @@ export default function RegisterPage() {
         }
         identify({ name: nm, nickname: nm, ascSign: chart?.ascSign });
         track("activated", { account: true });
-        router.push("/today");
+        // High-intent moment: ask for daily reminders right after sign-up. Show
+        // a one-tap card (the tap is a fresh user gesture — required by iOS for
+        // Notification.requestPermission). Skipped entirely where push isn't
+        // available (unsupported device / no VAPID key) → straight to /today.
+        if (pushAvailable()) setNotifyStep(true);
+        else router.push("/today");
       } else {
         const r = await apiLogin(email.trim(), pw);
         if (!r.ok) {
@@ -67,8 +75,45 @@ export default function RegisterPage() {
     }
   }
 
+  async function enableNotify() {
+    if (enabling) return;
+    setEnabling(true);
+    try {
+      await enablePush({ daily: true });
+    } finally {
+      router.push("/today");
+    }
+  }
+
   const lbtn = { display: "flex", alignItems: "center", justifyContent: "center", gap: 10, width: "100%", padding: 15, borderRadius: 13, fontSize: 15, fontWeight: 500, border: "1px solid #2b3445", background: "#11151f", color: "var(--cream)", cursor: "pointer" } as const;
   const gold = { ...lbtn, border: "none", background: "linear-gradient(100deg,var(--gold-deep),var(--gold) 50%,var(--gold-soft) 70%)", color: "#1a1305", fontWeight: 600 } as const;
+
+  // Post-signup: one-tap daily-reminder opt-in (opt-out framing).
+  if (notifyStep) {
+    return (
+      <main className="phone" data-testid="notify-step">
+        <div className="starfield" />
+        <div className="grain" />
+        <div style={{ position: "relative", zIndex: 2, flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "30px 32px" }}>
+          <div style={{ fontSize: 42, marginBottom: 16 }}>🌙</div>
+          <div style={{ fontFamily: "var(--serif)", fontSize: 30, color: "var(--cream)", fontWeight: 500, lineHeight: 1.34 }}>
+            账号建好了。<br /><span style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>每天早上，让我跟你说一句？</span>
+          </div>
+          <p style={{ marginTop: 14, fontSize: 14.5, color: "var(--cream-dim)", lineHeight: 1.7 }}>
+            一句贴着你星盘的话，刚好够你带一整天。随时可以在「设置」里关掉。
+          </p>
+          <div style={{ marginTop: 30, display: "flex", flexDirection: "column", gap: 12 }}>
+            <button data-testid="notify-enable" onClick={enableNotify} disabled={enabling} style={{ ...gold, opacity: enabling ? 0.7 : 1 }}>
+              {enabling ? "正在开启…" : "✓ 好，每天提醒我"}
+            </button>
+            <button data-testid="notify-skip" onClick={() => router.push("/today")} style={{ ...lbtn, background: "transparent", border: "none", color: "var(--mute)" }}>
+              以后再说
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="phone">

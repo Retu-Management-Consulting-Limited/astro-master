@@ -13,14 +13,17 @@ export default function MePage() {
   const nickname = useFunnel((s) => s.nickname);
   const joinedAt = useFunnel((s) => s.joinedAt);
   const birthForm = useFunnel((s) => s.birthForm);
+  const firstRead = useFunnel((s) => s.firstRead);
   const understand = useUnderstanding();
   if (!ready || !chart) return null;
+
+  const selfQuote = firstRead?.quote ?? "你总把别人放在自己前面——这一次，先看看你自己。";
 
   const rows = [
     { ic: "💰", t: "财运日历", badge: "本月", href: "/wealth" },
     { ic: "💞", t: "合盘", arr: "›", href: "/synastry" },
     { ic: "🕰️", t: "历史回看", badge: "翻翻看", href: "/history" },
-    { ic: "📤", t: "我的卡片", arr: "12 ›", href: "/share" },
+    { ic: "📤", t: "我的卡片", arr: "›", href: "/share" },
     { ic: "⚙️", t: "设置", arr: "›", href: "/me/settings" },
   ];
 
@@ -46,13 +49,13 @@ export default function MePage() {
           <span style={{ marginLeft: "auto", color: "var(--gold-soft)", fontSize: 13, flex: "0 0 auto" }}>编辑 ›</span>
         </button>
 
-        <div style={{ background: "linear-gradient(180deg, rgba(201,168,97,.08), rgba(201,168,97,.02))", border: "1px solid rgba(201,168,97,.32)", borderRadius: 18, padding: 16, marginBottom: 18, boxShadow: "0 0 30px -14px rgba(201,168,97,.4)" }}>
+        <button type="button" onClick={() => router.push("/history")} style={{ width: "100%", textAlign: "left", display: "block", background: "linear-gradient(180deg, rgba(201,168,97,.08), rgba(201,168,97,.02))", border: "1px solid rgba(201,168,97,.32)", borderRadius: 18, padding: 16, marginBottom: 18, boxShadow: "0 0 30px -14px rgba(201,168,97,.4)", cursor: "pointer" }}>
           <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 9 }}>🫀 我眼中的你</div>
-          <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 19, color: "var(--gold-soft)", lineHeight: 1.45, marginBottom: 10 }}>&ldquo;一个把所有人都照顾好了，唯独忘了自己的人。&rdquo;</div>
+          <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 19, color: "var(--gold-soft)", lineHeight: 1.45, marginBottom: 10 }}>&ldquo;{selfQuote}&rdquo;</div>
           <div style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12, color: "var(--cream-dim)" }}>
             懂你 <span style={{ flex: 1, maxWidth: 120, height: 5, background: "#1d2333", borderRadius: 3, overflow: "hidden" }}><i style={{ display: "block", height: "100%", width: `${understand}%`, background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} /></span> {understand}% ↑ <span style={{ marginLeft: "auto", color: "var(--gold)", fontSize: 12 }}>看完整 →</span>
           </div>
-        </div>
+        </button>
 
         <div>
           {rows.map((r) => (

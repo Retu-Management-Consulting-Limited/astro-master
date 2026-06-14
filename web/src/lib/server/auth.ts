@@ -13,6 +13,7 @@ export interface Profile {
   chart?: unknown;
   firstRead?: unknown;
   nickname?: string;
+  gender?: "female" | "male";
   joinedAt?: number;
 }
 export interface User {

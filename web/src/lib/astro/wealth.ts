@@ -1,4 +1,4 @@
-import { bodyLongitude, type Chart } from "./chart";
+import { bodyLongitude, type Chart, type BodyName } from "./chart";
 
 export type WealthLevel = "wang" | "ping" | "shen"; // 旺 / 平 / 慎
 
@@ -31,8 +31,54 @@ function harmonic(angle: number, targets: number[], orb = 8): number {
   return best;
 }
 
-// Daily 财运 score from real transiting Moon aspects to natal benefic (Jupiter/Venus) vs malefic (Saturn).
-// TODO(key): richer model (2nd/8th rulers, transiting Jupiter/Venus); copy generation via Claude.
+// Traditional (visible-planet) ruler of each sign, indexed 0=Aries … 11=Pisces.
+const SIGN_RULER: BodyName[] = [
+  "Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury",
+  "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter",
+];
+export function signRuler(signIndex: number): BodyName {
+  return SIGN_RULER[((signIndex % 12) + 12) % 12];
+}
+// Whole-sign house n (1-based) → its sign index, from the ascendant sign.
+export function houseSign(ascSignIndex: number, n: number): number {
+  return (ascSignIndex + n - 1) % 12;
+}
+
+const natalLon = (chart: Chart, b: BodyName): number | undefined =>
+  chart.placements.find((p) => p.body === b)?.lon;
+
+// The natal "money points": Venus & Jupiter (natural significators of value &
+// fortune) + the rulers of the 2nd (own money) and 8th (others' money) houses.
+function moneyPoints(chart: Chart): number[] {
+  const pts: number[] = [];
+  for (const b of ["Venus", "Jupiter"] as BodyName[]) {
+    const l = natalLon(chart, b);
+    if (l != null) pts.push(l);
+  }
+  for (const n of [2, 8]) {
+    const l = natalLon(chart, signRuler(houseSign(chart.ascSignIndex, n)));
+    if (l != null) pts.push(l);
+  }
+  return pts;
+}
+
+// Slow layer: transiting benefics (Jupiter, Venus) aspecting the natal money
+// points. Jupiter is near-static over a month (a baseline), Venus sweeps (multi-
+// day windows) — together this gives 财运 real "golden periods", not just daily
+// Moon noise. Bounded so it tilts, never dominates.
+export function slowWealth(chart: Chart, date: Date): number {
+  const tJup = bodyLongitude("Jupiter", date);
+  const tVen = bodyLongitude("Venus", date);
+  let s = 0;
+  for (const mp of moneyPoints(chart)) {
+    s += harmonic(sep(tJup, mp), [0, 60, 120], 10) * 8;
+    s += harmonic(sep(tVen, mp), [0, 60, 120], 6) * 5;
+  }
+  return Math.min(s, 28);
+}
+
+// Daily 财运 score: a fast layer (transiting Moon vs natal benefic/malefic) plus
+// a slow layer (transiting Jupiter/Venus to the natal money points).
 export function wealthScore(chart: Chart, date: Date): number {
   const moon = bodyLongitude("Moon", date);
   const jup = chart.placements.find((p) => p.body === "Jupiter")!.lon;
@@ -40,13 +86,13 @@ export function wealthScore(chart: Chart, date: Date): number {
   const sat = chart.placements.find((p) => p.body === "Saturn")!.lon;
 
   const benefic =
-    harmonic(sep(moon, jup), [0, 60, 120]) * 26 +
-    harmonic(sep(moon, ven), [0, 60, 120]) * 18;
+    harmonic(sep(moon, jup), [0, 60, 120]) * 22 +
+    harmonic(sep(moon, ven), [0, 60, 120]) * 15;
   const malefic =
     harmonic(sep(moon, sat), [0, 90, 180]) * 24 +
     harmonic(sep(moon, jup), [90, 180]) * 10;
 
-  return Math.max(0, Math.min(100, Math.round(50 + benefic - malefic)));
+  return Math.max(0, Math.min(100, Math.round(50 + benefic - malefic + slowWealth(chart, date))));
 }
 
 export function wealthLevel(score: number): WealthLevel {

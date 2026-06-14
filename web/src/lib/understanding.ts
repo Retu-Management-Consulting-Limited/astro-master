@@ -18,16 +18,22 @@ export interface UnderstandingInput {
   hasNickname: boolean;
   /** whole days since the chart was first computed (honest slow growth) */
   daysKnown: number;
+  /** 「说中了吗」→ 是这样 count — real feedback that the reading landed */
+  confirms: number;
+  /** distinct days the user actually checked in (verdict or mood) */
+  checkins: number;
 }
 
 export function understanding(i: UnderstandingInput): number {
-  let v = 30; // floor: you handed Molly a birth chart at all
+  let v = 26; // floor: you handed Molly a birth chart at all
   if (i.exactTime) v += 12; // exact birth time → an exact ascendant/houses
-  if (i.calibrated) v += 12; // you answered the calibration questions
+  if (i.calibrated) v += 10; // you answered the calibration questions
   if (i.hasFirstRead) v += 6; // first read landed
   if (i.hasNickname) v += 8; // you stayed and gave a name
-  v += Math.min(24, Math.max(0, Math.floor(i.daysKnown || 0))); // grows with returning days, capped
-  return Math.min(92, Math.round(v));
+  v += Math.min(10, Math.max(0, i.confirms) * 2); // 说中了 = the real「+X% 校准」, capped
+  v += Math.min(8, Math.max(0, i.checkins)); // showing up & telling her things
+  v += Math.min(10, Math.max(0, Math.floor(i.daysKnown || 0))); // honest slow growth with days, capped
+  return Math.min(95, Math.round(v));
 }
 
 const DAY_MS = 86_400_000;
@@ -40,6 +46,8 @@ export function useUnderstanding(): number {
   const hasFirstRead = useFunnel((s) => !!s.firstRead);
   const hasNickname = useFunnel((s) => !!s.nickname);
   const joinedAt = useFunnel((s) => s.joinedAt);
+  const confirms = useFunnel((s) => s.dailyHits ?? 0);
+  const checkins = useFunnel((s) => s.checkinDays?.length ?? 0);
   const daysKnown = joinedAt ? Math.floor((Date.now() - joinedAt) / DAY_MS) : 0;
-  return understanding({ exactTime: !knownTime, calibrated, hasFirstRead, hasNickname, daysKnown });
+  return understanding({ exactTime: !knownTime, calibrated, hasFirstRead, hasNickname, daysKnown, confirms, checkins });
 }

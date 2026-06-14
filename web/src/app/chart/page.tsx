@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useChartGuard } from "@/lib/guard";
 import { detectHighlights } from "@/lib/astro/highlights";
 import { TabBar } from "@/components/TabBar";
+import { useUnderstanding } from "@/lib/understanding";
 import type { BodyName } from "@/lib/astro/chart";
 
 const GLYPH: Record<BodyName, string> = {
@@ -17,6 +18,7 @@ function pos(lon: number, r: number) {
 
 export default function ChartPage() {
   const { chart, ready } = useChartGuard();
+  const understand = useUnderstanding();
   if (!ready || !chart) return null;
 
   const highlights = detectHighlights(chart);
@@ -38,7 +40,7 @@ export default function ChartPage() {
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 8px" }}>
         <div className="eye-mini" style={{ width: 32, height: 32 }} />
         <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
-        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>校准 <b style={{ color: "var(--gold)" }}>78%</b> · 盘会越来越亮 ✨</span>
+        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>懂你 <b style={{ color: "var(--gold)" }}>{understand}%</b> ✨</span>
       </div>
 
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "0 20px 12px" }}>
@@ -73,7 +75,7 @@ export default function ChartPage() {
             })}
           </svg>
           <div style={{ marginTop: 2, fontSize: 12.5, color: "var(--cream-dim)", letterSpacing: ".04em" }}>♅ 上升<b style={{ color: "var(--gold)" }}>{chart.ascSign}</b> · ☉ {sun.sign} · ☽ {moon.sign}</div>
-          <div style={{ marginTop: 8, fontSize: 11, color: "var(--mute)" }}>你用得越久，<b style={{ color: "var(--gold)" }}>盘越亮、Molly 越懂你</b></div>
+          <div style={{ marginTop: 8, fontSize: 11, color: "var(--mute)" }}>亮的是你盘上<b style={{ color: "var(--gold)" }}>最强的几处</b> · 你越常来，我越懂你</div>
         </div>
 
         <div style={{ marginTop: 18, fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)" }}>✨ <span style={{ color: "var(--gold)" }}>你盘上最亮的几处</span></div>
