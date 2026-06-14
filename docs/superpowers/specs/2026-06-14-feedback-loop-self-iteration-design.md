@@ -21,7 +21,7 @@
 | 改动范围 | **文案 + 视觉/样式/小交互**；不碰新功能、后端逻辑、架构 | 范围越窄越可靠；靠 e2e 截图回归兜底 |
 | 触发条件 | **每条可执行反馈各开一个 PR**（带去重） | 响应快；用幂等去重防止同反馈刷 PR |
 | 交付方式 | **GitHub repo + 连 Vercel**（真 PR + 自动 preview，merge→自动上生产） | 最干净的「一键放行」 |
-| 运行位置 | **Claude Code 远端定时 agent（云）**，每小时 | 无人值守，不依赖 Kevin 笔记本 |
+| 运行位置 | **GitHub Actions 定时 workflow（每小时）** | 无人值守；加密 Secrets + 原生 git push + 预装 gh，避开远端 Claude agent 的密钥硬伤（见 §5.4 spike 结论） |
 | 通知 | **邮件** kevinx@retuhk.com | |
 | 承重内容 | **无硬禁改区**，但碰到承重内容打**软标记** `⚠️` | 人工 merge 闸门已是真正安全网；软标记给闸门加仪表盘，不改变 Kevin 的选择 |
 | 手机放行 | **方案 A：GitHub 手机 App**（点预览→点 Merge） | 能在真机先看到改动再放行 |
@@ -31,7 +31,7 @@
 ## 3. 管线（7 阶段）
 
 ```
-每小时 (Claude 远端 cron)
+每小时 (GitHub Actions cron)
   1. 拉反馈   GET /api/admin/export (Authorization header；非 URL，避免凭据入日志)
              → 与「已处理反馈清单」diff，只留新反馈
   2. 判定     LLM 对每条新反馈打分：可执行? 在范围内(文案/视觉)? 去重(同主题是否已有开放 PR)?
@@ -62,7 +62,7 @@
 
 ### 5.1 GitHub
 - astro-master 当前为纯本地 git（`main` 分支，无远端）。需：建 GitHub repo（建议 private）、`git push -u origin main`。
-- 远端 agent / CI 需要 `gh`（或 GitHub API token）以开 PR。
+- GitHub Actions 内用预装的 `gh` + token 开 PR。
 
 ### 5.2 Vercel
 - 现为本地 `vercel --prod` 部署，项目 `kevin-retu-s-projects/web`，Root Directory = `web`。
@@ -70,19 +70,22 @@
   - 每个 PR 分支 → 自动 **Preview** 部署（给 Kevin 手机看）。
   - merge 到 `main` → 自动 **Production** 部署（替代手动 `vercel --prod`）。
 
-### 5.3 密钥（agent/CI 需要，存 GitHub Secrets / Claude 远端 secret store，绝不入库）
+### 5.3 密钥（存 **GitHub Secrets**，加密，绝不入库）
 - `ANTHROPIC_API_KEY`（判定 + 改码用，模型见 §7）
-- `ADMIN_SECRET`（读 `/api/admin/export`）
-- `GITHUB_TOKEN`（push + 开 PR）
+- `ADMIN_SECRET`（读 `/api/admin/export`，用 Authorization header）
+- `GH_PAT` / 默认 `GITHUB_TOKEN`（push 分支 + 开 PR；若用默认 token 注意它开的 PR 不会触发其它 workflow，必要时用 PAT）
 - 邮件发信凭据（见 §6）
 - 生产域：`https://vapeincity.com`
 
-### 5.4 运行位置（含载荷假设）
-- **首选**：Claude Code 远端定时 routine（cloud），每小时。
-- **⚠️ 载荷假设（实现第一步必须验证）**：远端 routine 的 sandbox 能否真的 `git push` 到 GitHub + `gh` 开 PR，尚未验证。
-  - **能** → 按首选走。
-  - **不能** → 自动回退 **GitHub Actions 定时 workflow**（`schedule: cron` 每小时，CI 内跑 Claude → push 分支 → 开 PR）。效果等价、更稳，cron 住在仓库里。
-- 实现时先做最小 spike 验证此假设，不假设成立往下盖楼。
+### 5.4 运行位置 —— **GitHub Actions 定时 workflow**（spike 结论已定）
+
+**Spike Tier 0 结论（2026-06-14，读「远端定时 agent」机制本身）：**
+- 远端 Claude routine 明文「无法访问本地文件/服务/环境变量」，且其创建配置**只有 git 源 + MCP connector 两个输入口，没有任何密钥/环境变量注入字段**。
+- 后果：远端 agent 无法安全地拿到 `ADMIN_SECRET`（读反馈）/ `GITHUB_TOKEN`（push）——只能塞 prompt 或塞仓库，两条都不可接受。且 `gh` 是否预装、能否 push 仍未知。
+- **决定（Kevin，安全起见）**：放弃远端 Claude agent，**改用 GitHub Actions**。Actions 原生具备：加密 Secrets、`git push`、预装 `gh`、`schedule: cron`——把上述三个未知数/硬伤一次性消除。**不再做 Tier 1 实测。**
+
+**形态：** 仓库内一个 workflow（`.github/workflows/feedback-loop.yml`），`on.schedule.cron: '0 * * * *'`（每小时）+ `workflow_dispatch`（手动可触发，便于调试）。Job 内按 §3 七阶段跑：调脚本拉反馈 → 调 Claude 判定 → 调 Claude 改码 → 跑测试 → `gh pr create`。
+- Claude 在 CI 内的调用方式：用 `ANTHROPIC_API_KEY` 直连 API（脚本里 `@anthropic-ai/sdk`），或 `anthropics/claude-code-action`。实现时二选一并固化（倾向前者，便于把七阶段写成可单测的脚本）。
 
 ---
 
@@ -91,7 +94,7 @@
 - 收件人：kevinx@retuhk.com
 - 标题：`[Molly 自迭代] <反馈摘要>`，承重内容前缀 `⚠️`
 - 正文：反馈原文 → 改了啥(自然语言 diff 摘要) → 验收标准 AC → 两个大按钮 `[看预览]`(Vercel preview URL) `[去 PR merge]`(GitHub PR URL)
-- 发信方式：优先复用现有渠道（Gmail MCP / 或 Vercel 侧已有发信能力）。**实现时确认发信通道，不假设。**
+- 发信方式：CI 内发信。候选——SMTP（Gmail app password，存 Secrets）经现成 action，或 Resend/SendGrid 免费档 API。**实现时二选一固化，不假设。** 兜底：即便邮件挂了，GitHub 自带 PR 通知仍在，不会漏。
 
 ---
 
@@ -122,7 +125,8 @@
 | 测试失败 | 关分支，记录失败原因；可选：发一封「这条反馈尝试失败」告知邮件 |
 | 同主题已有开放 PR | 去重跳过，不重复开 |
 | LLM 判定改动越界（碰后端/新功能） | 降级为「只发建议邮件」，不开 PR |
-| 远端 agent 不能 push/PR | 回退 GitHub Actions（§5.4） |
+| 邮件通道挂了 | 不阻塞；GitHub 自带 PR 通知兜底 |
+| Actions 跑超时/报错 | workflow 失败可见于 Actions 日志；下一个整点重跑（幂等保证不会重复处理已处理反馈） |
 | 反馈含恶意/注入内容 | LLM 判定阶段过滤；且人工 merge 闸门兜底——任何改动都需 Kevin 点 merge |
 
 ---
@@ -134,7 +138,7 @@
 3. 幂等验证：同一条反馈连跑两次 cron，第二次不重复开 PR。✅ 可演示
 4. 范围锁验证：喂一条「加个新功能」类反馈，系统降级为建议邮件而非开越界 PR。✅ 可演示
 5. 测试闸验证：人为让改动测试失败，系统不开 PR。✅ 可演示
-6. 远端 cron 每小时自动触发（或回退方案）。✅ 可演示
+6. GitHub Actions 定时 workflow 每小时自动触发（`workflow_dispatch` 可手动验证）。✅ 可演示
 
 ---
 
