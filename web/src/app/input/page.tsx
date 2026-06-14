@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { computeChart } from "@/lib/astro/chart";
-import { geocode } from "@/lib/astro/geocode";
 import { useFunnel } from "@/lib/store";
 import { track } from "@/lib/track";
 
@@ -25,17 +24,34 @@ export default function InputPage() {
   const [country, setCountry] = useState("澳大利亚");
   const [city, setCity] = useState("墨尔本");
   const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  function submit() {
-    const geo = geocode(city);
-    if (!geo) { setErr(`没找到「${city}」`); return; }
-    const [y, mo, d] = date.split("-").map(Number);
-    const [h, mi] = (knownTime ? "12:00" : time).split(":").map(Number);
-    const birth = { year: y, month: mo, day: d, hour: h, minute: mi, lat: geo.lat, lng: geo.lng, tz: geo.tz };
-    const chart = computeChart(birth);
-    setChart(birth, { date, time, knownTime, country, city }, chart);
-    track("funnel_input", { knownTime });
-    router.push("/calibration");
+  async function submit() {
+    if (loading) return;
+    setErr(null);
+    setLoading(true);
+    try {
+      const t = knownTime ? "12:00" : time;
+      const qs = new URLSearchParams({ city, country, date, time: t });
+      const res = await fetch(`/api/geocode?${qs.toString()}`);
+      if (!res.ok) {
+        setErr(`没找到「${city}」`);
+        return;
+      }
+      // { lat, lng, tz, label, iana } — tz is the historical offset at birth
+      const geo = (await res.json()) as { lat: number; lng: number; tz: number };
+      const [y, mo, d] = date.split("-").map(Number);
+      const [h, mi] = t.split(":").map(Number);
+      const birth = { year: y, month: mo, day: d, hour: h, minute: mi, lat: geo.lat, lng: geo.lng, tz: geo.tz };
+      const chart = computeChart(birth);
+      setChart(birth, { date, time, knownTime, country, city }, chart);
+      track("funnel_input", { knownTime });
+      router.push("/calibration");
+    } catch {
+      setErr("网络出了点问题，再试一次");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const lbl = { display: "block", fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase" as const, color: "var(--gold)", marginBottom: 9, fontWeight: 500 };
@@ -85,7 +101,7 @@ export default function InputPage() {
         </div>
 
         <div className="reveal" style={{ marginTop: "auto", animationDelay: "1s" }}>
-          <button className="gold-btn" onClick={submit}>让 Molly 看你的盘 →</button>
+          <button className="gold-btn" onClick={submit} disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>{loading ? "正在定位你的星空…" : "让 Molly 看你的盘 →"}</button>
           <div style={{ marginTop: 14, textAlign: "center", fontSize: 11.5, color: "var(--mute)" }}>🔒 只用来排你的盘 · 永远不会公开</div>
         </div>
       </div>

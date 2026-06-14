@@ -23,7 +23,8 @@
 | native `Intl` 反解本地→UTC | 2 步修正法在 DST 边界稳健、spring-forward 不存在时刻不崩 | node 实测 5 例（含两个 DST 边界） |
 | 改 chart.ts 后整数 tz 不回归 | 新旧完全等价（含跨日/午夜） | node 实测现有 fixture |
 | GeoNames cities15000 有 IANA 列 | 有，第 18 列 `timezone : the iana timezone id` | GeoNames readme |
-| GeoNames `alternatenames` 列**不含**中文 | 只有 ASCII 转写；中文在 `alternateNamesV2.zip`（语言码 zh） | GeoNames readme |
+| cities15000 的 alternatenames 列**含中文（简+繁）** | 含。上海→上海/上海市/中国上海/沪；墨尔本→墨尔本/墨爾本/新金山。readme 说「只有 ASCII」对 cities15000 是**错的** | 实测 `grep` cities15000.txt |
+| 故**无需** alternateNamesV2.zip（几百 MB） | 只用 3.3MB 的 cities15000.zip 即可全离线建双语索引 | 同上 |
 | `tz-lookup` 包 | v6.1.25，返回 IANA、永不抛错、152KB、纯 JS | npm registry |
 
 ## 2. 决策（已与用户确认）
@@ -59,7 +60,7 @@ input 页 submit
 
 | 单元 | 职责（接口） | 依赖 |
 |---|---|---|
-| `web/scripts/build-cities.ts` | 构建期脚本：下载 cities15000.zip + alternateNamesV2.zip，按 geonameid join、按语言码 `zh`/`zh-Hant`/`en` 过滤别名，输出紧凑双语索引 JSON。country 名→ISO 映射一并生成 | 一次性下载 GeoNames |
+| `web/scripts/build-cities.ts` | 构建期脚本：解析 cities15000.txt（其 alternatenames 列已含中文），抽取 name/ascii/CJK+latin 别名/lat/lng/country/population/iana，输出紧凑双语索引 JSON | 一次性下载 cities15000.zip（3.3MB） |
 | `web/src/lib/astro/geo/citydb.ts` | `lookup(city, country) → CityRow \| null`。加载索引 JSON（模块级缓存），归一化匹配，country 筛选，人口排序取最大。`CityRow = {lat,lng,iana,label}` | 索引 JSON |
 | `web/src/lib/astro/geo/timezone.ts` | `offsetAt(iana, localParts) → hours`（native Intl 2 步反解）；`zoneFromLatLng(lat,lng) → iana`（兜底路径用） | tz-lookup |
 | `web/src/lib/astro/geo/nominatim.ts` | `query(city, country) → {lat,lng} \| null`。遵守 OSM 用量策略（1 req/s、自定义 User-Agent） | fetch |

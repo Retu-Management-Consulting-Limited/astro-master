@@ -53,6 +53,25 @@ describe("computeChart", () => {
     expect(nearAries0).toBe(true);
   });
 
+  // Fractional timezone (India +5:30) must not lose 30 minutes. Local 08:40 at
+  // +5.5 == UTC 03:10, which equals local 03:10 at +0. The old `hour - tz` math
+  // truncated to UTC 03:40 (wrong by 30 min) and would fail this.
+  it("fractional tz (+5.5) resolves to the exact UTC instant (no 30-min loss)", () => {
+    const frac = computeChart({ year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: 19.076, lng: 72.8777, tz: 5.5 });
+    const ref = computeChart({ year: 1998, month: 6, day: 13, hour: 3, minute: 10, lat: 19.076, lng: 72.8777, tz: 0 });
+    expect(frac.asc).toBeCloseTo(ref.asc, 6);
+    const fSun = frac.placements.find((p) => p.body === "Sun")!.lon;
+    const rSun = ref.placements.find((p) => p.body === "Sun")!.lon;
+    expect(fSun).toBeCloseTo(rSun, 9);
+  });
+
+  // Integer tz must be unchanged by the minute-field refactor (regression guard).
+  it("integer tz (+10) regression: matches the equivalent UTC instant", () => {
+    const intz = computeChart(sample); // 08:40 @ +10
+    const ref = computeChart({ ...sample, hour: 22, minute: 40, day: 12, tz: 0 }); // 1998-06-12 22:40 UTC
+    expect(intz.asc).toBeCloseTo(ref.asc, 6);
+  });
+
   // Moon moves ~13°/day — sanity that fast bodies differ across a day.
   it("Moon longitude changes substantially over 24h", () => {
     const c1 = computeChart(sample);

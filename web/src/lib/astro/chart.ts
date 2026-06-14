@@ -66,8 +66,10 @@ function signOf(lon: number) {
 }
 
 function utcDate(b: BirthInput): Date {
-  // local clock - tz = UTC
-  return new Date(Date.UTC(b.year, b.month - 1, b.day, b.hour - b.tz, b.minute));
+  // local clock - tz = UTC. Apply the offset in the MINUTE field (as integer
+  // minutes), not the hour field: Date.UTC truncates a fractional hour toward
+  // zero, so `hour - 5.5` would silently drop 30 min for +5:30/+5:45 zones.
+  return new Date(Date.UTC(b.year, b.month - 1, b.day, b.hour, b.minute - Math.round(b.tz * 60)));
 }
 
 function eclipticLongitude(body: BodyName, date: Date): number {

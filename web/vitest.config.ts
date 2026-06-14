@@ -8,6 +8,10 @@ export default defineConfig({
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "src") },
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+      // `server-only` is provided by the Next.js runtime; stub it for vitest.
+      "server-only": path.resolve(__dirname, "src/test/server-only.stub.ts"),
+    },
   },
 });

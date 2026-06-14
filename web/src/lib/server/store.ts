@@ -91,6 +91,14 @@ export async function cacheSet(key: string, value: Json): Promise<void> {
   await (await kv()).set(`rc:${key}`, value);
 }
 
+// ---- geocode cache (coords for an offline-miss city are stable) ----
+export async function geoCacheGet(key: string): Promise<Json | null> {
+  return (await kv()).get(`gc:${key}`);
+}
+export async function geoCacheSet(key: string, value: Json): Promise<void> {
+  await (await kv()).set(`gc:${key}`, value);
+}
+
 // ---- internal-test telemetry ----
 export interface TesterPatch {
   name?: string;
