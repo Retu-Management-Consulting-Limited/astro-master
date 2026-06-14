@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local design-screenshot util (not part of the app)
+shot.mjs
+_review_shots/
