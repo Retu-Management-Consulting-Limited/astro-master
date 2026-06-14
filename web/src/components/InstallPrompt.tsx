@@ -16,11 +16,30 @@ export function InstallPrompt() {
   const [show, setShow] = useState(false);
   const [ios, setIos] = useState(false);
 
-  // Register service worker (production only — avoids dev HMR / stale-chunk issues)
+  // Register service worker (production only — avoids dev HMR / stale-chunk issues).
+  // updateViaCache:"none" → the browser never serves sw.js itself from HTTP cache,
+  // so new SW versions are detected. When a new SW activates (an update, not the
+  // first install), reload once so the installed PWA picks up the latest deploy
+  // instead of showing stale content.
   useEffect(() => {
-    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    }
+    if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
+    let reloaded = false;
+    navigator.serviceWorker
+      .register("/sw.js", { updateViaCache: "none" })
+      .then((reg) => {
+        reg.update().catch(() => {});
+        reg.addEventListener("updatefound", () => {
+          const nw = reg.installing;
+          nw?.addEventListener("statechange", () => {
+            // controller present = there was a previous SW → this is an update
+            if (nw.state === "activated" && navigator.serviceWorker.controller && !reloaded) {
+              reloaded = true;
+              window.location.reload();
+            }
+          });
+        });
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
