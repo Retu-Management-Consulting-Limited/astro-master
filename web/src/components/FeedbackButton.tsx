@@ -7,6 +7,9 @@ import { TEST_MODE } from "@/lib/track";
 // A tap opens a one-line feedback box tagged with the current page + tester id.
 export function FeedbackButton() {
   const pathname = usePathname();
+  // /chat has its own bottom input bar with a send button at the same corner —
+  // lift the FAB above it so the 💬 icon doesn't overlap the send button.
+  const fabBottom = pathname === "/chat" ? 138 : 78;
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [sent, setSent] = useState(false);
@@ -45,14 +48,14 @@ export function FeedbackButton() {
         <button
           data-testid="feedback-fab"
           onClick={() => setOpen(true)}
-          style={{ position: "fixed", right: 14, bottom: 78, zIndex: 60, width: 42, height: 42, borderRadius: "50%", border: "1px solid rgba(201,168,97,.45)", background: "rgba(12,15,24,.92)", color: "var(--gold-soft)", fontSize: 18, cursor: "pointer", boxShadow: "0 6px 20px -8px rgba(0,0,0,.7)", backdropFilter: "blur(6px)" }}
+          style={{ position: "fixed", right: 14, bottom: fabBottom, zIndex: 60, width: 42, height: 42, borderRadius: "50%", border: "1px solid rgba(201,168,97,.45)", background: "rgba(12,15,24,.92)", color: "var(--gold-soft)", fontSize: 18, cursor: "pointer", boxShadow: "0 6px 20px -8px rgba(0,0,0,.7)", backdropFilter: "blur(6px)" }}
           aria-label="反馈"
         >
           💬
         </button>
       )}
       {open && (
-        <div style={{ position: "fixed", right: 14, bottom: 78, zIndex: 60, width: "min(300px, calc(100vw - 28px))", background: "linear-gradient(180deg, rgba(18,22,38,.98), rgba(10,12,22,.98))", border: "1px solid rgba(201,168,97,.4)", borderRadius: 16, padding: 13, boxShadow: "0 18px 50px -12px rgba(0,0,0,.7)", backdropFilter: "blur(8px)" }}>
+        <div style={{ position: "fixed", right: 14, bottom: fabBottom, zIndex: 60, width: "min(300px, calc(100vw - 28px))", background: "linear-gradient(180deg, rgba(18,22,38,.98), rgba(10,12,22,.98))", border: "1px solid rgba(201,168,97,.4)", borderRadius: 16, padding: 13, boxShadow: "0 18px 50px -12px rgba(0,0,0,.7)", backdropFilter: "blur(8px)" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: 9 }}>
             <span style={{ fontSize: 12.5, color: "var(--gold-soft)", fontWeight: 600 }}>内测反馈</span>
             <button type="button" aria-label="关闭" onClick={() => setOpen(false)} style={{ marginLeft: "auto", color: "var(--mute)", cursor: "pointer", fontSize: 16 }}>✕</button>
