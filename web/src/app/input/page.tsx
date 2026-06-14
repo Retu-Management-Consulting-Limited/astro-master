@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { computeChart } from "@/lib/astro/chart";
 import { geocode } from "@/lib/astro/geocode";
 import { useFunnel } from "@/lib/store";
+import { track } from "@/lib/track";
 
 function Dots({ active }: { active: number }) {
   return (
@@ -33,6 +34,7 @@ export default function InputPage() {
     const birth = { year: y, month: mo, day: d, hour: h, minute: mi, lat: geo.lat, lng: geo.lng, tz: geo.tz };
     const chart = computeChart(birth);
     setChart(birth, { date, time, knownTime, country, city }, chart);
+    track("funnel_input", { knownTime });
     router.push("/calibration");
   }
 

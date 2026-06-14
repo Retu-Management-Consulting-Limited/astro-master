@@ -6,6 +6,7 @@ import { generateFirstRead, type FirstRead } from "@/lib/reading/generate";
 import { fetchFirstRead, AI_ON } from "@/lib/reading/remote";
 import { LoadingRitual } from "@/components/LoadingRitual";
 import { MollyThinking } from "@/components/MollyThinking";
+import { track } from "@/lib/track";
 
 export default function ReadingPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function ReadingPage() {
       setRead((prev) => prev ?? stub);
       setFirstRead(stub);
       setLoading(false);
+      track("first_read", { ai: false }); // activation peak reached (stub shown)
     }, 1400);
 
     if (AI_ON) {
@@ -41,6 +43,7 @@ export default function ReadingPage() {
           if (!cancelled && real) {
             setRead(real);
             setFirstRead(real);
+            track("first_read", { ai: true }); // real Molly reading landed
           }
         })
         .catch(() => {})

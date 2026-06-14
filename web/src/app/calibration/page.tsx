@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { LoadingRitual } from "@/components/LoadingRitual";
+import { track } from "@/lib/track";
 
 const QUESTIONS = [
   {
@@ -67,6 +68,7 @@ export default function CalibrationPage() {
         next.forEach((s) => (counts[s] = (counts[s] ?? 0) + 1));
         const asc = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
         setAsc(asc);
+        track("funnel_calibration", { asc });
         router.push("/reading");
       }
     }, 280);
