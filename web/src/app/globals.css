@@ -5,7 +5,7 @@
   --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
   --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194;
   --irisc:#b58fb0; --pink:#e69ec8; --orange:#f0a868; --blue:#8fb6d8; --green:#7fc99a; --red:#e5736f;
-  --field:#0f1320; --field-bd:#262d3d;
+  --field:#141a29; --field-bd:#2c3447;
   --serif:'Cormorant Garamond','Noto Serif SC',Georgia,serif;
   --sans:'Hanken Grotesk','Noto Sans SC',system-ui,sans-serif;
 }
@@ -73,6 +73,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   color:#1a1305;font-family:var(--sans);font-weight:600;font-size:15.5px;letter-spacing:.04em;box-shadow:0 10px 34px -10px rgba(201,168,97,.6)}
 .gold-btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);animation:shimmer 4.5s ease-in-out infinite}
+/* Button tiers — primary = .gold-btn (the one gold per screen). Secondary and
+   tertiary actions de-escalate so the eye knows which gold is THE gold. */
+.btn-ghost{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;padding:13px 16px;border-radius:30px;border:1px solid var(--field-bd);background:transparent;color:var(--gold-soft);font-family:var(--sans);font-weight:500;font-size:14.5px;cursor:pointer;transition:border-color .2s,color .2s}
+.btn-ghost:hover{border-color:var(--gold-deep);color:var(--gold)}
+.btn-text{background:none;border:none;color:var(--gold-soft);font-family:var(--sans);font-size:13px;cursor:pointer;padding:6px 8px}
+.btn-text:hover{color:var(--gold)}
+
 .field-inp{width:100%;background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:15px;color:var(--cream);font-size:15.5px;font-family:var(--sans);color-scheme:dark;transition:border-color .2s, box-shadow .2s}
 .field-inp::placeholder{color:#566073}
 .field-inp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,97,.12)}
