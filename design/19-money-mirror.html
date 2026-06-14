@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molly · 金钱人格镜（Money Mirror）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+    --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194;
+    --iris:#b58fb0; --blue:#8fb6d8; --green:#7fc99a; --pink:#e69ec8;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif;
+    --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:26px;padding:30px 16px 60px;-webkit-font-smoothing:antialiased}
+  .sheet{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .cap{max-width:428px;color:var(--cream-dim);font-size:12px;line-height:1.5;text-align:center}
+  .cap b{color:var(--gold-soft);font-weight:600}
+  .cap .s{color:var(--mute)}
+
+  .phone{position:relative;width:428px;max-width:92vw;height:858px;border-radius:32px;overflow:hidden;
+    background:radial-gradient(120% 55% at 50% -4%, #1c2444 0%, var(--void2) 44%, var(--void) 72%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(1px 1px at 14% 9%, rgba(255,255,255,.6), transparent),radial-gradient(1px 1px at 82% 7%, rgba(201,168,97,.7), transparent),radial-gradient(1px 1px at 30% 14%, rgba(255,255,255,.4), transparent),radial-gradient(1px 1px at 67% 22%, rgba(181,143,176,.5), transparent),radial-gradient(1px 1px at 48% 5%, rgba(255,255,255,.35), transparent);}
+  .phone::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  .pbar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:22px 22px 6px;flex:0 0 auto}
+  .eye-mini{width:32px;height:32px;border-radius:50%;position:relative;overflow:hidden;flex:0 0 auto;background:radial-gradient(circle at 50% 50%, #2a2160 0%, #0a0e1a 70%);box-shadow:0 0 0 1px var(--gold), 0 0 12px rgba(201,138,70,.4)}
+  .eye-mini::before{content:"";position:absolute;inset:4px;border-radius:50%;background:repeating-conic-gradient(from 0deg,#2a2448 0 3deg,#6a7a8e 3deg 5deg,#c9a861 5deg 6deg,#4a3b7a 6deg 9deg);-webkit-mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);mask:radial-gradient(circle,transparent 30%,#000 32%,#000 86%,transparent 90%);animation:spin 50s linear infinite}
+  .eye-mini::after{content:"";position:absolute;left:50%;top:50%;width:9px;height:9px;transform:translate(-50%,-50%);border-radius:50%;background:#04050c;box-shadow:0 0 0 1px rgba(180,96,52,.6)}
+  .pbar .name{font-weight:500;letter-spacing:.4em;font-size:12px;color:var(--gold);text-indent:.4em}
+  .pbar .back{margin-left:auto;font-size:18px;color:var(--mute)}
+
+  .scroll{position:relative;z-index:2;flex:1;overflow-y:auto;padding:6px 22px 16px}
+  .scroll::-webkit-scrollbar{width:0}
+
+  /* ---- 大眼（hero·呼吸） ---- */
+  .eye-hero{width:74px;height:74px;border-radius:50%;position:relative;overflow:hidden;margin:18px auto 6px;background:radial-gradient(circle at 50% 50%, #2a2160 0%, #0a0e1a 72%);box-shadow:0 0 0 1px var(--gold),0 0 28px rgba(201,138,70,.45);animation:breath 6s ease-in-out infinite}
+  .eye-hero::before{content:"";position:absolute;inset:7px;border-radius:50%;background:repeating-conic-gradient(from 0deg,#2a2448 0 3deg,#6a7a8e 3deg 5deg,#c9a861 5deg 6deg,#4a3b7a 6deg 9deg);-webkit-mask:radial-gradient(circle,transparent 28%,#000 30%,#000 86%,transparent 90%);mask:radial-gradient(circle,transparent 28%,#000 30%,#000 86%,transparent 90%);animation:spin 90s linear infinite}
+  .eye-hero::after{content:"";position:absolute;left:50%;top:50%;width:20px;height:20px;transform:translate(-50%,-50%);border-radius:50%;background:#04050c;box-shadow:0 0 0 1px rgba(180,96,52,.6)}
+
+  /* ---- 通用 ---- */
+  .tag{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);text-align:center}
+  .seen{font-family:var(--serif);font-size:23px;color:var(--cream);text-align:center;line-height:1.5;margin:10px 6px 4px}
+  .persona{font-family:var(--serif);font-weight:600;font-size:40px;letter-spacing:.14em;color:var(--gold-soft);text-align:center;margin:6px 0 4px;text-shadow:0 0 26px rgba(201,168,97,.32)}
+  .style-sub{text-align:center;font-size:12.5px;color:var(--cream-dim);margin-bottom:18px}
+  .chips{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:4px 0 18px}
+  .chip{background:rgba(124,150,170,.08);border:1px solid #2b3a4e;border-radius:20px;padding:7px 14px;font-size:12.5px;color:#a9c4dd}
+  .chip b{color:#cfe2f2;font-weight:600}
+
+  .insight{border:1px solid rgba(201,168,97,.4);border-radius:16px;padding:17px 17px 15px;background:linear-gradient(180deg,rgba(201,168,97,.07),rgba(201,168,97,.015));box-shadow:0 0 30px -12px rgba(201,168,97,.4);position:relative;margin:6px 0}
+  .insight::before{content:"";position:absolute;top:0;left:18px;right:18px;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,97,.5),transparent)}
+  .insight .lead{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+  .insight p{font-family:var(--serif);font-size:18.5px;line-height:1.66;color:var(--cream)}
+  .insight .soft{display:block;margin-top:9px;font-family:var(--sans);font-size:12.5px;color:var(--cream-dim)}
+  .insight .blame{display:block;margin-top:6px;font-family:var(--sans);font-size:12px;color:var(--gold-soft)}
+
+  .destiny{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.6;color:var(--gold-soft);text-align:center;margin:22px 12px;text-shadow:0 0 24px rgba(201,168,97,.25)}
+
+  .cta{display:block;width:100%;text-align:center;border:none;border-radius:40px;padding:15px;font-family:var(--sans);font-weight:600;font-size:15px;color:#1a1305;cursor:pointer;position:relative;overflow:hidden;
+    background:linear-gradient(100deg,var(--gold-deep),var(--gold) 45%,var(--gold-soft) 60%,var(--gold) 75%)}
+  .cta::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-20deg);animation:shimmer 5s infinite}
+  .cta.ghost{background:transparent;color:var(--cream-dim);border:1px solid var(--field-bd);font-weight:500}
+  .cta.ghost::after{display:none}
+  .ctas{display:flex;gap:10px;margin-top:14px}.ctas .cta{font-size:14px;padding:14px}
+
+  .disc{text-align:center;font-size:10.5px;color:#566073;margin:16px 8px 4px;line-height:1.5}
+
+  /* ---- S2 财运日历 ---- */
+  .hope{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(180deg,rgba(127,201,154,.1),rgba(127,201,154,.02));border:1px solid rgba(127,201,154,.3);border-radius:14px;padding:13px 14px;margin:8px 0 16px}
+  .hope .ic{font-size:16px;line-height:1.4}
+  .hope .t{font-family:var(--serif);font-size:17px;color:#ade3c2;line-height:1.5}
+  .hope .t b{color:#d6f5e3}
+  .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:7px}
+  .wk span{text-align:center;font-size:10px;color:#5a6173}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .day{aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:500;position:relative}
+  .g3{background:#1a7a3a;color:#eafff1}.g2{background:#3fa860;color:#06210f}.g1{background:#88c9a1;color:#06210f}.g0{background:#c8e6d3;color:#0a2a16}
+  .pl{background:#d9dee7;color:#39414c}.r1{background:#e0908d;color:#3a1010}.r2{background:#d44a46;color:#fff}.r3{background:#c9302c;color:#fff}
+  .today{box-shadow:0 0 0 2px var(--gold),0 0 12px rgba(201,168,97,.5);z-index:2}
+  .gd{box-shadow:inset 0 0 0 1.5px #f5e3b0}.gd::after{content:"✦";position:absolute;top:1px;right:3px;font-size:8px;color:#fff}
+  .legend{display:flex;align-items:center;justify-content:center;gap:8px;margin:15px 0 6px;font-size:10.5px;color:var(--mute)}
+  .legend .bar{width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,#c9302c,#e8a4a1,#eef1f4,#88c9a1,#1a7a3a)}
+  .detail{margin-top:14px;border-radius:16px;padding:15px 16px}
+  .shen{border:1px solid rgba(212,74,70,.28);background:linear-gradient(180deg,rgba(212,74,70,.08),rgba(212,74,70,.02));border-left:3px solid #d44a46}
+  .dtag{font-size:12px;font-weight:600;margin-bottom:8px;color:#e8736f}
+  .dtxt{font-size:14.5px;line-height:1.68;color:var(--cream-dim)}.dtxt b{color:var(--cream)}
+  .witness-link{display:flex;align-items:center;gap:10px;margin-top:14px;border:1px solid rgba(143,182,216,.32);border-radius:14px;padding:13px 14px;background:linear-gradient(180deg,rgba(143,182,216,.08),rgba(143,182,216,.02))}
+  .witness-link .clk{font-size:15px}
+  .witness-link .t{flex:1;font-size:13px;color:#bcd4ea;line-height:1.5}
+  .witness-link .arr{color:var(--blue)}
+
+  /* ---- S3 蓝图付费 ---- */
+  .free-block{border:1px solid var(--field-bd);background:var(--field);border-radius:14px;padding:15px 16px;margin:8px 0;position:relative}
+  .free-block .badge{position:absolute;top:-9px;left:14px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);background:#0c1a12;border:1px solid rgba(127,201,154,.4);border-radius:20px;padding:3px 9px}
+  .free-block h4{font-family:var(--serif);font-size:17px;color:var(--cream);margin-bottom:7px}
+  .free-block p{font-size:13.5px;line-height:1.62;color:var(--cream-dim)}
+  .paywall{position:relative;margin-top:6px;border-radius:18px;overflow:hidden}
+  .paywall .fade{height:70px;background:linear-gradient(180deg,transparent,var(--void2));margin-bottom:-1px}
+  .paywall .lockcard{border:1px solid rgba(201,168,97,.45);border-radius:18px;padding:20px 18px;background:linear-gradient(180deg,rgba(201,168,97,.09),rgba(12,17,29,.6));box-shadow:0 0 40px -16px rgba(201,168,97,.5)}
+  .paywall .lk{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:8px}
+  .paywall h3{font-family:var(--serif);font-size:24px;color:var(--cream);text-align:center;line-height:1.4;margin-bottom:14px}
+  .paywall ul{list-style:none;margin:0 4px 16px}
+  .paywall li{font-size:13px;color:var(--cream-dim);padding:6px 0 6px 22px;position:relative;line-height:1.5}
+  .paywall li::before{content:"✦";position:absolute;left:0;color:var(--gold-soft);font-size:11px;top:7px}
+  .price{text-align:center;font-size:13px;color:var(--mute);margin-top:10px}.price b{font-family:var(--serif);font-size:26px;color:var(--gold-soft)}
+
+  /* ---- S4 见证回路 ---- */
+  .w-center{display:flex;flex-direction:column;justify-content:center;min-height:100%;padding:0 4px}
+  .bubble{align-self:flex-start;max-width:90%;background:#141a28;border-radius:18px 18px 18px 4px;padding:15px 17px;font-family:var(--serif);font-size:18px;line-height:1.6;color:var(--cream);margin:8px 0}
+  .bubble.reply{background:linear-gradient(180deg,rgba(201,168,97,.1),rgba(201,168,97,.02));border:1px solid rgba(201,168,97,.32);border-radius:18px 18px 18px 4px;color:var(--gold-soft)}
+  .acks{display:flex;flex-direction:column;gap:10px;margin:18px 0 8px}
+  .ack{border:1px solid var(--field-bd);background:var(--field);border-radius:30px;padding:14px;text-align:center;font-size:14.5px;color:var(--cream);cursor:pointer}
+  .ack.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,97,.1);color:var(--gold-soft)}
+  .ack .s{display:block;font-size:11px;color:var(--mute);margin-top:3px}
+  .know{margin-top:22px}
+  .know .lab{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);margin-bottom:7px}
+  .know .track{height:7px;border-radius:4px;background:#1d2333;overflow:hidden}
+  .know .fill{height:100%;width:64%;border-radius:4px;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft))}
+
+  /* ---- S5 金句卡 ---- */
+  .card{margin:10px auto;width:300px;border-radius:22px;padding:30px 26px 26px;text-align:center;position:relative;overflow:hidden;
+    background:radial-gradient(130% 70% at 50% 0%,#241d3e 0%,#0d1120 55%,#070910 100%);box-shadow:0 0 0 1px rgba(201,168,97,.4),0 24px 60px rgba(0,0,0,.6)}
+  .card .glow{position:absolute;inset:0;background:radial-gradient(60% 40% at 50% 12%,rgba(201,168,97,.18),transparent)}
+  .card>*{position:relative;z-index:1}
+  .card .eyc{width:46px;height:46px;border-radius:50%;margin:0 auto 16px;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:0 0 0 1px var(--gold),0 0 16px rgba(201,138,70,.5)}
+  .card .lbl{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+  .card .big{font-family:var(--serif);font-weight:600;font-size:34px;letter-spacing:.12em;color:var(--gold-soft);margin-bottom:14px}
+  .card .line{font-family:var(--serif);font-style:italic;font-size:18px;line-height:1.6;color:var(--cream);margin-bottom:20px}
+  .card .mark{font-size:10px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase}
+  .dl{margin-top:18px}
+
+  .tabbar{position:relative;z-index:4;flex:0 0 auto;display:flex;justify-content:space-around;padding:10px 8px 16px;border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,#080a12,rgba(8,10,18,.6))}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:#5a6173;flex:1}.tab.on{color:var(--gold)}.tab .ic{font-size:17px}
+  .tab .eyeic{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:inset 0 0 0 1px #5a6173}
+
+  @keyframes rise{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:none}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes breath{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+  @keyframes shimmer{0%{left:-60%}55%,100%{left:130%}}
+  .r1a{opacity:0;animation:rise 1s .15s forwards}.r2a{opacity:0;animation:rise 1s .4s forwards}.r3a{opacity:0;animation:rise 1s .7s forwards}
+  .r4a{opacity:0;animation:rise 1s 1s forwards}.r5a{opacity:0;animation:rise 1s 1.3s forwards}.r6a{opacity:0;animation:rise 1s 1.6s forwards}.r7a{opacity:0;animation:rise 1s 1.9s forwards}
+</style>
+</head>
+<body>
+
+  <!-- ================= S1 · 金钱人格揭示（免费钩子·hero·被看见） ================= -->
+  <div class="sheet">
+    <div class="phone">
+      <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span><span class="back">✕</span></div>
+      <div class="scroll">
+        <div class="eye-hero r1a"></div>
+        <div class="tag r1a">你的金钱人格</div>
+        <div class="seen r2a">你和钱的关系，<br>我看明白了。</div>
+        <div class="persona r3a">冲动扩张型</div>
+        <div class="style-sub r3a">金星天蝎 · 火星落二宫 · 木星照财帛</div>
+
+        <div class="chips r4a">
+          <span class="chip"><b>敢出手</b></span>
+          <span class="chip"><b>嗅觉准</b></span>
+          <span class="chip"><b>格局大</b></span>
+        </div>
+
+        <div class="insight r5a">
+          <div class="lead">你的盲点 · 也是你的暗面</div>
+          <p>你为情绪买单——因为你比别人更敢爱、更敢活。</p>
+          <span class="blame">这不是你的错，是你火星的位置。这股劲用对地方，就是你的搞钱武器。</span>
+        </div>
+
+        <div class="destiny r6a">「 你这辈子的钱，<br>不靠死工资，<br>靠一次敢转向。 」</div>
+
+        <div class="r7a">
+          <button class="cta">看我的金钱蓝图 →</button>
+          <div class="ctas"><button class="cta ghost">存成金句卡</button></div>
+        </div>
+        <div class="disc r7a">Molly 照见的是你这个人，不是一个会涨跌的数字。</div>
+      </div>
+    </div>
+    <div class="cap"><b>S1 · 金钱人格揭示</b>（免费钩子）<span class="s"> — 错落 rise「被看穿」；盲点甩锅星盘+天赋暗面；命运预言去赌性（敢转向≠敢赌）；CTA→蓝图/金句卡</span></div>
+  </div>
+
+  <!-- ================= S2 · 财运日历升级（每日·希望打头+护身符） ================= -->
+  <div class="sheet">
+    <div class="phone">
+      <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span></div>
+      <div class="scroll">
+        <div class="hope r1a">
+          <span class="ic">✶</span>
+          <div class="t"><b>9–11 月，你三年来最旺的搞钱扩张窗口</b>——开着。这段时间，敢往前一步的事，胜算都偏高。</div>
+        </div>
+
+        <div class="r2a">
+          <div class="wk"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+          <div class="grid">
+            <div class="day g1">1</div><div class="day pl">2</div><div class="day r1">3</div><div class="day g0">4</div><div class="day pl">5</div><div class="day r2">6</div><div class="day g1">7</div>
+            <div class="day pl">8</div><div class="day r3">9</div><div class="day r1">10</div><div class="day pl">11</div><div class="day g3 gd">12</div><div class="day r2 today">13</div><div class="day pl">14</div>
+            <div class="day r1">15</div><div class="day g0">16</div><div class="day pl">17</div><div class="day r1">18</div><div class="day g1">19</div><div class="day pl">20</div><div class="day g0">21</div>
+            <div class="day r2">22</div><div class="day pl">23</div><div class="day g3 gd">24</div><div class="day g1">25</div><div class="day pl">26</div><div class="day r1">27</div><div class="day g0">28</div>
+            <div class="day pl">29</div><div class="day r1">30</div>
+          </div>
+          <div class="legend">慎 <span class="bar"></span> 旺</div>
+        </div>
+
+        <div class="detail shen r3a">
+          <div class="dtag">今天 · 13 号 · 慎 🔴</div>
+          <div class="dtxt">今天你的钱，容易跟着情绪走——<b>我替你拦一下</b>。想下单的、想报复性消费的，先放到明天；明天还想要，我陪你买。</div>
+        </div>
+
+        <div class="witness-link r4a">
+          <span class="clk">🕰️</span>
+          <span class="t">昨天那个慎，我看见你扛住了。</span>
+          <span class="arr">→</span>
+        </div>
+
+        <button class="cta r5a" style="margin-top:18px">看我的金钱蓝图 →</button>
+        <div class="disc r5a">财运仅供参考 · 决定还是你做。</div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><span class="ic">☾</span>今日</div>
+        <div class="tab on"><span class="ic">✶</span>本命</div>
+        <div class="tab"><span class="eyeic"></span>对话</div>
+        <div class="tab"><span class="ic">✦</span>我的</div>
+      </div>
+    </div>
+    <div class="cap"><b>S2 · 财运日历升级</b>（每日）<span class="s"> — 希望(扩张窗口)打头；今天红日「护住式」非禁令；🕰️见证入口→S4；付费墙 CTA→S3</span></div>
+  </div>
+
+  <!-- ================= S3 · 金钱蓝图深读（付费墙·不挡安心） ================= -->
+  <div class="sheet">
+    <div class="phone">
+      <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span><span class="back">‹</span></div>
+      <div class="scroll">
+        <div class="tag r1a" style="text-align:left;margin:6px 2px 12px">你的金钱蓝图</div>
+
+        <div class="free-block r2a">
+          <span class="badge">免费 · 永远给你</span>
+          <h4>你会没事的</h4>
+          <p>你的盘里，钱从来不是你最缺的——你缺的是「允许自己有」。这一条，我先免费告诉你，因为这不该上锁。</p>
+        </div>
+
+        <div class="free-block r3a">
+          <h4>你和钱的底层模式</h4>
+          <p>你把花钱当成情绪的出口。看懂这一点，你就拿回了一半的主动权……</p>
+        </div>
+
+        <div class="paywall r4a">
+          <div class="fade"></div>
+          <div class="lockcard">
+            <div class="lk">完整蓝图 · 解锁更深</div>
+            <h3>完整看懂<br>你和钱的命</h3>
+            <ul>
+              <li>你这辈子的财富主线，从哪来、往哪去</li>
+              <li>三个你专属的搞钱扩张窗口（含逐月时机）</li>
+              <li>把「情绪买单」变成搞钱武器的具体路径</li>
+              <li>你和金钱的和解功课 —— 长期最关键的一章</li>
+            </ul>
+            <button class="cta">解锁完整蓝图</button>
+            <div class="price">一次买断 · <b>¥98</b></div>
+          </div>
+        </div>
+        <div class="disc r5a">付费的是「更深、更久、更趁手」——「你会不会没事」永远免费。</div>
+      </div>
+    </div>
+    <div class="cap"><b>S3 · 金钱蓝图深读</b>（主变现）<span class="s"> — 安心内容永久免费、付费墙只立在「更深」前；触发器是好奇/身份而非恐惧；接 TODO(key)</span></div>
+  </div>
+
+  <!-- ================= S4 · 见证回路（零评判·两态同屏示意） ================= -->
+  <div class="sheet">
+    <div class="phone">
+      <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span><span class="back">‹</span></div>
+      <div class="scroll">
+        <div class="w-center">
+          <div class="bubble r1a">这阵子土星压着你的钱，挺难的。<br>我看见你一直在忍着，没乱来。</div>
+
+          <div class="acks r2a">
+            <div class="ack sel">嗯，扛住了<span class="s">那种「忍住」的感觉，记着</span></div>
+            <div class="ack">没忍住，破了一笔<span class="s">说出来，我不评判</span></div>
+          </div>
+
+          <div class="bubble reply r3a">没忍住也没关系——土星那几天，谁都难。<br>你愿意回来跟我说，已经比大多数人强了。我陪你，下次接住。</div>
+
+          <div class="know r4a">
+            <div class="lab"><span>Molly 懂你度</span><span>64%</span></div>
+            <div class="track"><div class="fill"></div></div>
+            <div class="disc" style="margin-top:9px;text-align:left">你每回真实地回应我一次，我就更懂你一点。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cap"><b>S4 · 见证回路</b>（留存+准度）<span class="s"> — 是「见证」不是「审问」；「没忍住」态零评判（不撒盐）；回应→懂你度↑（激活 self-model）</span></div>
+  </div>
+
+  <!-- ================= S5 · 搞钱命格金句卡（传播） ================= -->
+  <div class="sheet">
+    <div class="phone">
+      <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span><span class="back">‹</span></div>
+      <div class="scroll">
+        <div class="tag r1a" style="margin:8px 0 6px">为你做了一张 · 可以晒</div>
+        <div class="card r2a">
+          <div class="glow"></div>
+          <div class="eyc"></div>
+          <div class="lbl">我的搞钱命格</div>
+          <div class="big">冲动扩张型</div>
+          <div class="line">「 我为情绪买单，<br>是因为我比别人<br>更敢爱、更敢活。 」</div>
+          <div class="mark">MOLLY · 看穿你的本命</div>
+        </div>
+        <div class="dl r3a">
+          <button class="cta">保存图片 · 去晒</button>
+          <div class="ctas"><button class="cta ghost">换一句</button></div>
+        </div>
+        <div class="disc r3a">基础卡免费 · 精致版（含你的专属星图底纹）¥19</div>
+      </div>
+    </div>
+    <div class="cap"><b>S5 · 搞钱命格金句卡</b>（传播）<span class="s"> — hope 峰值冲动晒；盲点写成「敢爱敢活」的尊严叙事；喂 K 因子，扩展 /share</span></div>
+  </div>
+
+</body>
+</html>
