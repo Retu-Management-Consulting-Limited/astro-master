@@ -41,3 +41,26 @@ export const CRISIS_RESPONSE = [
 // Generic safe fallback when the model fails (empty / error). Never a 500 to
 // the user, never a bare technical error.
 export const CHAT_FALLBACK = "我在的……这条我一时没接住。能换个说法再跟我说一次吗？";
+
+// Output sanity guard (K2): beyond the crisis layer, catch obviously-broken
+// model output — empty, a meta/refusal leak ("作为一个 AI…"), or a persona
+// break — and swap in a safe Molly-voiced line so a flaky generation never
+// reaches an emotionally-invested user as raw garbage.
+const BROKEN_PATTERNS: RegExp[] = [
+  /as an ai|i['’]?m an ai|language model|i can('?|no)t (help|assist|provide)|i cannot (help|assist|provide)/i,
+  /作为(一个)?\s*(ai|人工智能|语言模型|大模型)/i,
+  /我(只是|是)(一个)?\s*(ai|人工智能|语言模型)/i,
+  /我无法(提供|完成|回答|帮)/,
+  /抱歉，?我(不能|无法)/,
+];
+
+export function isBrokenReply(text: string | null | undefined): boolean {
+  if (!text) return true;
+  const t = text.trim();
+  if (t.length < 2) return true;
+  return BROKEN_PATTERNS.some((re) => re.test(t));
+}
+
+export function safeReply(text: string | null | undefined, fallback: string): string {
+  return isBrokenReply(text) ? fallback : (text as string).trim();
+}

@@ -1,16 +1,43 @@
 "use client";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { TabBar } from "@/components/TabBar";
 import { dayWealth } from "@/lib/astro/wealth";
 import { useUnderstanding } from "@/lib/understanding";
+import { track } from "@/lib/track";
+
+const MOODS = [
+  { e: "😌", t: "平静" },
+  { e: "😮‍💨", t: "喘口气" },
+  { e: "😔", t: "低落" },
+  { e: "🔥", t: "有劲" },
+  { e: "🌧️", t: "低潮" },
+];
+const MOOD_KEY = "molly_mood_2026-06-13"; // keyed to the day shown; a real build keys to the live date
 
 export default function TodayPage() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
   const understand = useUnderstanding();
+  const [mood, setMood] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setMood(localStorage.getItem(MOOD_KEY));
+    } catch {}
+  }, []);
+
+  function pickMood(t: string) {
+    setMood(t);
+    try {
+      localStorage.setItem(MOOD_KEY, t);
+    } catch {}
+    track("mood_checkin", { mood: t });
+  }
+
   if (!ready || !chart) return null;
 
   const moon = chart.placements.find((p) => p.body === "Moon");
@@ -69,9 +96,19 @@ export default function TodayPage() {
 
         {/* 心情打卡 */}
         <div style={{ marginTop: 4, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 17, padding: "14px 16px" }}>
-          <div style={{ fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 11 }}>此刻的你，是哪一种？</div>
+          <div style={{ fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 11 }}>
+            {mood ? <>今天你选了 <b style={{ color: "var(--gold-soft)" }}>{mood}</b> · 我记下了</> : "此刻的你，是哪一种？"}
+          </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            {["😌", "😮‍💨", "😔", "🔥", "🌧️"].map((e) => <div key={e} style={{ width: 46, height: 46, borderRadius: "50%", background: "#161b29", border: "1px solid #2b3242", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{e}</div>)}
+            {MOODS.map((m) => {
+              const on = mood === m.t;
+              return (
+                <button key={m.t} type="button" data-testid="mood" aria-label={m.t} aria-pressed={on} onClick={() => pickMood(m.t)}
+                  style={{ width: 46, height: 46, borderRadius: "50%", background: on ? "rgba(201,168,97,.14)" : "#161b29", border: `1px solid ${on ? "var(--gold)" : "#2b3242"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21, cursor: "pointer", boxShadow: on ? "0 0 0 3px rgba(201,168,97,.1)" : "none" }}>
+                  <span aria-hidden="true">{m.e}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

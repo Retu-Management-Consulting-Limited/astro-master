@@ -6,6 +6,7 @@ import { fetchChatReply, AI_ON } from "@/lib/reading/remote";
 import { TabBar } from "@/components/TabBar";
 import { MollyThinking } from "@/components/MollyThinking";
 import { useUnderstanding } from "@/lib/understanding";
+import { safeReply } from "@/lib/ai/safety";
 import { track } from "@/lib/track";
 
 interface Msg { from: "me" | "molly"; text: string; recall?: boolean }
@@ -38,7 +39,7 @@ export default function ChatPage() {
 
     if (AI_ON && chart) {
       fetchChatReply(chart, next.map((m) => ({ from: m.from, text: m.text })), nickname)
-        .then((reply) => setMsgs((m) => [...m, { from: "molly", text: reply ?? FALLBACK_REPLY }]))
+        .then((reply) => setMsgs((m) => [...m, { from: "molly", text: safeReply(reply, FALLBACK_REPLY) }]))
         .catch(() => setMsgs((m) => [...m, { from: "molly", text: FALLBACK_REPLY }]))
         .finally(() => setTyping(false));
     } else {
