@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { fetchChatReply, AI_ON } from "@/lib/reading/remote";
@@ -26,20 +26,32 @@ export default function ChatPage() {
   // Real first-time opener derived from the user's own chart — not a fabricated
   // past conversation. No「她记得」recall until a real memory layer exists.
   const [msgs, setMsgs] = useState<Msg[]>([]);
-  useEffect(() => {
-    if (!chart) return;
-    const moon = chart.placements.find((p) => p.body === "Moon");
-    const opener = `${nickname ? `${nickname}，` : ""}我在。你的月亮在${moon?.sign ?? "—"}——情绪比你表现出来的更深。今天想跟我说点什么？开心的、烦的，都行。`;
-    setMsgs((m) => (m.length ? m : [{ from: "molly", text: opener }]));
-  }, [chart, nickname]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
 
-  function send(text?: string) {
+  // Boot once chart is ready: show the opener, then — if we arrived from a theme
+  // deep-read with ?ask=… — auto-send that question (BUG-1: carry it into the
+  // conversation, not just the input). Passing `base` keeps the opener in the
+  // history sent to the model.
+  const booted = useRef(false);
+  useEffect(() => {
+    if (!chart || booted.current) return;
+    booted.current = true;
+    const moon = chart.placements.find((p) => p.body === "Moon");
+    const opener = `${nickname ? `${nickname}，` : ""}我在。你的月亮在${moon?.sign ?? "—"}——情绪比你表现出来的更深。今天想跟我说点什么？开心的、烦的，都行。`;
+    const base: Msg[] = [{ from: "molly", text: opener }];
+    setMsgs(base);
+    let ask: string | null = null;
+    try { ask = new URLSearchParams(window.location.search).get("ask"); } catch {}
+    if (ask) send(ask, base);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chart, nickname]);
+
+  function send(text?: string, base?: Msg[]) {
     const t = (text ?? input).trim();
     if (!t || typing) return;
     setInput("");
-    const next: Msg[] = [...msgs, { from: "me", text: t }];
+    const next: Msg[] = [...(base ?? msgs), { from: "me", text: t }];
     setMsgs(next);
     setTyping(true);
     track("chat_send");
