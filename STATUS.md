@@ -1,7 +1,23 @@
 # Molly — 项目状态 (STATUS)
 
-> 快照日期：2026-06-13 · 代码在 `web/` · 设计在 `design/` · 文档在 `docs/`
-> 这份文件给「下次接着干 / 交给协作者」用。一句话状态：**功能全闭环，本地 pilot 可跑真大师 AI（借订阅），上线前需切 API key。**
+> 快照日期：2026-06-14 · 代码在 `web/` · 设计在 `design/` · 文档在 `docs/`
+> 一句话状态：**已部署上云,5–10 人内测可跑(真大师 AI + 埋点/反馈落 KV)。真用户前还差账号体系等(见 §7)。**
+
+---
+
+## 0. 线上 / 内测部署（current）
+
+- **线上地址(发测试者)**：https://web-beige-psi-kre97cof9a.vercel.app
+- **平台**：Vercel,项目 `kevin-retu-s-projects/web`(Root Directory = `web`),`vercel --prod` 部署
+- **AI 后端**：直连 Anthropic API(`ANTHROPIC_API_KEY` 已设)→ sonnet,~10s/次(渐进 UX 遮住:stub 秒出、后台替换)。换 `MOLLY_MODEL=haiku` 可约减半。
+- **存储**：Upstash 免费 Redis(REST),已连并验证跨请求持久化。缓存 + 测试者/事件/反馈都在。
+- **看数据**：`<线上地址>/api/admin/export?secret=<ADMIN_SECRET>`
+- **Vercel 生产 env 清单**(值不入库)：`ANTHROPIC_API_KEY`、`MOLLY_MODEL=sonnet`、`NEXT_PUBLIC_MOLLY_AI=1`、`NEXT_PUBLIC_MOLLY_TEST=1`、`ADMIN_SECRET`、`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`
+- **密钥位置**：`ADMIN_SECRET` 等真实值在 `web/.env.production`(**gitignored,不入库**);Vercel 里是加密存的。
+- **改 env 后必须 `vercel --prod` 重发才生效。**
+- **注意**：验证时注入过一条测试数据(tester「云测A」+ `kv-test-…` 反馈),看 export 时忽略。
+
+> 真大师 AI 现走 API(合规、可部署)。`@anthropic-ai/claude-agent-sdk` 的订阅路径仅本地 `bun run dev` 不设 key 时用;云上靠惰性 import 不打包。
 
 ---
 
@@ -98,11 +114,11 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 
 ## 7. 内测 / 上线 checklist（按优先级）
 
-**内测就绪（代码已建,见 `web/README.md` 部署节）**
+**内测就绪 —— 已全部完成 ✅（见 §0）**
 - [x] `runLLM` 见 `ANTHROPIC_API_KEY` 自动走 API;Agent SDK 改惰性 import(serverless 包精简)
-- [x] 缓存 + 测试者数据/事件/反馈 → env-gated KV(Upstash/Vercel KV;无则内存兜底)
+- [x] 缓存 + 测试者数据/事件/反馈 → env-gated KV(已接 Upstash 免费 Redis)
 - [x] 测试者 cookie(`src/proxy.ts`)+ 埋点(`/api/event`)+ 反馈(`/api/feedback`)+ 导出(`/api/admin/export`),均 `NEXT_PUBLIC_MOLLY_TEST` 门控
-- [ ] **你来 provision**：Anthropic API key + Vercel 项目(Root=`web`)+ Upstash Redis,填好 env 部署
+- [x] 已部署 Vercel production,API/KV/埋点/反馈线上验证通过 → **可发测试者**
 
 **真上线（阻断,内测之后）**
 - [ ] `TODO(geo)` 真实地理编码 + 历史时区(否则非内置城市的盘会错)
