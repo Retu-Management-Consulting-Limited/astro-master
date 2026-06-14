@@ -127,8 +127,8 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 - [~] 隐私合规：删除已接服务端(account delete);**导出仍为本地 JSON**、邮箱未验证邮件 → 余项见 §6 `TODO`/账号 spec §5
 
 **强烈建议**
-- [ ] AI 内容审核 / 兜底(防 Claude 偶发离谱输出伤到用户)
-- [ ] 限流 + 成本监控(按用户/按盘),用便宜档(haiku)打底
+- [x] AI 内容审核 / 兜底 —— 危机短路(确定性,显式自伤信号→核实过的热线,不调 AI)+ SAFETY 系统条款 + 失败兜底(reading 回 stub、chat 回安全句,均非 500)。spec `2026-06-14-launch-guardrails-design.md`
+- [x] 限流 + 成本监控 —— 按身份(user/cookie/IP)固定窗口:读 30/天(超→发 stub 不阻断)、聊 60/时·300/天(超→429);成本按天聚合 tokens/分模型/估算$→ admin export。28 新测全绿、危机短路 live 验证
 - [ ] `TODO(push)` Web Push(留存核心:每日提醒)
 - [ ] `TODO(invite)` 合盘邀请(病毒增长)
 - [ ] `TODO(obs)` 错误上报
