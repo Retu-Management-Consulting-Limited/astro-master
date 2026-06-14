@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import { generateThemeRead, type ThemeId, THEME_IDS } from "@/lib/reading/theme";
+import { generateFirstRead } from "@/lib/reading/generate";
 import type { Chart } from "@/lib/astro/chart";
-import { PERSONA, facts } from "@/lib/ai/molly";
+import { PERSONA, SAFETY, facts } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
 import { cacheGet, cacheSet } from "@/lib/server/store";
+import { resolveIdentity } from "@/lib/server/identity";
+import { rateLimit, RULES } from "@/lib/server/ratelimit";
+import { logUsage } from "@/lib/server/cost";
+
+// Deterministic baseline used both when rate-limited and when the AI fails —
+// the user always gets a real (if un-enhanced) reading, never an error.
+function deterministic(kind: string | undefined, chart: Chart, themeId?: ThemeId) {
+  return kind === "theme" && themeId ? generateThemeRead(chart, themeId) : generateFirstRead(chart);
+}
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -54,7 +64,8 @@ function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: strin
 }`;
 }
 
-const run = (prompt: string, ac: AbortController) => runLLM(prompt, PERSONA, ac);
+const SYSTEM = `${PERSONA}\n\n${SAFETY}`;
+const run = (prompt: string, ac: AbortController) => runLLM(prompt, SYSTEM, ac);
 
 // A chart's reading is stable → cache it (KV in cloud, in-memory locally) so
 // repeat taps / re-renders return instantly and don't re-bill.
@@ -98,7 +109,15 @@ export async function POST(req: Request) {
 
   const cacheKey = `${kind}:${themeId ?? ""}:${chartSig(chart)}`;
   const cached = await cacheGet(cacheKey).catch(() => null);
-  if (cached) return NextResponse.json(cached);
+  if (cached) return NextResponse.json(cached); // cache hits never consume quota
+
+  // Rate limit only the paid AI path. When over the limit, serve the
+  // deterministic baseline (200) so the funnel is never blocked — and no AI cost.
+  const id = await resolveIdentity(req);
+  const rl = await rateLimit(id, RULES.reading());
+  if (!rl.ok) {
+    return NextResponse.json({ ...deterministic(kind, chart, themeId as ThemeId | undefined), limited: true });
+  }
 
   const ac = new AbortController();
   req.signal.addEventListener("abort", () => ac.abort());
@@ -107,16 +126,22 @@ export async function POST(req: Request) {
     let result: unknown;
     if (kind === "theme") {
       const scaffold = generateThemeRead(chart, themeId as ThemeId);
-      const ai = parseAi(await run(themePrompt(chart, themeId as ThemeId, scaffold.planetLabel, scaffold.title, nickname), ac));
+      const r = await run(themePrompt(chart, themeId as ThemeId, scaffold.planetLabel, scaffold.title, nickname), ac);
+      if (r.usage) await logUsage({ route: "reading", ...r.usage }).catch(() => {});
+      const ai = parseAi(r.text);
       // keep the deterministic structural facts, swap in Claude's prose
       result = { ...scaffold, paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips };
     } else {
-      const ai = parseAi(await run(firstPrompt(chart, nickname), ac));
+      const r = await run(firstPrompt(chart, nickname), ac);
+      if (r.usage) await logUsage({ route: "reading", ...r.usage }).catch(() => {});
+      const ai = parseAi(r.text);
       result = { ascSign: chart.ascSign, lead: ai.lead ?? "", paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips };
     }
     await cacheSet(cacheKey, result).catch(() => {});
     return NextResponse.json(result);
-  } catch (e) {
-    return NextResponse.json({ error: String(e).slice(0, 200) }, { status: 500 });
+  } catch {
+    // Graceful deterministic fallback — never a 500 to the user. Not cached, so a
+    // later successful call can still populate the real reading.
+    return NextResponse.json({ ...deterministic(kind, chart, themeId as ThemeId | undefined), fallback: true });
   }
 }

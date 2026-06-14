@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 import type { Chart } from "@/lib/astro/chart";
-import { PERSONA, facts } from "@/lib/ai/molly";
+import { PERSONA, SAFETY, facts } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
+import { detectCrisis, CRISIS_RESPONSE, CHAT_FALLBACK } from "@/lib/ai/safety";
+import { resolveIdentity } from "@/lib/server/identity";
+import { rateLimit, RULES } from "@/lib/server/ratelimit";
+import { logUsage } from "@/lib/server/cost";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-// Molly's live chat. Same dual-path backend as /api/reading (direct API when
-// ANTHROPIC_API_KEY is set, else the local Claude Code subscription login).
-// Conditioned on the user's real chart + the conversation so far.
+// Molly's live chat. Same dual-path backend as /api/reading. Guardrails:
+//   1) crisis short-circuit — never let self-harm signals reach the LLM
+//   2) rate limit per identity
+//   3) graceful fallback on AI failure (never a 500 to the user)
 
 interface Msg {
   from: "me" | "molly";
@@ -20,7 +25,9 @@ const CHAT_SYSTEM = `${PERSONA}
 现在你在和她私聊（像微信对话）。回应要求：
 - 简短：2-4 句，≤120 字，口语、有温度，像真人，不要长篇大论、不要分点。
 - 紧扣她的星盘和她刚说的话；必要时温柔地点破，但先接住情绪。
-- 不要任何免责声明、不要前后缀。只输出你要回她的那段话本身。`;
+- 不要任何免责声明、不要前后缀。只输出你要回她的那段话本身。
+
+${SAFETY}`;
 
 const stripHtml = (s: string) => s.replace(/<[^>]+>/g, "").trim();
 
@@ -44,16 +51,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "missing messages" }, { status: 400 });
   }
 
+  // 1) Crisis short-circuit — deterministic, BEFORE the model. Holds the feeling
+  // and hands real help, never astrology.
+  const lastUser = [...messages].reverse().find((m) => m.from === "me");
+  if (lastUser && detectCrisis(stripHtml(lastUser.text))) {
+    return NextResponse.json({ text: CRISIS_RESPONSE, crisis: true });
+  }
+
+  // 2) Rate limit per identity.
+  const id = await resolveIdentity(req);
+  const rl = await rateLimit(id, RULES.chat());
+  if (!rl.ok) {
+    return NextResponse.json(
+      { text: "今天聊得有点多啦，我先歇会儿——明天再来找我，好吗？", limited: true },
+      { status: 429, headers: rl.retryAfterSec ? { "retry-after": String(rl.retryAfterSec) } : undefined },
+    );
+  }
+
   const ac = new AbortController();
   req.signal.addEventListener("abort", () => ac.abort());
 
+  // 3) Model call with graceful fallback (never a 500 to the user).
   try {
-    // cap history so the prompt stays bounded
-    const recent = messages.slice(-12);
-    const text = (await runLLM(chatPrompt(chart, recent, nickname), CHAT_SYSTEM, ac, 400)).trim();
-    if (!text) return NextResponse.json({ error: "empty" }, { status: 500 });
+    const recent = messages.slice(-12); // bound the prompt
+    const r = await runLLM(chatPrompt(chart, recent, nickname), CHAT_SYSTEM, ac, 400);
+    if (r.usage) await logUsage({ route: "chat", ...r.usage }).catch(() => {});
+    const text = r.text.trim();
+    if (!text) return NextResponse.json({ text: CHAT_FALLBACK, fallback: true });
     return NextResponse.json({ text });
-  } catch (e) {
-    return NextResponse.json({ error: String(e).slice(0, 200) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ text: CHAT_FALLBACK, fallback: true });
   }
 }

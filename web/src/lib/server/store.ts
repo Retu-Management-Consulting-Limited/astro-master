@@ -12,6 +12,7 @@ export interface KV {
   get(k: string): Promise<Json | null>;
   set(k: string, v: Json): Promise<void>;
   del(k: string): Promise<void>;
+  incr(k: string): Promise<number>;
   lpush(k: string, v: Json): Promise<void>;
   lrange(k: string, start: number, stop: number): Promise<Json[]>;
   sadd(k: string, member: string): Promise<void>;
@@ -31,6 +32,11 @@ function memoryKV(): KV {
     },
     async del(k) {
       kv.delete(k);
+    },
+    async incr(k) {
+      const n = ((kv.get(k) as number | undefined) ?? 0) + 1;
+      kv.set(k, n);
+      return n;
     },
     async lpush(k, v) {
       const l = lists.get(k) ?? [];
@@ -70,6 +76,7 @@ function kv(): Promise<KV> {
         del: async (k) => {
           await redis.del(k);
         },
+        incr: (k) => redis.incr(k) as Promise<number>,
         lpush: async (k, v) => {
           await redis.lpush(k, v as never);
         },

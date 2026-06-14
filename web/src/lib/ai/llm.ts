@@ -17,7 +17,17 @@ const MODEL_ID: Record<string, string> = {
 const USE_API = !!process.env.ANTHROPIC_API_KEY;
 export const AI_BACKEND = USE_API ? "api" : "subscription";
 
-async function viaApi(prompt: string, system: string, ac: AbortController, maxTokens: number): Promise<string> {
+export interface Usage {
+  model: string; // alias: haiku | sonnet | opus
+  inTok: number;
+  outTok: number;
+}
+export interface LLMResult {
+  text: string;
+  usage?: Usage; // present on the API path; the subscription path doesn't bill
+}
+
+async function viaApi(prompt: string, system: string, ac: AbortController, maxTokens: number): Promise<LLMResult> {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const client = new Anthropic();
   const msg = await client.messages.create(
@@ -29,7 +39,10 @@ async function viaApi(prompt: string, system: string, ac: AbortController, maxTo
     },
     { signal: ac.signal },
   );
-  return msg.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+  return {
+    text: msg.content.map((b) => (b.type === "text" ? b.text : "")).join(""),
+    usage: { model: MODEL_ALIAS, inTok: msg.usage?.input_tokens ?? 0, outTok: msg.usage?.output_tokens ?? 0 },
+  };
 }
 
 async function viaSdk(prompt: string, system: string, ac: AbortController): Promise<string> {
@@ -56,6 +69,7 @@ async function viaSdk(prompt: string, system: string, ac: AbortController): Prom
   return out;
 }
 
-export function runLLM(prompt: string, system: string, ac: AbortController, maxTokens = 1024): Promise<string> {
-  return USE_API ? viaApi(prompt, system, ac, maxTokens) : viaSdk(prompt, system, ac);
+export async function runLLM(prompt: string, system: string, ac: AbortController, maxTokens = 1024): Promise<LLMResult> {
+  if (USE_API) return viaApi(prompt, system, ac, maxTokens);
+  return { text: await viaSdk(prompt, system, ac) };
 }

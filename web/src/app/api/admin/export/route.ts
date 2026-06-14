@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { listTesterIds, getTester, getEvents, getFeedback } from "@/lib/server/store";
+import { costSummary } from "@/lib/server/cost";
 
 export const runtime = "nodejs";
 
@@ -19,5 +20,6 @@ export async function GET(req: Request) {
     ids.map(async (id) => ({ id, profile: await getTester(id), events: await getEvents(id) })),
   );
   const feedback = await getFeedback();
-  return NextResponse.json({ count: ids.length, testers, feedback });
+  const cost = await costSummary(7); // today + last 6 days: calls/tokens/by-model/est USD
+  return NextResponse.json({ count: ids.length, testers, feedback, cost });
 }
