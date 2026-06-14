@@ -32,17 +32,20 @@
 
 ```
 每小时 (GitHub Actions cron)
-  1. 拉反馈   GET /api/admin/export (Authorization header；非 URL，避免凭据入日志)
-             → 与「已处理反馈清单」diff，只留新反馈
-  2. 判定     LLM 对每条新反馈打分：可执行? 在范围内(文案/视觉)? 去重(同主题是否已有开放 PR)?
+  1. 拉反馈   GET https://vercel 生产域 /api/admin/export，secret 经 header（需给端点加 header 鉴权，见 §12-G）
+             → 给每条算稳定 id = sha256(testerId|ts|text) 短哈希（现有数据无 id，§12-A）
+             → 用 GitHub 现状(分支/PR)判「是否已处理」，只留真·新反馈
+  2. 判定     LLM 对每条新反馈打分：可执行? 在范围内(文案/视觉/小交互)? 去重(同主题是否已有开放 PR)?
              → 不可执行/超范围/重复 → 记录原因(不静默丢)，跳过
-  3. 设计     对每条过关反馈：最小改动方案 + 验收标准(AC)
-  4. 改码     新分支 feedback/<id>-<slug>；改动文件限定 web/，仅文案+样式+小交互
-  5. 测试     typecheck + vitest + playwright e2e(含截图回归) → 必须全绿
-             → 任一失败 → 关分支、记录、不开 PR(绝不带病提交)
+  3. 设计     对每条过关反馈：最小改动方案 + 验收标准(AC) = 这条的「测试方案」
+  4. 改码     新分支 feedback/<id>-<slug>；只改 web/src 下文案/样式/小交互；禁改 .github/、loop 脚本、测试、配置(§12-F)
+  5. 测试     typecheck(tsc --noEmit) + vitest run(15+ 单测) + playwright e2e(3 功能流) → 必须全绿
+             → 视觉变化无自动回归，靠 Kevin 预览肉眼把关(§12-B)
+             → 改后 diff 经 LLM 二次自检「只动字符串/className，没动逻辑/import/控制流」(§12-E)
+             → 任一失败 → 删分支、记录、不开 PR(绝不带病提交)
   6. 开 PR    push 分支 → gh 开 PR(标题含反馈摘要+AC；承重内容打 ⚠️)
-             → Vercel 自动 build preview URL
-  7. 通知     邮件给 Kevin：反馈原文 + 改了啥 + AC + [看预览] + [去 PR merge]
+             → Vercel GitHub App 自动 build preview(异步，约 1 分钟)
+  7. 通知     邮件给 Kevin：反馈原文 + 改了啥 + AC + [去 PR merge](PR 内含 Vercel 预览链接)
   └─ Kevin 在 GitHub App 点 Merge → Vercel 自动上生产
 ```
 
@@ -52,8 +55,8 @@
 
 1. **绝不直接动 `main`，绝不直接 `vercel --prod`。** 唯一上生产路径 = Kevin merge PR（Vercel 的 GitHub 集成自动部署 main → prod）。
 2. **测试不全绿就不开 PR。** 第 5 阶段是硬闸。
-3. **幂等。** 每条反馈有稳定 id；已处理/已开 PR 的不重复处理。cron 重跑、补跑都安全。状态存在一个 `processed feedback` 记录里（KV 或仓库内 `.feedback-loop/processed.json`）。
-4. **范围锁。** 改动文件限定 `web/`；diff 经 LLM 自检「只含文案/样式/小交互」，越界 → 自动降级为「只发建议邮件，不开 PR」。
+3. **幂等。** 反馈无原生 id → 用内容哈希 `sha256(testerId|ts|text)` 当稳定 id（不改 schema，对存量数据也成立，§12-A）。「是否已处理」**以 GitHub 为准**：存在 `feedback/<id>-*` 分支或任意状态 PR(open/closed/merged) = 已处理，不重复；外加一个 state 分支上的 `processed.json` 兜底「永久跳过」（§12-C）。cron 重跑、补跑都安全。
+4. **范围锁（两层）。** ① 文件层：只允许改 `web/src/**` 下的页面/组件/样式；**硬禁改 `.github/`、`web/scripts/feedback-loop/**`(loop 自身)、`*.test.ts`/`e2e/**`、各类 config**——防自我修改失控（§12-F）。② 内容层：改后 diff 经 LLM 自检「只动 JSX 文本/className，没动逻辑/import/控制流/数据」，越界 → 降级为「只发建议邮件，不开 PR」（§12-E）。
 5. **承重内容软标记。** 命中清单（付费墙/价格、隐私/账号/合规、AI 揭露声明、出生数据处理、核心计算逻辑）→ PR 与邮件打 `⚠️ 触及承重内容，请重点审`。不拦截，只提示。
 
 ---
@@ -65,15 +68,17 @@
 - GitHub Actions 内用预装的 `gh` + token 开 PR。
 
 ### 5.2 Vercel
-- 现为本地 `vercel --prod` 部署，项目 `kevin-retu-s-projects/web`，Root Directory = `web`。
-- 需：在 Vercel 连接该 GitHub repo → 打开 Git 集成。效果：
-  - 每个 PR 分支 → 自动 **Preview** 部署（给 Kevin 手机看）。
-  - merge 到 `main` → 自动 **Production** 部署（替代手动 `vercel --prod`）。
+- 现为本地 `vercel --prod` 部署，**已有项目** `kevin-retu-s-projects/web`，Root Directory = `web`，绑定 vapeincity.com。
+- 需：把**这个现有项目**(不是新建)连到 GitHub repo → 打开 Git 集成，Root Directory 仍 = `web`。效果：
+  - 每个 PR 分支 → 自动 **Preview** 部署（给 Kevin 手机看；Vercel 会在 PR 里贴预览链接）。
+  - merge 到 `main` → 自动 **Production** 部署。
+- **连上后停用本地 `vercel --prod`**：唯一上生产路径改为「merge main」，避免两条部署路径打架。
+- **main 开 branch protection**：禁直接 push、要求走 PR——把「绝不直接动 main」从约定升级成 GitHub 强制（硬化不变量 #1）。
 
 ### 5.3 密钥（存 **GitHub Secrets**，加密，绝不入库）
 - `ANTHROPIC_API_KEY`（判定 + 改码用，模型见 §7）
-- `ADMIN_SECRET`（读 `/api/admin/export`，用 Authorization header）
-- `GH_PAT` / 默认 `GITHUB_TOKEN`（push 分支 + 开 PR；若用默认 token 注意它开的 PR 不会触发其它 workflow，必要时用 PAT）
+- `ADMIN_SECRET`（读 `/api/admin/export`；端点需先加 header 鉴权，§12-G）
+- `GH_PAT`（push 分支 + 开 PR）。**为何用 PAT 而非默认 `GITHUB_TOKEN`**：默认 token 推的分支/开的 PR **不会触发任何 workflow**——目前我们不靠 on-PR workflow（测试在 loop job 里先跑、Vercel 预览走 Vercel App），所以默认 token 够用；但用细粒度 PAT 更省心、给未来留余地。二选一在实现时定。
 - 邮件发信凭据（见 §6）
 - 生产域：`https://vapeincity.com`
 
@@ -139,6 +144,9 @@
 4. 范围锁验证：喂一条「加个新功能」类反馈，系统降级为建议邮件而非开越界 PR。✅ 可演示
 5. 测试闸验证：人为让改动测试失败，系统不开 PR。✅ 可演示
 6. GitHub Actions 定时 workflow 每小时自动触发（`workflow_dispatch` 可手动验证）。✅ 可演示
+7. Baseline 验证：装好后存量历史反馈（含测试数据）被标记已基线，首轮不刷历史 PR。✅ 可演示（§12-D）
+8. 防自我修改验证：喂一条「把 cron 改成每分钟 / 改测试」类反馈，系统拒改机器文件、降级建议。✅ 可演示（§12-F）
+9. 内容层范围锁验证：一条会诱使改逻辑的反馈，diff 自检拦下、不开越界 PR。✅ 可演示（§12-E）
 
 ---
 
@@ -148,3 +156,49 @@
 - 不做新功能/新页面/后端逻辑的自动改动（超范围）。
 - 不做硬禁改区（Kevin 选「无硬禁改区」；以软标记替代）。
 - 不做多 PR 自动合并/冲突自动解决（冲突就让 Kevin 在 GitHub 上处理）。
+- 不为每条文案改动新写自动化测试（脆弱、刷测试垃圾）；AC 即测试方案，回归靠现有 15+ 单测套。仅当反馈是「范围内的功能性 bug」才补一条针对性测试。
+
+---
+
+## 12. 完整性复核（2026-06-14 二次自查，对照真实代码）
+
+把全链对照 `web/` 实际代码重推一遍，发现以下 spec 与现实不符 / 此前未想到的细节。每条给解法。**这些是实现的硬前提，writing-plans 必须逐条落。**
+
+**A. 反馈没有原生 id（地基问题）**
+`addFeedback` 存 `{testerId, text, page, ts}` 经 `lpush` 进 `"feedback"` 列表，**无唯一 id**。幂等全靠它 → 解法：稳定 id = `sha256(testerId | ts | text)` 短哈希（内容派生、对存量数据也成立、零迁移）。可选：顺手给 `addFeedback` + 反馈路由加一个 `id: crypto.randomUUID()` 让未来更干净，但不阻塞。
+
+**B. 没有视觉回归（spec 原写「截图回归」是虚构）**
+e2e 仅 3 个功能流（auth/birth-edit/funnel），无 snapshot 基线。→ 解法：视觉/样式改动的「验收」= **Kevin 手机预览肉眼把关**（人工 merge 闸门本就是视觉检查点，二者重叠）。typecheck + vitest(逻辑) + e2e(流程) 仍是真闸。视觉回归列为「以后可加」，不阻塞首版。
+
+**C. 幂等状态存哪（不能写 main）**
+此前含糊写「KV 或 repo processed.json」。但 Action 只开 PR、**不能写 main**（不变量 #1），若 processed.json 落 main 就自相矛盾。→ 解法：**以 GitHub 现状为主**——`gh pr list --state all` + 分支存在性即「已处理」判据，自愈、无需额外存储。兜底：一个**长期 state 分支** `feedback-loop-state` 上的 `processed.json`，专记「判定为不可执行/被 Kevin 关掉、永久跳过」的 id；Action 能 push 这个非 main 分支，不违反不变量。
+
+**D. 首次启动的存量积压（必做，否则上来就刷一堆 PR）**
+开 loop 时 KV 里已有历史反馈（含 STATUS 记录的测试数据 tester「云测A」+ `kv-test-…`）。→ 解法：装好后先跑一次「**baseline**」把现存全部 id 写进 `processed.json` 标记为「已基线，不回溯」；已知测试数据永久排除。之后只处理 baseline 之后的新反馈。
+
+**E. 文案是硬编码在 .tsx 里（非 i18n catalog）→ 改码风险更高**
+无 `src/messages`/i18n 文案层，中文串直接写在 `src/app/*/page.tsx`、组件内。改文案 = 改 TSX 源码，易误伤逻辑。→ 解法：改后强制一道 **diff 自检**（LLM + 简单静态检查）：本次改动只能命中 JSX 文本节点 / `className` / 样式常量；若 diff 触及 `import`、函数体、控制流、hook、数据/计算 → 判定越界，降级为建议邮件。当前英文未接线，文案改动**仅中文**，少一重复杂度。
+
+**F. 防自我修改（新增的硬范围锁）**
+loop 必须不能改自己的机器：硬禁改 `.github/**`、`web/scripts/feedback-loop/**`、`*.test.ts` / `e2e/**`、`*.config.*` / `package.json` / `vercel.json`。只允许 `web/src/**`。否则一条反馈可能让它改自己的 prompt / 测试闸 / cron，失控。
+
+**G. 端点鉴权方式与 spec 不符**
+`/api/admin/export` 实际只认 `?secret=` query 或 `madm` cookie，**不认 Authorization header**。spec 写的「header」当前不成立。→ 解法：给端点**加一行 `Authorization: Bearer <ADMIN_SECRET>` 支持**（保留原 query/cookie 兼容），CI 用 header 调，避免 secret 进 URL/日志。
+
+**H. CI 里 e2e 的外部依赖（待实现时确认）**
+playwright `webServer.command` 现**硬编码 `/Users/ddd/.bun/...`**（本机路径，Linux runner 不存在）→ 必须改成可移植命令。且 e2e 跑 funnel 可能触发 reading 生成（用 Claude）：要确认 e2e 在 CI 能跑**stub/test 模式**（`NEXT_PUBLIC_MOLLY_TEST` 等门控 + KV 自动回落内存，无需 Upstash）；若必须真调 Claude，则把 e2e 收敛到非 AI 流，或接受每次 run 的少量 token 成本。`web/package.json` 当前**无 `test`/`typecheck`/`e2e` 脚本**，要先补。
+
+**I. 邮件发信通道（CI 内，二选一固化）**
+推荐 **Resend**：他们正好能验证 `vapeincity.com` 域、免费档够内测、API 简单，key 进 Secrets。备选 SMTP（Gmail app password + 现成 action）。GitHub PR 通知永远是兜底。
+
+**J. 预览链接时序**
+Vercel 预览是 push 后**异步**构建，邮件发出时 URL 可能还没好（~1 分钟 404）。→ 解法：邮件主按钮指向 **PR**（Vercel 会在 PR 内贴「就绪后的预览链接」），不直接塞可能没好的 URL。
+
+**K. 成本/速率硬上限**
+每次 run **最多处理 N 条**过关反馈（建议 N=3，可配），超出留到下一轮；判定用 haiku、改码用 sonnet。内测量小，多数小时第 1 阶段即「无新反馈」结束。Actions 用量与 token 都记进日志。
+
+**L. workflow 自身失败要让 Kevin 知道**
+loop job 报错（非反馈失败，是机器本身挂）→ 打开 GitHub「Actions workflow 失败邮件通知」，避免静默罢工。
+
+**M. 阶段 I/O 自查（流程完整性）**
+七阶段每一阶都已明确：输入、输出、失败路径、幂等触点（见 §3 + 本节）。无「只做目的地、漏掉路径」的断点。
