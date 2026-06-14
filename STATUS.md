@@ -7,8 +7,9 @@
 
 ## 0. 线上 / 内测部署（current）
 
-- **线上地址(发测试者)**：https://web-beige-psi-kre97cof9a.vercel.app
+- **线上地址(发测试者)**：**https://vapeincity.com**(+ www;Vercel 默认域 https://web-beige-psi-kre97cof9a.vercel.app 仍可用)
 - **平台**：Vercel,项目 `kevin-retu-s-projects/web`(Root Directory = `web`),`vercel --prod` 部署
+- **自定义域名**：vapeincity.com — nameserver 已指向 Vercel(ns1/ns2.vercel-dns.com),apex + www 已配 SSL,验证通过
 - **AI 后端**：直连 Anthropic API(`ANTHROPIC_API_KEY` 已设)→ sonnet,~10s/次(渐进 UX 遮住:stub 秒出、后台替换)。换 `MOLLY_MODEL=haiku` 可约减半。
 - **存储**：Upstash 免费 Redis(REST),已连并验证跨请求持久化。缓存 + 测试者/事件/反馈都在。
 - **看数据**：`<线上地址>/api/admin/export?secret=<ADMIN_SECRET>`
