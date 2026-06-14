@@ -12,8 +12,10 @@ export async function GET(req: Request) {
   const cookie = (await cookies()).get("madm")?.value;
   const expected = process.env.ADMIN_SECRET;
   const authed = !!expected && (secret === expected || cookie === expected);
+  // R12/P2-7: missing-or-invalid credential is an authentication failure → 401,
+  // consistent with /api/admin/login (was 403).
   if (!authed) {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const ids = await listTesterIds();
   const testers = await Promise.all(

@@ -25,7 +25,7 @@
 
 ## 1. 它是什么
 
-Molly · 看穿你的本命 —— AI 西洋占星本命盘,双语 H5 mobile web app,消费级产品。
+Molly · 看穿你的本命 —— AI 西洋占星本命盘,中文 H5 mobile web app,消费级产品。（双语 i18n 已装 next-intl 但**未接线**，英文 UI 未上线 —— 见 §7「i18n 接线」；勿对外宣称双语。城市库为真双语。）
 独立个人项目,与 RETU 无关(详见 `CLAUDE.md`)。beachhead：海外华人女性(小红书)。
 
 技术栈：Next.js 16 (App Router) + React 19 + TS + Bun;Tailwind 4;astronomy-engine 客户端排盘;zustand+persist;PWA;Vitest + Playwright。

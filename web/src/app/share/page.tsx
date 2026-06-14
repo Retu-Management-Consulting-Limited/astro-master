@@ -95,7 +95,7 @@ export default function SharePage() {
       <div style={{ position: "relative", zIndex: 3, padding: "14px 22px 24px", borderTop: "1px solid rgba(255,255,255,.06)" }}>
         <div style={{ display: "flex", justifyContent: "space-around", gap: 6 }}>
           {channels.map((c) => (
-            <button type="button" key={c.id} data-testid={c.id === "save" ? "save-btn" : undefined} aria-label={c.l} disabled={busy} onClick={exportPng} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, cursor: "pointer", opacity: busy ? 0.5 : 1 }}>
+            <button type="button" key={c.id} data-testid={c.id === "save" ? "save-png" : undefined} aria-label={c.l} disabled={busy} onClick={exportPng} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, cursor: busy ? "default" : "pointer", opacity: busy ? 0.5 : 1 }}>
               <div aria-hidden="true" style={{ width: 54, height: 54, borderRadius: 17, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 23, background: c.bg, color: c.fg, border: c.id === "save" ? "1px solid #2b3445" : "none" }}>{c.ic}</div>
               <div style={{ fontSize: 11, color: "var(--cream-dim)" }}>{c.l}</div>
             </button>

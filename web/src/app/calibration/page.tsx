@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
+import { useChartGuard } from "@/lib/guard";
 import { LoadingRitual } from "@/components/LoadingRitual";
 import { track } from "@/lib/track";
 
@@ -40,17 +41,16 @@ const QUESTIONS = [
 
 export default function CalibrationPage() {
   const router = useRouter();
-  const chart = useFunnel((s) => s.chart);
+  const { chart, ready } = useChartGuard();
   const setAsc = useFunnel((s) => s.setAsc);
   const [loading, setLoading] = useState(true);
   const [idx, setIdx] = useState(0);
   const [picks, setPicks] = useState<string[]>([]);
   const [sel, setSel] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!chart) router.replace("/input");
-  }, [chart, router]);
-
+  // Wait for the persisted store to rehydrate before deciding (P1-1): a returning
+  // user refreshing here must not be bounced to /input on the first client frame.
+  if (!ready || !chart) return null;
   if (loading) return <LoadingRitual line="让我先看看，<br/>你这张盘……" sub="正在为你排盘…" onDone={() => setLoading(false)} />;
 
   const Q = QUESTIONS[idx];

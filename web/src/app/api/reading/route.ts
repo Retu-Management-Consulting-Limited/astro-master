@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { generateThemeRead, type ThemeId, THEME_IDS } from "@/lib/reading/theme";
 import { generateFirstRead } from "@/lib/reading/generate";
 import type { Chart } from "@/lib/astro/chart";
+import { isFullChart } from "@/lib/astro/chart-validate";
 import { SAFETY, facts, personaFor, pronoun, type Gender } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
 import { cacheGet, cacheSet } from "@/lib/server/store";
@@ -100,7 +101,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad body" }, { status: 400 });
   }
   const { kind, themeId, chart, nickname, gender } = body;
-  if (!chart?.placements) return NextResponse.json({ error: "missing chart" }, { status: 400 });
+  if (!isFullChart(chart)) return NextResponse.json({ error: "invalid chart" }, { status: 400 });
 
   if (kind === "theme" && (!themeId || !(THEME_IDS as string[]).includes(themeId))) {
     return NextResponse.json({ error: "bad themeId" }, { status: 400 });

@@ -8,7 +8,14 @@
 // when actually using the subscription path). On a cloud deploy with an API key
 // the SDK is never imported → the serverless bundle stays lean.
 
+import { createSemaphore } from "@/lib/util/semaphore";
+
 const MODEL_ALIAS = (process.env.MOLLY_MODEL || "sonnet").toLowerCase();
+
+// Cap concurrent Agent-SDK subprocesses (P1-3). The subscription path spawns one
+// subprocess per call (~40-90s); an unbounded burst exhausts the local dev server.
+// Default 1 (serialize); override via MOLLY_SDK_CONCURRENCY. API path is unbounded.
+const sdkGate = createSemaphore(Math.max(1, Number(process.env.MOLLY_SDK_CONCURRENCY) || 1));
 const MODEL_ID: Record<string, string> = {
   haiku: "claude-haiku-4-5-20251001",
   sonnet: "claude-sonnet-4-6",
@@ -71,5 +78,5 @@ async function viaSdk(prompt: string, system: string, ac: AbortController): Prom
 
 export async function runLLM(prompt: string, system: string, ac: AbortController, maxTokens = 1024): Promise<LLMResult> {
   if (USE_API) return viaApi(prompt, system, ac, maxTokens);
-  return { text: await viaSdk(prompt, system, ac) };
+  return { text: await sdkGate.run(() => viaSdk(prompt, system, ac)) };
 }

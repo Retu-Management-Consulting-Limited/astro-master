@@ -46,7 +46,10 @@ export async function apiMe(): Promise<Me | null> {
   try {
     const res = await fetch("/api/auth/me", { headers: { accept: "application/json" } });
     if (!res.ok) return null;
-    return (await res.json()) as Me;
+    const j = (await res.json()) as { authenticated?: boolean } & Me;
+    // /api/auth/me now returns 200 { authenticated:false } for guests (R12/P2-2).
+    if (!j.authenticated) return null;
+    return j as Me;
   } catch {
     return null;
   }

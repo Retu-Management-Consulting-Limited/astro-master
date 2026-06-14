@@ -22,6 +22,7 @@ export default function WealthPage() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const [now, setNow] = useState<Date | null>(null);
+  const [selDay, setSelDay] = useState<number | null>(null); // P2-3: tap a day to read it
   useEffect(() => setNow(new Date()), []);
   const year = now?.getFullYear() ?? 2026;
   const month = (now?.getMonth() ?? 5) + 1; // 1-based
@@ -29,8 +30,9 @@ export default function WealthPage() {
   const m = useMemo(() => (chart && now ? monthWealth(chart, year, month) : null), [chart, now, year, month]);
   if (!ready || !chart || !now || !m) return null;
 
-  const today = m.days.find((d) => d.day === TODAY)!;
-  const wangToday = today.level === "wang";
+  const sel = selDay ?? TODAY;
+  const selData = m.days.find((d) => d.day === sel) ?? m.days.find((d) => d.day === TODAY)!;
+  const isTodaySel = selData.day === TODAY;
 
   return (
     <main className="phone" data-testid="wealth">
@@ -61,14 +63,15 @@ export default function WealthPage() {
             const mark = wealthMark(d.level);
             const gold = m.goldenDays.includes(d.day);
             const isToday = d.day === TODAY;
+            const isSel = d.day === sel;
             return (
-              <div key={d.day} data-testid="wealth-day" role="img"
-                aria-label={`6月${d.day}日 · ${mark.label}${gold ? " · 搞钱黄金日" : ""}${isToday ? " · 今天" : ""}`}
-                style={{ aspectRatio: "1", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", lineHeight: 1, fontSize: 12.5, fontWeight: 500, position: "relative", background: c.bg, color: c.fg, boxShadow: isToday ? "0 0 0 2px var(--gold),0 0 12px rgba(201,168,97,.5)" : gold ? "inset 0 0 0 1.5px #f5e3b0" : "none" }}>
+              <button type="button" key={d.day} data-testid="wealth-day" onClick={() => setSelDay(d.day)} aria-pressed={isSel}
+                aria-label={`${month}月${d.day}日 · ${mark.label}${gold ? " · 搞钱黄金日" : ""}${isToday ? " · 今天" : ""}`}
+                style={{ aspectRatio: "1", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", lineHeight: 1, fontSize: 12.5, fontWeight: 500, position: "relative", padding: 0, cursor: "pointer", background: c.bg, color: c.fg, boxShadow: isToday ? "0 0 0 2px var(--gold),0 0 12px rgba(201,168,97,.5)" : gold ? "inset 0 0 0 1.5px #f5e3b0" : "none", outline: isSel && !isToday ? "2px solid var(--cream)" : "none", outlineOffset: isSel && !isToday ? 1 : 0 }}>
                 <span>{isToday ? "今" : d.day}</span>
                 <span aria-hidden="true" style={{ fontSize: 7, marginTop: 1, opacity: 0.85 }}>{mark.glyph}</span>
                 {gold && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 8, color: "#fff" }}>✦</span>}
-              </div>
+              </button>
             );
           })}
         </div>
@@ -77,18 +80,28 @@ export default function WealthPage() {
           <span style={{ fontSize: 8 }} aria-hidden="true">▼</span> 慎 <span style={{ width: 120, height: 8, borderRadius: 4, background: "linear-gradient(90deg,#c9302c,#e8a4a1,#eef1f4,#88c9a1,#1a7a3a)" }} /> 旺 <span style={{ fontSize: 8 }} aria-hidden="true">▲</span>
         </div>
 
-        {wangToday ? (
-          <div style={{ marginTop: 14, borderRadius: 16, padding: "15px 16px", borderLeft: "3px solid #3fa860", border: "1px solid rgba(63,168,96,.3)", background: "linear-gradient(180deg,rgba(63,168,96,.1),rgba(63,168,96,.03))" }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#7fd99a" }}>今天 · {TODAY} 号 · 财运旺 🟢</div>
-            <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}>木星照你的二宫——<b style={{ color: "var(--cream)" }}>今天你开口要钱赢面最大</b>。该谈的薪、该收的款今天去推；<span style={{ color: "#a8e0bf" }}>今天投资的胜率也偏高</span>。</div>
-            <div style={{ fontSize: 10.5, color: "#5f6675", marginTop: 10, borderTop: "1px solid rgba(255,255,255,.06)", paddingTop: 8 }}>旺的是时机，不是保证——功课别省，决定你来做。</div>
-          </div>
-        ) : (
-          <div style={{ marginTop: 14, borderRadius: 16, padding: "15px 16px", borderLeft: "3px solid #d44a46", border: "1px solid rgba(212,74,70,.28)", background: "linear-gradient(180deg,rgba(212,74,70,.08),rgba(212,74,70,.02))" }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#e8736f" }}>今天 · {TODAY} 号 · 慎 🔴</div>
-            <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}><b style={{ color: "var(--cream)" }}>不适合任何投资和大额消费决定。</b>今天你容易为情绪买单——想下单的，先睡一觉。</div>
-          </div>
-        )}
+        {(() => {
+          const when = isTodaySel ? `今天 · ${selData.day} 号` : `${month}月${selData.day}日`;
+          if (selData.level === "wang") return (
+            <div data-testid="wealth-detail" style={{ marginTop: 14, borderRadius: 16, padding: "15px 16px", borderLeft: "3px solid #3fa860", border: "1px solid rgba(63,168,96,.3)", background: "linear-gradient(180deg,rgba(63,168,96,.1),rgba(63,168,96,.03))" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#7fd99a" }}>{when} · 财运旺 🟢</div>
+              <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}>木星照你的二宫——<b style={{ color: "var(--cream)" }}>{isTodaySel ? "今天" : "这天"}你开口要钱赢面最大</b>。该谈的薪、该收的款挑这天去推；<span style={{ color: "#a8e0bf" }}>投资的胜率也偏高</span>。</div>
+              <div style={{ fontSize: 10.5, color: "#5f6675", marginTop: 10, borderTop: "1px solid rgba(255,255,255,.06)", paddingTop: 8 }}>旺的是时机，不是保证——功课别省，决定你来做。</div>
+            </div>
+          );
+          if (selData.level === "shen") return (
+            <div data-testid="wealth-detail" style={{ marginTop: 14, borderRadius: 16, padding: "15px 16px", borderLeft: "3px solid #d44a46", border: "1px solid rgba(212,74,70,.28)", background: "linear-gradient(180deg,rgba(212,74,70,.08),rgba(212,74,70,.02))" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#e8736f" }}>{when} · 慎 🔴</div>
+              <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}><b style={{ color: "var(--cream)" }}>不适合大额投资和消费决定。</b>{isTodaySel ? "今天" : "这天"}你容易为情绪买单——想下单的，先睡一觉。</div>
+            </div>
+          );
+          return (
+            <div data-testid="wealth-detail" style={{ marginTop: 14, borderRadius: 16, padding: "15px 16px", borderLeft: "3px solid #6b7384", border: "1px solid rgba(217,222,231,.18)", background: "linear-gradient(180deg,rgba(217,222,231,.06),rgba(217,222,231,.02))" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#aab2c0" }}>{when} · 平 ⚪</div>
+              <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}>财运平稳——没有特别的顺风，也没坑。按计划走就好，<b style={{ color: "var(--cream)" }}>不必勉强出手</b>。</div>
+            </div>
+          );
+        })()}
 
         <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "18px 0 4px" }}>财运仅供参考 · 投资有风险，最终决定还是你做</div>
         <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 晒我的搞钱黄金日</button>
