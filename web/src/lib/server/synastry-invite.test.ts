@@ -1,0 +1,34 @@
+import { describe, it, expect } from "vitest";
+import { createInvite, getInvite, setPartner } from "./synastry-invite";
+
+describe("synastry invite", () => {
+  it("creates an invite with no partner yet", async () => {
+    const token = await createInvite("阿星");
+    expect(token).toMatch(/^[0-9a-f]{24}$/);
+    const inv = await getInvite(token);
+    expect(inv?.inviterName).toBe("阿星");
+    expect(inv?.partner).toBeNull();
+  });
+
+  it("partner submission is readable back by token", async () => {
+    const token = await createInvite();
+    const ok = await setPartner(token, { name: "小鱼", chart: { ascSign: "双鱼" }, birthForm: { city: "上海" } });
+    expect(ok).toBe(true);
+    const inv = await getInvite(token);
+    expect(inv?.partner?.name).toBe("小鱼");
+    expect((inv?.partner?.chart as { ascSign: string }).ascSign).toBe("双鱼");
+  });
+
+  it("setPartner on an unknown token → false", async () => {
+    expect(await setPartner("deadbeef", { chart: {} })).toBe(false);
+  });
+
+  it("getInvite on unknown/empty token → null", async () => {
+    expect(await getInvite("nope")).toBeNull();
+    expect(await getInvite("")).toBeNull();
+  });
+
+  it("tokens are unique", async () => {
+    expect(await createInvite()).not.toBe(await createInvite());
+  });
+});
