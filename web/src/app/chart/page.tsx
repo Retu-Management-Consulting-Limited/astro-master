@@ -74,7 +74,7 @@ export default function ChartPage() {
               );
             })}
           </svg>
-          <div style={{ marginTop: 2, fontSize: 12.5, color: "var(--cream-dim)", letterSpacing: ".04em" }}>♅ 上升<b style={{ color: "var(--gold)" }}>{chart.ascSign}</b> · ☉ {sun.sign} · ☽ {moon.sign}</div>
+          <div style={{ marginTop: 2, fontSize: 12.5, color: "var(--cream-dim)", letterSpacing: ".04em" }}>↑ 上升<b style={{ color: "var(--gold)" }}>{chart.ascSign}</b> · ☉ {sun.sign} · ☽ {moon.sign}</div>
           <div style={{ marginTop: 8, fontSize: 11, color: "var(--mute)" }}>亮的是你盘上<b style={{ color: "var(--gold)" }}>最强的几处</b> · 你越常来，我越懂你</div>
         </div>
 

@@ -137,3 +137,12 @@ export function dailyReading(chart: Chart, date: Date): DailyReading {
 export function dayKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
+
+// Honest gate for the 昨天「说中了吗」card: only ask the user to validate
+// "我说你昨天会X" if they were around on an earlier calendar day — never on day 1
+// (we never showed them a prediction yesterday). Retrospective validation must be
+// of something actually shown (T-1, audit-2 / CLAUDE.md house rule).
+export function existedYesterday(joinedAt: number | undefined, now: Date): boolean {
+  if (!joinedAt) return false;
+  return dayKey(new Date(joinedAt)) < dayKey(now); // joined on a strictly earlier calendar day
+}
