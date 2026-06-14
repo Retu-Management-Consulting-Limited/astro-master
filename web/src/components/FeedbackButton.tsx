@@ -10,6 +10,7 @@ export function FeedbackButton() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [sent, setSent] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   if (!TEST_MODE) return null;
   // keep onboarding clean; not on the operator dashboard
@@ -18,14 +19,17 @@ export function FeedbackButton() {
   const send = async () => {
     const t = text.trim();
     if (!t) return;
+    setFailed(false);
     try {
-      await fetch("/api/feedback", {
+      const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ text: t, page: pathname }),
       });
+      if (!res.ok) throw new Error("bad status");
     } catch {
-      /* ignore */
+      setFailed(true); // don't claim success on a failed submit (FB-1)
+      return;
     }
     setSent(true);
     setTimeout(() => {
@@ -64,6 +68,7 @@ export function FeedbackButton() {
                 rows={3}
                 style={{ width: "100%", resize: "none", background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 10, padding: "9px 11px", color: "var(--cream)", fontSize: 13, outline: "none", fontFamily: "inherit" }}
               />
+              {failed && <div role="alert" style={{ fontSize: 12, color: "var(--red)", marginTop: 6 }}>没发出去，网络出了点问题——再试一次。</div>}
               <button
                 onClick={send}
                 style={{ marginTop: 9, width: "100%", border: "none", borderRadius: 10, padding: "9px 0", fontSize: 13.5, fontWeight: 600, color: "#1a1408", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", cursor: "pointer" }}

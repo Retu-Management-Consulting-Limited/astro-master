@@ -143,6 +143,7 @@ export default function SettingsPage() {
           {row("每日星象提醒", <Toggle on={notif.daily} onClick={toggleDaily} label="每日星象提醒" />)}
           {row("财运黄金日提醒", <Toggle on={notif.wealth} onClick={() => flip("wealth")} label="财运黄金日提醒" />)}
           {row("合盘 · 对方测好了", <Toggle on={notif.synastry} onClick={() => flip("synastry")} label="合盘 · 对方测好了提醒" />, undefined, false, true)}
+          <div style={{ padding: "8px 15px 12px", fontSize: 11, color: "var(--mute)", lineHeight: 1.6 }}>🔔 推送提醒即将开放——先帮你把偏好记着，开通后按这里通知你。</div>
         </Group>
 
         <Group label="隐私与数据">
