@@ -5,6 +5,7 @@ import { useChartGuard } from "@/lib/guard";
 import { computeChart, type Chart } from "@/lib/astro/chart";
 import { synastry, type RelType, type SynResult } from "@/lib/astro/synastry";
 import { useFunnel } from "@/lib/store";
+import { readTokens, addStoredToken } from "@/lib/synastryTokens";
 
 const TYPES: { id: RelType; ic: string; t: string; sub: string }[] = [
   { id: "lover", ic: "💞", t: "恋人 / 暧昧", sub: "合不合、爱不爱、走不走得下去" },
@@ -17,7 +18,6 @@ const DIM_COLOR = ["#e69ec8", "#f0a868", "#8fb6d8", "#e0c98a", "#7fc99a"];
 
 // Sample partner — shown (labeled) until a real partner fills in the invite.
 const DEMO_PARTNER = computeChart({ year: 1995, month: 11, day: 2, hour: 21, minute: 15, lat: 31.2304, lng: 121.4737, tz: 8 });
-const TOKEN_KEY = "molly_syn_token";
 
 function reading(r: SynResult): { vibe: string; body: string; catchLine: string } {
   const hi = [...r.dims].sort((a, b) => b.value - a.value)[0];
@@ -39,37 +39,40 @@ export default function SynastryPage() {
 
   const [realPartner, setRealPartner] = useState<Chart | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [tokens, setTokens] = useState<string[]>([]);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  // Restore a previously-created invite token on mount.
+  // Restore every previously-created invite token on mount (newest is active).
   useEffect(() => {
-    const t = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
-    if (t) {
-      setToken(t);
-      setInviteUrl(`${window.location.origin}/synastry/invite/${t}`);
+    const list = readTokens();
+    if (list.length) {
+      setTokens(list);
+      setInviteUrl(`${window.location.origin}/synastry/invite/${list[list.length - 1]}`);
     }
   }, []);
 
-  // Poll the active invite (created this session OR restored) until the partner
-  // fills it in. Re-runs whenever the token becomes available.
+  // Poll all pending invites until any partner fills theirs in. Re-runs whenever
+  // a new token is added. Revisiting the screen re-polls (B2 catch-up).
   useEffect(() => {
-    if (!token || realPartner) return;
+    if (!tokens.length || realPartner) return;
     let stop = false;
     const poll = async () => {
-      try {
-        const r = await fetch(`/api/synastry/invite?token=${token}`);
-        if (!r.ok) return;
-        const j = await r.json();
-        if (j.ready && j.partner?.chart) {
-          setRealPartner(j.partner.chart as Chart);
-          setPartnerName(j.partner.name ?? "对方");
-          stop = true;
+      for (const tk of tokens) {
+        try {
+          const r = await fetch(`/api/synastry/invite?token=${tk}`);
+          if (!r.ok) continue;
+          const j = await r.json();
+          if (j.ready && j.partner?.chart) {
+            setRealPartner(j.partner.chart as Chart);
+            setPartnerName(j.partner.name ?? "对方");
+            stop = true;
+            return;
+          }
+        } catch {
+          /* ignore */
         }
-      } catch {
-        /* ignore */
       }
     };
     poll();
@@ -78,7 +81,7 @@ export default function SynastryPage() {
       else poll();
     }, 4000);
     return () => clearInterval(iv);
-  }, [token, realPartner]);
+  }, [tokens, realPartner]);
 
   async function createInvite() {
     if (creating) return;
@@ -90,8 +93,7 @@ export default function SynastryPage() {
         body: JSON.stringify({ inviterName: nickname }),
       });
       const { token: t } = await r.json();
-      localStorage.setItem(TOKEN_KEY, t);
-      setToken(t); // kicks off polling
+      setTokens(addStoredToken(t)); // kicks off polling, keeps prior invites
       const url = `${window.location.origin}/synastry/invite/${t}`;
       setInviteUrl(url);
       try {
@@ -115,7 +117,7 @@ export default function SynastryPage() {
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 8px" }}>
-        <span onClick={() => (type ? setType(null) : router.back())} style={{ fontSize: 20, color: "var(--mute)", cursor: "pointer" }}>←</span>
+        <button type="button" aria-label="返回" onClick={() => (type ? setType(null) : router.back())} style={{ fontSize: 20, color: "var(--mute)", cursor: "pointer" }}>←</button>
         <span style={{ fontWeight: 500, letterSpacing: ".32em", fontSize: 13, color: "var(--cream)" }}>合盘</span>
       </div>
 
@@ -133,7 +135,7 @@ export default function SynastryPage() {
             ) : (
               <div style={{ background: "rgba(143,182,216,.06)", border: "1px solid rgba(143,182,216,.2)", borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
                 <div style={{ fontSize: 13, color: "var(--cream)", marginBottom: 3 }}>想测<b style={{ color: "var(--gold-soft)" }}>真实</b>合盘？</div>
-                <div style={{ fontSize: 11.5, color: "var(--mute)", lineHeight: 1.6, marginBottom: 10 }}>下面是示例数据。发个链接给 TA，填好出生信息就自动变成你俩的真盘。</div>
+                <div style={{ fontSize: 11.5, color: "var(--mute)", lineHeight: 1.6, marginBottom: 10 }}>下面的分数只是<b style={{ color: "var(--cream-dim)" }}>示例</b>。发个链接给 TA，填好出生信息就自动变成你俩的真盘。{inviteUrl ? "发出去后可以先去别处逛逛，TA 一填好这里就会自动更新。" : ""}</div>
                 {inviteUrl ? (
                   <div>
                     <div data-testid="syn-invite-url" style={{ fontSize: 11, color: "var(--gold-soft)", wordBreak: "break-all", background: "#0d1018", borderRadius: 8, padding: "8px 10px", marginBottom: 8 }}>{inviteUrl}</div>
@@ -159,38 +161,56 @@ export default function SynastryPage() {
             ))}
           </>
         ) : (
-          <Result result={result} />
+          <Result result={result} demo={!realPartner} onConnect={() => setType(null)} />
         )}
       </div>
     </main>
   );
 }
 
-function Result({ result }: { result: SynResult }) {
+function Result({ result, demo, onConnect }: { result: SynResult; demo: boolean; onConnect: () => void }) {
   const router = useRouter();
   const r = reading(result);
   const typeLabel = TYPES.find((t) => t.id === result.type)!.t;
+  // When showing sample data (no real partner yet), the score/dims/reading are
+  // fabricated — blur them and overlay a connect CTA so a casual user never
+  // reads a fake 78% as their real compatibility (B3 / R4).
+  const veil: React.CSSProperties = demo
+    ? { filter: "blur(6px)", opacity: 0.5, userSelect: "none", pointerEvents: "none" }
+    : {};
   return (
     <div data-testid="syn-result">
-      <div style={{ textAlign: "center", margin: "6px 0 4px" }}>
-        <div style={{ fontSize: 10.5, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 3 }}>{typeLabel} · 契合度</div>
-        <div style={{ fontFamily: "var(--serif)", fontSize: 58, fontWeight: 600, color: "var(--gold)", lineHeight: 1, textShadow: "0 0 30px rgba(201,168,97,.3)" }}>{result.total}<small style={{ fontSize: 22 }}>%</small></div>
-        <div style={{ marginTop: 7, fontSize: 12.5, color: "var(--green)" }}>{r.vibe}</div>
-      </div>
-      <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-        {result.dims.map((d, i) => (
-          <div key={d.key}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 5 }}><span>{d.label}</span><b style={{ color: DIM_COLOR[i % DIM_COLOR.length] }}>{d.value}</b></div>
-            <div style={{ height: 7, background: "#1b2130", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, width: `${d.value}%`, background: DIM_COLOR[i % DIM_COLOR.length] }} /></div>
+      {demo && (
+        <div data-testid="syn-demo-banner" style={{ display: "flex", flexDirection: "column", gap: 8, background: "rgba(143,182,216,.08)", border: "1px solid rgba(143,182,216,.28)", borderRadius: 12, padding: "12px 14px", marginBottom: 14, textAlign: "center" }}>
+          <div style={{ fontSize: 12.5, color: "var(--cream-dim)", lineHeight: 1.6 }}>下面是<b style={{ color: "var(--cream)" }}>示例</b>分数，不是你俩的真实结果。</div>
+          <button type="button" onClick={onConnect} style={{ background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", border: "none", color: "#1a1408", fontWeight: 600, borderRadius: 9, padding: "9px 0", fontSize: 13, cursor: "pointer" }}>邀 TA 解锁你俩的真实合盘 →</button>
+        </div>
+      )}
+      <div style={{ position: "relative" }}>
+        <div aria-hidden={demo || undefined} style={veil}>
+          <div style={{ textAlign: "center", margin: "6px 0 4px" }}>
+            <div style={{ fontSize: 10.5, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 3 }}>{typeLabel} · 契合度</div>
+            <div style={{ fontFamily: "var(--serif)", fontSize: 58, fontWeight: 600, color: "var(--gold)", lineHeight: 1, textShadow: "0 0 30px rgba(201,168,97,.3)" }}>{result.total}<small style={{ fontSize: 22 }}>%</small></div>
+            <div style={{ marginTop: 7, fontSize: 12.5, color: "var(--green)" }}>{r.vibe}</div>
           </div>
-        ))}
+          <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+            {result.dims.map((d, i) => (
+              <div key={d.key}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 5 }}><span>{d.label}</span><b style={{ color: DIM_COLOR[i % DIM_COLOR.length] }}>{d.value}</b></div>
+                <div style={{ height: 7, background: "#1b2130", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, width: `${d.value}%`, background: DIM_COLOR[i % DIM_COLOR.length] }} /></div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 24 }}>
+            <p style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 18.5, lineHeight: 1.6, color: "var(--cream-dim)", marginBottom: 13 }}>{r.body}</p>
+            <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{r.catchLine}</p>
+          </div>
+        </div>
       </div>
-      <div style={{ marginTop: 24 }}>
-        <p style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 18.5, lineHeight: 1.6, color: "var(--cream-dim)", marginBottom: 13 }}>{r.body}</p>
-        <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{r.catchLine}</p>
-      </div>
-      <div onClick={() => router.push("/share")} style={{ margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</div>
-      <div style={{ textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
+      {!demo && (
+        <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</button>
+      )}
+      <div style={{ marginTop: demo ? 14 : 0, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
     </div>
   );
 }

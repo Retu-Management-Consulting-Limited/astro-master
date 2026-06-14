@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { monthWealth, type DayWealth } from "@/lib/astro/wealth";
+import { BackButton } from "@/components/BackButton";
 
 const TODAY = 13;
 function color(d: DayWealth): { bg: string; fg: string } {
@@ -33,7 +34,7 @@ export default function WealthPage() {
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 6px" }}>
-        <span onClick={() => router.back()} style={{ fontSize: 20, color: "var(--mute)", cursor: "pointer" }}>←</span>
+        <BackButton />
         <div className="eye-mini" style={{ width: 30, height: 30 }} />
         <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
       </div>
@@ -83,7 +84,7 @@ export default function WealthPage() {
         )}
 
         <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "18px 0 4px" }}>财运仅供参考 · 投资有风险，最终决定还是你做</div>
-        <div onClick={() => router.push("/share")} style={{ textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 晒我的搞钱黄金日</div>
+        <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 晒我的搞钱黄金日</button>
       </div>
     </main>
   );

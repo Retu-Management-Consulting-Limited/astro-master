@@ -75,7 +75,7 @@ export function MollyThinking({
 
   if (variant === "bubble") {
     return (
-      <div data-testid="thinking" style={{ maxWidth: "88%", marginBottom: 14, marginRight: "auto", ...style }}>
+      <div data-testid="thinking" role="status" aria-live="polite" aria-label="Molly 正在思考" style={{ maxWidth: "88%", marginBottom: 14, marginRight: "auto", ...style }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 9, borderRadius: 16, borderBottomLeftRadius: 5, padding: "11px 14px", background: "#141a28", border: "1px solid #232c3e" }}>
           {eye}
           {inner}
@@ -85,7 +85,7 @@ export function MollyThinking({
   }
 
   return (
-    <div data-testid="thinking" style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 13px", borderRadius: 12, background: "rgba(201,168,97,.07)", border: "1px solid rgba(201,168,97,.25)", ...style }}>
+    <div data-testid="thinking" role="status" aria-live="polite" aria-label="Molly 正在思考" style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 13px", borderRadius: 12, background: "rgba(201,168,97,.07)", border: "1px solid rgba(201,168,97,.25)", ...style }}>
       {eye}
       {inner}
     </div>

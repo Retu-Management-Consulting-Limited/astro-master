@@ -43,6 +43,8 @@ test("synastry invite: A invites → B submits real birth → A sees real partne
   await b.goto(url!.trim());
   await expect(b.locator('[data-testid="syn-invite"]')).toBeVisible({ timeout: 5000 });
   await b.locator('[data-testid="inv-name"]').fill("小鱼");
+  await b.locator('#inv-date').fill("1996-01-01"); // birth fields no longer pre-filled (B4)
+  await b.locator('#inv-time').fill("12:00");
   await b.locator('[data-testid="inv-city"]').fill("上海");
   await b.locator('[data-testid="inv-submit"]').click();
   await expect(b.locator('[data-testid="invite-done"]')).toBeVisible({ timeout: 8000 });

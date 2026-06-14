@@ -6,6 +6,7 @@ import { useChartGuard } from "@/lib/guard";
 import { generateThemeRead, THEME_IDS, type ThemeId, type ThemeRead } from "@/lib/reading/theme";
 import { fetchThemeRead, AI_ON } from "@/lib/reading/remote";
 import { MollyThinking } from "@/components/MollyThinking";
+import { BackButton } from "@/components/BackButton";
 import { track } from "@/lib/track";
 
 export default function ThemePage({ params }: { params: Promise<{ id: string }> }) {
@@ -46,7 +47,7 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
         <div className="starfield" />
         <div style={{ position: "relative", zIndex: 2, flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 32, textAlign: "center" }}>
           <div style={{ fontFamily: "var(--serif)", fontSize: 22, color: "var(--cream)" }}>这个主题还没解锁</div>
-          <div onClick={() => router.replace("/chart")} style={{ color: "var(--gold-soft)", fontSize: 14, cursor: "pointer" }}>← 回到我的星盘</div>
+          <button type="button" onClick={() => router.replace("/chart")} style={{ color: "var(--gold-soft)", fontSize: 14, cursor: "pointer" }}>← 回到我的星盘</button>
         </div>
       </main>
     );
@@ -59,7 +60,7 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 6px" }}>
-        <span onClick={() => router.back()} style={{ fontSize: 20, color: "var(--mute)", cursor: "pointer" }}>←</span>
+        <BackButton />
         <span style={{ fontWeight: 500, letterSpacing: ".2em", fontSize: 14, color: "var(--cream)" }}>{r.title}</span>
       </div>
 
@@ -83,9 +84,9 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
 
         <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 9 }}>
           {r.chips.map((c) => (
-            <div key={c} onClick={() => router.push("/chat")} style={{ display: "flex", alignItems: "center", gap: 9, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 12, padding: "11px 14px", fontSize: 13.5, color: "var(--cream-dim)", cursor: "pointer" }}>
-              <span style={{ color: "var(--gold)" }}>›</span> {c}
-            </div>
+            <button type="button" key={c} onClick={() => router.push("/chat")} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 9, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 12, padding: "11px 14px", fontSize: 13.5, color: "var(--cream-dim)", cursor: "pointer" }}>
+              <span style={{ color: "var(--gold)" }} aria-hidden="true">›</span> {c}
+            </button>
           ))}
         </div>
 
@@ -95,7 +96,7 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
           <div style={{ fontSize: 11, color: "#5f6675", marginTop: 5 }}>解锁完整解读 · 即将开放</div>
         </div>
 
-        <div onClick={() => router.push("/share")} style={{ margin: "18px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这段存成卡片</div>
+        <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "18px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这段存成卡片</button>
       </div>
     </main>
   );

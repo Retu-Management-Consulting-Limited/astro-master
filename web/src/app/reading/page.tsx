@@ -12,6 +12,7 @@ export default function ReadingPage() {
   const router = useRouter();
   const chart = useFunnel((s) => s.chart);
   const ascCandidate = useFunnel((s) => s.ascCandidate);
+  const timeUnknown = useFunnel((s) => s.birthForm?.knownTime ?? false); // knownTime === true means time is UNKNOWN
   const nickname = useFunnel((s) => s.nickname);
   const setFirstRead = useFunnel((s) => s.setFirstRead);
   const [read, setRead] = useState<FirstRead | null>(null);
@@ -70,7 +71,7 @@ export default function ReadingPage() {
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "26px 26px 14px", borderBottom: "1px solid rgba(255,255,255,.04)" }}>
         <div className="eye-mini" />
         <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
-        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>为你校准 · 上升 <b style={{ color: "var(--gold)" }}>{ascCandidate ?? read.ascSign}</b></span>
+        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>{timeUnknown ? <>据描述推测 · 上升 <b style={{ color: "var(--gold)" }}>{ascCandidate ?? read.ascSign}</b></> : <>上升 <b style={{ color: "var(--gold)" }}>{read.ascSign}</b></>}</span>
       </div>
       {refining && (
         <div style={{ position: "relative", zIndex: 3, padding: "10px 24px 0" }}>
@@ -113,10 +114,10 @@ export default function ReadingPage() {
 
       <div style={{ position: "relative", zIndex: 3, padding: "12px 22px 20px", borderTop: "1px solid rgba(255,255,255,.05)" }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 11 }}>
-          <div onClick={gate} style={{ flex: 1, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 22, padding: "12px 16px", color: "#566073", fontSize: 14, cursor: "pointer" }}>问问她……</div>
-          <div onClick={gate} style={{ width: 42, height: 42, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))" }}>➤</div>
+          <button type="button" onClick={gate} style={{ flex: 1, textAlign: "left", background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 22, padding: "12px 16px", color: "#566073", fontSize: 14, cursor: "pointer" }}>问问她……</button>
+          <button type="button" onClick={gate} aria-label="发送" style={{ width: 42, height: 42, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))" }}>➤</button>
         </div>
-        <div onClick={gate} data-testid="save-card" style={{ textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这段存成卡片</div>
+        <button type="button" onClick={gate} data-testid="save-card" style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这段存成卡片</button>
       </div>
     </main>
   );

@@ -68,25 +68,25 @@ export default function InputPage() {
 
         <div style={{ marginTop: 34, display: "flex", flexDirection: "column", gap: 18 }}>
           <div className="reveal" style={{ animationDelay: ".55s" }}>
-            <label style={lbl}>出生日期</label>
-            <input className="field-inp" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <label style={lbl} htmlFor="birth-date">出生日期</label>
+            <input id="birth-date" className="field-inp" type="date" autoComplete="bday" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div className="reveal" style={{ animationDelay: ".7s" }}>
-            <label style={lbl}>出生时间</label>
-            <input className="field-inp" type="time" value={time} disabled={knownTime} onChange={(e) => setTime(e.target.value)} style={{ opacity: knownTime ? 0.5 : 1 }} />
-            <div onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer" }}>
-              <span style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", position: "relative", background: knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{knownTime ? "✓" : ""}</span>
+            <label style={lbl} htmlFor="birth-time">出生时间</label>
+            <input id="birth-time" className="field-inp" type="time" value={time} disabled={knownTime} onChange={(e) => setTime(e.target.value)} style={{ opacity: knownTime ? 0.5 : 1 }} />
+            <button type="button" role="checkbox" aria-checked={knownTime} onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer", padding: "4px 0", textAlign: "left" }}>
+              <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", position: "relative", background: knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{knownTime ? "✓" : ""}</span>
               <span style={{ fontSize: 13, color: "var(--cream-dim)" }}>我不知道准确时间 —— <b style={{ color: "var(--irisc)", fontWeight: 400 }}>没关系，待会几个问题帮你校准</b></span>
-            </div>
+            </button>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
             <div className="reveal" style={{ flex: 1, animationDelay: ".85s" }}>
-              <label style={lbl}>国家</label>
-              <input className="field-inp" type="text" value={country} onChange={(e) => setCountry(e.target.value)} />
+              <label style={lbl} htmlFor="birth-country">国家</label>
+              <input id="birth-country" className="field-inp" type="text" autoComplete="country-name" value={country} onChange={(e) => setCountry(e.target.value)} />
             </div>
             <div className="reveal" style={{ flex: 1, animationDelay: ".85s" }}>
-              <label style={lbl}>城市</label>
-              <input className="field-inp" type="text" value={city} onChange={(e) => { setCity(e.target.value); setErr(null); }} style={{ borderColor: err ? "var(--red)" : undefined }} />
+              <label style={lbl} htmlFor="birth-city">城市</label>
+              <input id="birth-city" className="field-inp" type="text" autoComplete="address-level2" value={city} onChange={(e) => { setCity(e.target.value); setErr(null); }} style={{ borderColor: err ? "var(--red)" : undefined }} />
             </div>
           </div>
           {err && <div style={{ fontSize: 12.5, color: "var(--red)" }}>⚠ {err} —— 试试：墨尔本 / 上海 / 纽约 / 伦敦</div>}

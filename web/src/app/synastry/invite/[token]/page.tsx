@@ -14,8 +14,8 @@ export default function InvitePage() {
   const [inviter, setInviter] = useState<string | null>(null);
   const [invalid, setInvalid] = useState(false);
   const [name, setName] = useState("");
-  const [date, setDate] = useState("1996-01-01");
-  const [time, setTime] = useState("12:00");
+  const [date, setDate] = useState(""); // no fake default — must be the partner's real date (B4)
+  const [time, setTime] = useState("");
   const [knownTime, setKnownTime] = useState(false);
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
@@ -34,9 +34,13 @@ export default function InvitePage() {
   async function submit() {
     if (busy) return;
     setErr(null);
+    if (!date || (!knownTime && !time) || !city.trim()) {
+      setErr("把出生日期、时间和城市填好，我才能排得准。");
+      return;
+    }
     setBusy(true);
     try {
-      const form = { date, time, knownTime, country, city };
+      const form = { date, time: knownTime ? "12:00" : time, knownTime, country, city };
       const r = await resolveBirth(form);
       if ("error" in r) {
         setErr(r.error);
@@ -90,29 +94,29 @@ export default function InvitePage() {
 
             <div style={{ marginTop: 26, display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
-                <label style={lbl}>你的名字</label>
-                <input className="field-inp" data-testid="inv-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="怎么称呼你" />
+                <label style={lbl} htmlFor="inv-name">你的名字</label>
+                <input id="inv-name" className="field-inp" data-testid="inv-name" autoComplete="nickname" value={name} onChange={(e) => setName(e.target.value)} placeholder="怎么称呼你" />
               </div>
               <div>
-                <label style={lbl}>出生日期</label>
-                <input className="field-inp" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                <label style={lbl} htmlFor="inv-date">出生日期</label>
+                <input id="inv-date" className="field-inp" type="date" autoComplete="bday" value={date} onChange={(e) => setDate(e.target.value)} />
               </div>
               <div>
-                <label style={lbl}>出生时间</label>
-                <input className="field-inp" type="time" value={time} disabled={knownTime} onChange={(e) => setTime(e.target.value)} style={{ opacity: knownTime ? 0.5 : 1 }} />
-                <div onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer" }}>
-                  <span style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", background: knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{knownTime ? "✓" : ""}</span>
+                <label style={lbl} htmlFor="inv-time">出生时间</label>
+                <input id="inv-time" className="field-inp" type="time" value={time} disabled={knownTime} onChange={(e) => setTime(e.target.value)} style={{ opacity: knownTime ? 0.5 : 1 }} />
+                <button type="button" role="checkbox" aria-checked={knownTime} onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer", padding: "4px 0" }}>
+                  <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", background: knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{knownTime ? "✓" : ""}</span>
                   <span style={{ fontSize: 13, color: "var(--cream-dim)" }}>不知道准确时间（按正午估算）</span>
-                </div>
+                </button>
               </div>
               <div style={{ display: "flex", gap: 12 }}>
                 <div style={{ flex: 1 }}>
-                  <label style={lbl}>国家</label>
-                  <input className="field-inp" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="如 中国" />
+                  <label style={lbl} htmlFor="inv-country">国家</label>
+                  <input id="inv-country" className="field-inp" autoComplete="country-name" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="如 中国" />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={lbl}>城市</label>
-                  <input className="field-inp" data-testid="inv-city" value={city} onChange={(e) => { setCity(e.target.value); setErr(null); }} placeholder="如 上海" />
+                  <label style={lbl} htmlFor="inv-city">城市</label>
+                  <input id="inv-city" className="field-inp" data-testid="inv-city" autoComplete="address-level2" value={city} onChange={(e) => { setCity(e.target.value); setErr(null); }} placeholder="如 上海" />
                 </div>
               </div>
               {err && <div data-testid="inv-err" style={{ fontSize: 12.5, color: "var(--red)" }}>⚠ {err}</div>}

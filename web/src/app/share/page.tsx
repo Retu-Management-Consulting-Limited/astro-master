@@ -1,16 +1,15 @@
 "use client";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { buildCardSVG, svgToPngBlob, type Template, type CardData } from "@/lib/share/card";
+import { BackButton } from "@/components/BackButton";
 import { track } from "@/lib/track";
 
 const HOUSE_ZH = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
 const TPLS: Template[] = ["a", "b", "c", "d"];
 
 export default function SharePage() {
-  const router = useRouter();
   const { chart, ready } = useChartGuard();
   const firstRead = useFunnel((s) => s.firstRead);
   const birthForm = useFunnel((s) => s.birthForm);
@@ -75,7 +74,7 @@ export default function SharePage() {
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", padding: "22px 24px 6px" }}>
-        <span onClick={() => router.back()} style={{ fontSize: 20, color: "var(--mute)", cursor: "pointer" }}>✕</span>
+        <BackButton variant="close" />
         <span style={{ flex: 1, textAlign: "center", fontSize: 14, color: "var(--cream)", fontWeight: 500 }}>分享这一句</span>
         <span style={{ width: 20 }} />
       </div>
@@ -87,7 +86,7 @@ export default function SharePage() {
           {TPLS.map((t) => {
             const thumb = buildCardSVG(data, t);
             return (
-              <div key={t} data-testid="tpl" onClick={() => setTpl(t)} style={{ width: 30, height: 40, borderRadius: 6, overflow: "hidden", cursor: "pointer", outline: tpl === t ? "2px solid var(--gold)" : "1px solid #2a3344", outlineOffset: tpl === t ? 1 : 0 }} dangerouslySetInnerHTML={{ __html: thumb }} />
+              <button type="button" key={t} data-testid="tpl" aria-label={`样式 ${t.toUpperCase()}`} aria-pressed={tpl === t} onClick={() => setTpl(t)} style={{ width: 30, height: 40, borderRadius: 6, overflow: "hidden", cursor: "pointer", padding: 0, outline: tpl === t ? "2px solid var(--gold)" : "1px solid #2a3344", outlineOffset: tpl === t ? 1 : 0 }} dangerouslySetInnerHTML={{ __html: thumb }} />
             );
           })}
         </div>
@@ -96,16 +95,16 @@ export default function SharePage() {
       <div style={{ position: "relative", zIndex: 3, padding: "14px 22px 24px", borderTop: "1px solid rgba(255,255,255,.06)" }}>
         <div style={{ display: "flex", justifyContent: "space-around", gap: 6 }}>
           {channels.map((c) => (
-            <div key={c.id} data-testid={c.id === "save" ? "save-btn" : undefined} onClick={exportPng} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, cursor: "pointer", opacity: busy ? 0.5 : 1 }}>
-              <div style={{ width: 54, height: 54, borderRadius: 17, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 23, background: c.bg, color: c.fg, border: c.id === "save" ? "1px solid #2b3445" : "none" }}>{c.ic}</div>
+            <button type="button" key={c.id} data-testid={c.id === "save" ? "save-btn" : undefined} aria-label={c.l} disabled={busy} onClick={exportPng} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, cursor: "pointer", opacity: busy ? 0.5 : 1 }}>
+              <div aria-hidden="true" style={{ width: 54, height: 54, borderRadius: 17, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 23, background: c.bg, color: c.fg, border: c.id === "save" ? "1px solid #2b3445" : "none" }}>{c.ic}</div>
               <div style={{ fontSize: 11, color: "var(--cream-dim)" }}>{c.l}</div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
 
       {toast && (
-        <div style={{ position: "absolute", left: "50%", bottom: 110, transform: "translateX(-50%)", zIndex: 9, background: "rgba(10,12,20,.92)", border: "1px solid var(--field-bd)", color: "var(--cream)", fontSize: 13, padding: "9px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>{toast}</div>
+        <div role="status" aria-live="polite" style={{ position: "absolute", left: "50%", bottom: 110, transform: "translateX(-50%)", zIndex: 9, background: "rgba(10,12,20,.92)", border: "1px solid var(--field-bd)", color: "var(--cream)", fontSize: 13, padding: "9px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>{toast}</div>
       )}
     </main>
   );

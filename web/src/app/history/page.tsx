@@ -1,15 +1,16 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { daysSince } from "@/lib/relationship";
+import { useUnderstanding } from "@/lib/understanding";
+import { BackButton } from "@/components/BackButton";
 
 export default function HistoryPage() {
-  const router = useRouter();
   const { chart, ready } = useChartGuard();
   const firstRead = useFunnel((s) => s.firstRead);
   const nickname = useFunnel((s) => s.nickname);
   const joinedAt = useFunnel((s) => s.joinedAt);
+  const understand = useUnderstanding();
   if (!ready || !chart) return null;
 
   const days = daysSince(joinedAt);
@@ -20,7 +21,7 @@ export default function HistoryPage() {
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 6px" }}>
-        <span onClick={() => router.back()} style={{ fontSize: 20, color: "var(--mute)", cursor: "pointer" }}>←</span>
+        <BackButton />
         <span style={{ fontWeight: 500, letterSpacing: ".2em", fontSize: 14, color: "var(--cream)" }}>历史回看</span>
       </div>
 
@@ -43,7 +44,7 @@ export default function HistoryPage() {
           <Entry dot="#3a4a7d">
             <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--blue)", marginBottom: 6 }}>到现在 · 我对你的准度</div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--cream-dim)" }}>
-              懂你 <span style={{ flex: 1, maxWidth: 140, height: 5, background: "#1d2333", borderRadius: 3, overflow: "hidden" }}><i style={{ display: "block", height: "100%", width: "62%", background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} /></span> <b style={{ color: "var(--gold)" }}>62%</b>
+              懂你 <span style={{ flex: 1, maxWidth: 140, height: 5, background: "#1d2333", borderRadius: 3, overflow: "hidden" }}><i style={{ display: "block", height: "100%", width: `${understand}%`, background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} /></span> <b style={{ color: "var(--gold)" }}>{understand}%</b>
             </div>
             <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 8, lineHeight: 1.6 }}>你每天回我一句「说中了吗」，我就更准一点。这条线，只会往上走。</div>
           </Entry>

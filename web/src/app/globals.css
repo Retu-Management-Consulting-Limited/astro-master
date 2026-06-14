@@ -13,6 +13,17 @@
 html,body{height:100%}
 body{background:#04050a;font-family:var(--sans);-webkit-font-smoothing:antialiased;color:var(--cream)}
 
+/* ===== a11y baseline (DESIGN-SYSTEM §11 / R1) ===== */
+/* Native <button> used for real actions: inherit type, neutral chrome, good touch. */
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+/* Visible keyboard focus everywhere; never a bare outline:none. */
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+/* Honor reduced-motion: kill the spins/breathing/shimmer for vestibular safety. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .reveal,.fadein{opacity:1!important;transform:none!important}
+}
+
 /* ===== phone / atmosphere ===== */
 .phone{position:relative;width:100%;max-width:428px;min-height:100dvh;overflow:hidden;
   background:radial-gradient(125% 78% at 50% -8%, #1b2238 0%, var(--void2) 38%, var(--void) 66%, var(--ink) 100%);

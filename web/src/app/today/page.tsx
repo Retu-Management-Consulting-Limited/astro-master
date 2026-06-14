@@ -4,11 +4,13 @@ import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { TabBar } from "@/components/TabBar";
 import { dayWealth } from "@/lib/astro/wealth";
+import { useUnderstanding } from "@/lib/understanding";
 
 export default function TodayPage() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
+  const understand = useUnderstanding();
   if (!ready || !chart) return null;
 
   const moon = chart.placements.find((p) => p.body === "Moon");
@@ -27,7 +29,7 @@ export default function TodayPage() {
         <div className="eye-mini" />
         <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: "var(--cream-dim)" }}>
-          懂你 <span style={{ width: 40, height: 4, background: "#1d2333", borderRadius: 3, overflow: "hidden" }}><i style={{ display: "block", height: "100%", width: "62%", background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} /></span> <b style={{ color: "var(--gold)" }}>62%</b> ↑
+          懂你 <span style={{ width: 40, height: 4, background: "#1d2333", borderRadius: 3, overflow: "hidden" }}><i style={{ display: "block", height: "100%", width: `${understand}%`, background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} /></span> <b style={{ color: "var(--gold)" }}>{understand}%</b> ↑
         </div>
       </div>
 
@@ -54,9 +56,9 @@ export default function TodayPage() {
           <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 9, color: "var(--gold)", display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} />今天</div>
           <div style={{ fontSize: 15.5, color: "var(--cream)", lineHeight: 1.68 }}>金星刑你的天顶——<b style={{ color: "var(--gold-soft)" }}>今天别急着在工作上表态</b>。有人会试探你的底，沉住气，话留三分。</div>
           <div style={{ marginTop: 11, fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18, color: "var(--gold-soft)", lineHeight: 1.5 }}>这不是坏日子，是宇宙让你先稳住自己。</div>
-          <div onClick={() => router.push("/wealth")} data-testid="fortune-chip" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 13, padding: "9px 12px", borderRadius: 11, background: "rgba(127,201,154,.07)", border: `1px solid ${fortune.c}55`, fontSize: 12.5, color: fortune.c, cursor: "pointer" }}>
-            <span style={{ width: 9, height: 9, borderRadius: "50%", background: fortune.c, boxShadow: `0 0 8px ${fortune.c}` }} /><span>今日财运 <b style={{ color: fortune.b }}>{fortune.label}</b> · {fortune.txt}</span><span style={{ marginLeft: "auto", color: "#5f8f73" }}>查日历 →</span>
-          </div>
+          <button type="button" onClick={() => router.push("/wealth")} data-testid="fortune-chip" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 13, padding: "9px 12px", borderRadius: 11, background: "rgba(127,201,154,.07)", border: `1px solid ${fortune.c}55`, fontSize: 12.5, color: fortune.c, cursor: "pointer" }}>
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: fortune.c, boxShadow: `0 0 8px ${fortune.c}` }} aria-hidden="true" /><span>今日财运 <b style={{ color: fortune.b }}>{fortune.label}</b> · {fortune.txt}</span><span style={{ marginLeft: "auto", color: "#5f8f73" }}>查日历 →</span>
+          </button>
         </div>
 
         {/* 明 */}

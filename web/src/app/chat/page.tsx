@@ -5,6 +5,7 @@ import { useChartGuard } from "@/lib/guard";
 import { fetchChatReply, AI_ON } from "@/lib/reading/remote";
 import { TabBar } from "@/components/TabBar";
 import { MollyThinking } from "@/components/MollyThinking";
+import { useUnderstanding } from "@/lib/understanding";
 import { track } from "@/lib/track";
 
 interface Msg { from: "me" | "molly"; text: string; recall?: boolean }
@@ -16,6 +17,7 @@ const FALLBACK_REPLY = "我听见了。给我一点时间，把这个跟你的�
 export default function ChatPage() {
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
+  const understand = useUnderstanding();
 
   const [msgs, setMsgs] = useState<Msg[]>([
     { from: "me", text: "我最近又开始想前任了…是不是很没出息" },
@@ -56,10 +58,10 @@ export default function ChatPage() {
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 12px", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
         <div className="eye-mini" style={{ width: 34, height: 34 }} />
         <span style={{ fontWeight: 500, letterSpacing: ".34em", fontSize: 13, color: "var(--gold)" }}>MOLLY</span>
-        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>懂你 <b style={{ color: "var(--gold)" }}>62%</b></span>
+        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>懂你 <b style={{ color: "var(--gold)" }}>{understand}%</b></span>
       </div>
 
-      <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "18px 18px 10px" }}>
+      <div aria-live="polite" style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "18px 18px 10px" }}>
         {msgs.map((m, i) => (
           <div key={i} style={{ maxWidth: "86%", marginBottom: 14, marginLeft: m.from === "me" ? "auto" : 0, marginRight: m.from === "me" ? 0 : "auto" }}>
             {m.recall ? (
@@ -85,7 +87,7 @@ export default function ChatPage() {
       <div style={{ position: "relative", zIndex: 3, padding: "12px 16px 14px", borderTop: "1px solid rgba(255,255,255,.05)" }}>
         <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
           <input data-testid="chat-input" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="跟 Molly 说说……" style={{ flex: 1, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 22, padding: "12px 16px", color: "var(--cream)", fontSize: 14, outline: "none" }} />
-          <div onClick={() => send()} style={{ width: 42, height: 42, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))", cursor: "pointer" }}>➤</div>
+          <button type="button" onClick={() => send()} aria-label="发送" style={{ width: 42, height: 42, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))", cursor: "pointer" }}>➤</button>
         </div>
       </div>
       <TabBar active="chat" />

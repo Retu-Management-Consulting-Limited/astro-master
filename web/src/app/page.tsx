@@ -52,7 +52,7 @@ export default function Landing() {
             让 Molly 看穿你 →
           </Link>
           <div style={{ marginTop: 16, fontSize: 11.5, color: "var(--mute)", letterSpacing: ".04em" }}>
-            已有 <b style={{ color: "var(--cream-dim)" }}>12.8 万人</b> 被她说中
+            内测中 · <b style={{ color: "var(--cream-dim)" }}>说穿你</b>，而不是说你的星座
           </div>
           <div style={{ marginTop: 7, fontSize: 11, color: "#5a6173" }}>
             — 一个<i style={{ color: "var(--irisc)", fontStyle: "normal" }}>不问你星座</i>的占星师 —
