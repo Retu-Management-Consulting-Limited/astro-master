@@ -85,7 +85,7 @@ test("activation funnel: landing → input → calibration → first-read → re
   // switch template
   await page.locator('[data-testid="tpl"]').nth(1).click();
   // export to PNG (no real share sheet in headless → download path + toast)
-  await page.locator('[data-testid="save-btn"]').click();
+  await page.locator('[data-testid="save-png"]').click();
   await expect(page.getByText(/保存图片|唤起分享/)).toBeVisible({ timeout: 5000 });
 });
 

@@ -13,7 +13,8 @@ export async function POST(req: Request) {
   }
   if (!body.token || !body.chart) return NextResponse.json({ error: "missing token or chart" }, { status: 400 });
 
-  const ok = await setPartner(body.token, { name: body.name, chart: body.chart, birthForm: body.birthForm });
-  if (!ok) return NextResponse.json({ error: "invite not found" }, { status: 404 });
+  const result = await setPartner(body.token, { name: body.name, chart: body.chart, birthForm: body.birthForm });
+  if (result === "unknown") return NextResponse.json({ error: "invite not found" }, { status: 404 });
+  if (result === "already") return NextResponse.json({ error: "already submitted" }, { status: 409 });
   return NextResponse.json({ ok: true });
 }

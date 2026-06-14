@@ -31,5 +31,6 @@ yarn-error.log*
 test-results/
 playwright-report/
 
-# Generated design-review screenshots (output of shot*.mjs)
+# Generated screenshots (design-review / app shots — output of shot*.mjs etc.)
 _review_shots/
+_app_shots/

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
+import { useChartGuard } from "@/lib/guard";
 import { generateFirstRead, type FirstRead } from "@/lib/reading/generate";
 import { fetchFirstRead, AI_ON } from "@/lib/reading/remote";
 import { LoadingRitual } from "@/components/LoadingRitual";
@@ -10,7 +11,7 @@ import { track } from "@/lib/track";
 
 export default function ReadingPage() {
   const router = useRouter();
-  const chart = useFunnel((s) => s.chart);
+  const { chart, ready } = useChartGuard();
   const ascCandidate = useFunnel((s) => s.ascCandidate);
   const timeUnknown = useFunnel((s) => s.birthForm?.knownTime ?? false); // knownTime === true means time is UNKNOWN
   const nickname = useFunnel((s) => s.nickname);
@@ -20,10 +21,7 @@ export default function ReadingPage() {
   const [refining, setRefining] = useState(false);
 
   useEffect(() => {
-    if (!chart) {
-      router.replace("/input");
-      return;
-    }
+    if (!chart) return; // useChartGuard handles the redirect once hydrated (P1-1)
     let cancelled = false;
 
     // Progressive: show the instant deterministic stub after a brief ritual,
@@ -59,6 +57,7 @@ export default function ReadingPage() {
     };
   }, [chart, nickname, router, setFirstRead]);
 
+  if (!ready || !chart) return null; // wait for rehydration; guard redirects if truly no chart (P1-1)
   if (loading || !read)
     return <LoadingRitual line="我看到你了。<br/>给我一点时间……" sub="正在解读你的盘…" ms={9_999_999} onDone={() => {}} />;
 

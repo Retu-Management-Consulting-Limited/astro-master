@@ -1,6 +1,6 @@
 # Molly · 看穿你的本命
 
-AI 西洋占星本命盘 · 双语 H5 mobile web app（消费级产品）。
+AI 西洋占星本命盘 · 中文 H5 mobile web app（消费级产品）。双语 i18n 规划中（next-intl 已装，英文 UI 未上线）。
 
 > 独立个人项目，与 RETU 无关。详见上层 `../CLAUDE.md`。
 

@@ -32,12 +32,17 @@ export async function getInvite(token: string): Promise<Invite | null> {
   return (await (await getKV()).get(key(token))) as Invite | null;
 }
 
-// Returns false if the token is unknown (expired/invalid link).
-export async function setPartner(token: string, partner: Partner): Promise<boolean> {
+// Consume-once (P1-2 / R10): the token is the capability and links get
+// forwarded, so a partner slot may be filled exactly once. "unknown" = bad/expired
+// link, "already" = a partner was already submitted (reject, don't overwrite).
+export type SetPartnerResult = "ok" | "unknown" | "already";
+
+export async function setPartner(token: string, partner: Partner): Promise<SetPartnerResult> {
   const kv = await getKV();
   const invite = (await kv.get(key(token))) as Invite | null;
-  if (!invite) return false;
+  if (!invite) return "unknown";
+  if (invite.partner) return "already";
   invite.partner = { name: partner.name?.slice(0, 40), chart: partner.chart, birthForm: partner.birthForm };
   await kv.set(key(token), invite);
-  return true;
+  return "ok";
 }

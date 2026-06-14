@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Chart } from "@/lib/astro/chart";
+import { isFullChart } from "@/lib/astro/chart-validate";
 import { SAFETY, facts, personaFor, pronoun, type Gender } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
 import { detectCrisis, CRISIS_RESPONSE, CHAT_FALLBACK } from "@/lib/ai/safety";
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad body" }, { status: 400 });
   }
   const { chart, nickname, messages, gender } = body;
-  if (!chart?.placements) return NextResponse.json({ error: "missing chart" }, { status: 400 });
+  if (!isFullChart(chart)) return NextResponse.json({ error: "invalid chart" }, { status: 400 });
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "missing messages" }, { status: 400 });
   }

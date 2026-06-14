@@ -62,8 +62,10 @@ describe("auth routes — login & me", () => {
     expect((await login(jsonReq({ email: e, password: "WRONG" }))).status).toBe(401);
   });
 
-  it("/me without cookie → 401", async () => {
-    expect((await me(getReq())).status).toBe(401);
+  it("/me without cookie → 200 { authenticated: false } (anon is not an error, R12/P2-2)", async () => {
+    const res = await me(getReq());
+    expect(res.status).toBe(200);
+    expect((await res.json()).authenticated).toBe(false);
   });
 });
 
@@ -76,8 +78,10 @@ describe("auth routes — logout revokes server-side", () => {
 
     const out = await logout(getReq(token) as Request);
     expect(out.status).toBe(200);
-    // session revoked → same token string is now invalid
-    expect((await me(getReq(token))).status).toBe(401);
+    // session revoked → same token string no longer authenticates (200 + anon)
+    const after = await me(getReq(token));
+    expect(after.status).toBe(200);
+    expect((await after.json()).authenticated).toBe(false);
   });
 });
 
@@ -98,11 +102,13 @@ describe("auth routes — sync persists snapshot", () => {
 });
 
 describe("auth routes — delete", () => {
-  it("delete wipes data; /me → 401; email reusable", async () => {
+  it("delete wipes data; /me → anon; email reusable", async () => {
     const e = email();
     const token = tokenFrom(await register(jsonReq({ email: e, password: "password1" })));
     expect((await del(getReq(token) as Request)).status).toBe(200);
-    expect((await me(getReq(token))).status).toBe(401);
+    const after = await me(getReq(token));
+    expect(after.status).toBe(200);
+    expect((await after.json()).authenticated).toBe(false);
     // email free again
     expect((await register(jsonReq({ email: e, password: "password1" }))).status).toBe(201);
   });
