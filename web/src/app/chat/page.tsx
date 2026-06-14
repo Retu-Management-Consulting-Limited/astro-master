@@ -5,8 +5,10 @@ import { useChartGuard } from "@/lib/guard";
 import { fetchChatReply, AI_ON } from "@/lib/reading/remote";
 import { TabBar } from "@/components/TabBar";
 import { MollyThinking } from "@/components/MollyThinking";
+import { ChatMessageBody } from "@/components/ChatMessageBody";
 import { useUnderstanding } from "@/lib/understanding";
 import { safeReply } from "@/lib/ai/safety";
+import { routeUserMessage } from "@/lib/ai/chatFlow";
 import { track } from "@/lib/track";
 
 interface Msg { from: "me" | "molly"; text: string; recall?: boolean }
@@ -37,7 +39,17 @@ export default function ChatPage() {
     setTyping(true);
     track("chat_send");
 
-    if (AI_ON && chart) {
+    // Crisis short-circuit runs FIRST and independent of the AI toggle — the
+    // deterministic safety net must fire whether AI is on, off, or down (P0-2).
+    const route = routeUserMessage(t, { aiOn: AI_ON, hasChart: !!chart });
+    if (route.kind === "crisis") {
+      track("chat_crisis");
+      setMsgs((m) => [...m, { from: "molly", text: route.text }]);
+      setTyping(false);
+      return;
+    }
+
+    if (route.kind === "ai" && chart) {
       fetchChatReply(chart, next.map((m) => ({ from: m.from, text: m.text })), nickname)
         .then((reply) => setMsgs((m) => [...m, { from: "molly", text: safeReply(reply, FALLBACK_REPLY) }]))
         .catch(() => setMsgs((m) => [...m, { from: "molly", text: FALLBACK_REPLY }]))
@@ -68,10 +80,10 @@ export default function ChatPage() {
             {m.recall ? (
               <div style={{ border: "1px solid rgba(201,168,97,.4)", background: "linear-gradient(180deg,rgba(201,168,97,.08),rgba(201,168,97,.02))", borderRadius: 16, borderBottomLeftRadius: 5, padding: "12px 14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 8 }}>🕰️ 她记得</div>
-                <div style={{ color: "var(--cream-dim)", fontSize: 14.5, lineHeight: 1.66 }} dangerouslySetInnerHTML={{ __html: m.text }} />
+                <div style={{ color: "var(--cream-dim)", fontSize: 14.5, lineHeight: 1.66 }}><ChatMessageBody from={m.from} text={m.text} /></div>
               </div>
             ) : (
-              <div style={{ borderRadius: 16, padding: "12px 14px", fontSize: 14.5, lineHeight: 1.6, ...(m.from === "molly" ? { background: "#141a28", border: "1px solid #232c3e", borderBottomLeftRadius: 5, color: "var(--cream-dim)" } : { background: "linear-gradient(135deg,#243049,#1c2438)", border: "1px solid #33405c", borderBottomRightRadius: 5, color: "#cfe0f2" }) }} dangerouslySetInnerHTML={{ __html: m.text }} />
+              <div style={{ borderRadius: 16, padding: "12px 14px", fontSize: 14.5, lineHeight: 1.6, whiteSpace: "pre-line", ...(m.from === "molly" ? { background: "#141a28", border: "1px solid #232c3e", borderBottomLeftRadius: 5, color: "var(--cream-dim)" } : { background: "linear-gradient(135deg,#243049,#1c2438)", border: "1px solid #33405c", borderBottomRightRadius: 5, color: "#cfe0f2" }) }}><ChatMessageBody from={m.from} text={m.text} /></div>
             )}
           </div>
         ))}
