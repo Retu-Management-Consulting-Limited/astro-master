@@ -36,7 +36,7 @@ export default function MePage() {
           <div className="eye-mini" style={{ width: 60, height: 60 }} />
           <div>
             <div style={{ fontSize: 18, color: "var(--cream)", fontWeight: 600 }}>{nickname ?? "你"}</div>
-            <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 3 }}>{metLabel(joinedAt)} · ♅ 上升{chart.ascSign}</div>
+            <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 3 }}>{metLabel(joinedAt)} · ↑ 上升{chart.ascSign}</div>
           </div>
         </div>
 

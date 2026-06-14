@@ -59,4 +59,18 @@ describe("no mock content (R7-R9 tripwire)", () => {
     expect(today).toContain("new Date()");
     expect(wealth).toContain("new Date()");
   });
+
+  // X-1 (audit-2): AI/Molly output is rendered via dangerouslySetInnerHTML — those
+  // files MUST sanitize first. Trusted-HTML files (own SVG / caller-controlled props)
+  // are allowlisted. A new unsanitized AI-HTML render fails this tripwire.
+  it("any AI/Molly text rendered as HTML goes through sanitizeRichText", () => {
+    const TRUSTED = ["share/page.tsx", "LoadingRitual.tsx"]; // own SVG / trusted prop
+    const offenders = files.filter((f) => {
+      const src = read(f);
+      if (!src.includes("dangerouslySetInnerHTML")) return false;
+      if (TRUSTED.some((t) => f.endsWith(t))) return false;
+      return !src.includes("sanitizeRichText");
+    });
+    expect(offenders, `unsanitized dangerouslySetInnerHTML in: ${offenders.join(", ")}`).toEqual([]);
+  });
 });

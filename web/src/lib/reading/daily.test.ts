@@ -1,6 +1,20 @@
 import { describe, it, expect } from "vitest";
 import { computeChart } from "../astro/chart";
-import { dailyReading, dailyAspect, dayKey } from "./daily";
+import { dailyReading, dailyAspect, dayKey, existedYesterday } from "./daily";
+
+describe("existedYesterday (T-1: no day-1 retrospective)", () => {
+  const now = new Date(2026, 5, 14, 9, 0); // 2026-06-14 09:00 local
+  it("is false for a day-1 user (joined today) — never ask about a never-shown prediction", () => {
+    expect(existedYesterday(new Date(2026, 5, 14, 8, 0).getTime(), now)).toBe(false);
+  });
+  it("is false when joinedAt is missing", () => {
+    expect(existedYesterday(undefined, now)).toBe(false);
+  });
+  it("is true once joined on a strictly earlier calendar day", () => {
+    expect(existedYesterday(new Date(2026, 5, 13, 23, 30).getTime(), now)).toBe(true);
+    expect(existedYesterday(new Date(2026, 5, 1).getTime(), now)).toBe(true);
+  });
+});
 
 // a real chart to transit against
 const chart = computeChart({ year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 });

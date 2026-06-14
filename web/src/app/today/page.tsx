@@ -5,7 +5,7 @@ import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { TabBar } from "@/components/TabBar";
 import { dayWealth } from "@/lib/astro/wealth";
-import { dailyReading, dayKey } from "@/lib/reading/daily";
+import { dailyReading, dayKey, existedYesterday } from "@/lib/reading/daily";
 import { useUnderstanding } from "@/lib/understanding";
 import { track } from "@/lib/track";
 
@@ -23,6 +23,7 @@ export default function TodayPage() {
   const nickname = useFunnel((s) => s.nickname);
   const recordVerdict = useFunnel((s) => s.recordVerdict);
   const recordCheckin = useFunnel((s) => s.recordCheckin);
+  const joinedAt = useFunnel((s) => s.joinedAt);
   const understand = useUnderstanding();
   const [mood, setMood] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<"hit" | "miss" | null>(null);
@@ -85,8 +86,10 @@ export default function TodayPage() {
           🌙 <span>月亮入{daily.moonSign} · <b style={{ color: "#cfe0f0" }}>{daily.moonLine}</b></span>
         </div>
 
-        {/* 昨 — real falsifiable claim + working 说中了吗 */}
-        <div style={{ borderRadius: 17, padding: "15px 16px", marginBottom: 12, border: "1px solid rgba(143,182,216,.28)", background: "var(--field)" }}>
+        {/* 昨 — only after the user has actually been around a prior day; never ask
+            a day-1 user to validate a prediction we never showed them (T-1) */}
+        {existedYesterday(joinedAt, now) && (
+        <div data-testid="yesterday-card" style={{ borderRadius: 17, padding: "15px 16px", marginBottom: 12, border: "1px solid rgba(143,182,216,.28)", background: "var(--field)" }}>
           <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 9, color: "var(--blue)", display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--blue)" }} aria-hidden="true" />昨天 · 你说中了吗{verdict === "hit" && <span style={{ marginLeft: "auto", fontSize: 10, letterSpacing: 0, color: "var(--green)", textTransform: "none" }}>+2% 校准 ✓</span>}</div>
           <div style={{ fontSize: 14.5, lineHeight: 1.62, color: "var(--cream-dim)" }}>我说你昨天会<b style={{ color: "var(--cream)" }}>{daily.yesterdayClaim}</b>——对吗？</div>
           <div style={{ display: "flex", gap: 9, marginTop: 11 }}>
@@ -95,6 +98,7 @@ export default function TodayPage() {
           </div>
           {verdict === "miss" && <div style={{ fontSize: 11.5, color: "var(--mute)", marginTop: 8 }}>记下了——我会再调，慢慢更懂你。</div>}
         </div>
+        )}
 
         {/* 今 hero — real transit line + quote */}
         <div style={{ borderRadius: 17, padding: "15px 16px", marginBottom: 12, border: "1px solid rgba(201,168,97,.4)", background: "linear-gradient(180deg, rgba(201,168,97,.07), rgba(201,168,97,.02))", boxShadow: "0 0 30px -12px rgba(201,168,97,.4)" }}>
