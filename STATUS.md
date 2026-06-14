@@ -123,8 +123,8 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 
 **真上线（阻断,内测之后）**
 - [x] `TODO(geo)` 真实地理编码 + 历史时区 —— 离线 GeoNames 双语库 + Nominatim 兜底；offset 按出生当刻算(DST/历史/分数全对)；7 条验收 live 通过
-- [ ] 真实账号体系(注册现为 stub,无邮箱/密码;用户数据仍 localStorage,内测埋点是旁路捕获)
-- [ ] 隐私合规：用户数据存储落地 + 设置页「导出/删除」对接真实后端(现为本地)
+- [x] 真实账号体系 —— 邮箱/密码(scrypt)+ 服务端 KV 用户/会话(httpOnly cookie,可撤销)；盘/firstRead/昵称落服务端;跨设备登录恢复;保留 guest 低摩擦入口。单测+路由+playwright+裸 HTTP 全绿
+- [~] 隐私合规：删除已接服务端(account delete);**导出仍为本地 JSON**、邮箱未验证邮件 → 余项见 §6 `TODO`/账号 spec §5
 
 **强烈建议**
 - [ ] AI 内容审核 / 兜底(防 Claude 偶发离谱输出伤到用户)
