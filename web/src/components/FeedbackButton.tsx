@@ -51,7 +51,7 @@ export function FeedbackButton() {
         <div style={{ position: "fixed", right: 14, bottom: 78, zIndex: 60, width: "min(300px, calc(100vw - 28px))", background: "linear-gradient(180deg, rgba(18,22,38,.98), rgba(10,12,22,.98))", border: "1px solid rgba(201,168,97,.4)", borderRadius: 16, padding: 13, boxShadow: "0 18px 50px -12px rgba(0,0,0,.7)", backdropFilter: "blur(8px)" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: 9 }}>
             <span style={{ fontSize: 12.5, color: "var(--gold-soft)", fontWeight: 600 }}>内测反馈</span>
-            <span onClick={() => setOpen(false)} style={{ marginLeft: "auto", color: "var(--mute)", cursor: "pointer", fontSize: 16 }}>✕</span>
+            <button type="button" aria-label="关闭" onClick={() => setOpen(false)} style={{ marginLeft: "auto", color: "var(--mute)", cursor: "pointer", fontSize: 16 }}>✕</button>
           </div>
           {sent ? (
             <div style={{ fontSize: 13, color: "var(--green)", padding: "10px 2px" }}>收到了，谢谢你 ✓</div>

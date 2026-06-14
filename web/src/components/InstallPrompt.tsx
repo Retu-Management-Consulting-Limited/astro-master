@@ -93,7 +93,7 @@ export function InstallPrompt() {
           <div style={{ fontSize: 14, color: "var(--cream)", fontWeight: 600 }}>把 Molly 放进你的口袋</div>
           <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 2 }}>加到桌面 · 每早一句话，不用每次找我</div>
         </div>
-        <span onClick={() => close(true)} style={{ fontSize: 18, color: "var(--mute)", cursor: "pointer", padding: 4 }}>✕</span>
+        <button type="button" aria-label="关闭" onClick={() => close(true)} style={{ fontSize: 18, color: "var(--mute)", cursor: "pointer", padding: 4 }}>✕</button>
       </div>
 
       {ios ? (

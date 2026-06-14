@@ -6,6 +6,7 @@ import { useFunnel, snapshotOf } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { resolveBirth } from "@/lib/birth";
 import { apiSync } from "@/lib/auth-client";
+import { BackButton } from "@/components/BackButton";
 import { track } from "@/lib/track";
 
 // View + edit the user's own birth data. A change re-resolves through
@@ -54,7 +55,7 @@ export default function EditBirthPage() {
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 6px" }}>
-        <span onClick={() => router.back()} style={{ fontSize: 20, color: "var(--mute)", cursor: "pointer" }}>←</span>
+        <BackButton />
         <span style={{ fontWeight: 500, letterSpacing: ".32em", fontSize: 13, color: "var(--cream)" }}>出生信息</span>
       </div>
 
@@ -65,25 +66,25 @@ export default function EditBirthPage() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div>
-            <label style={lbl}>出生日期</label>
-            <input className="field-inp" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <label style={lbl} htmlFor="edit-date">出生日期</label>
+            <input id="edit-date" className="field-inp" type="date" autoComplete="bday" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div>
-            <label style={lbl}>出生时间</label>
-            <input className="field-inp" type="time" value={time} disabled={knownTime} onChange={(e) => setTime(e.target.value)} style={{ opacity: knownTime ? 0.5 : 1 }} />
-            <div onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer" }}>
-              <span style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", background: knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{knownTime ? "✓" : ""}</span>
+            <label style={lbl} htmlFor="edit-time">出生时间</label>
+            <input id="edit-time" className="field-inp" type="time" value={time} disabled={knownTime} onChange={(e) => setTime(e.target.value)} style={{ opacity: knownTime ? 0.5 : 1 }} />
+            <button type="button" role="checkbox" aria-checked={knownTime} onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer", padding: "4px 0", textAlign: "left" }}>
+              <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", background: knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{knownTime ? "✓" : ""}</span>
               <span style={{ fontSize: 13, color: "var(--cream-dim)" }}>我不知道准确时间（按正午估算）</span>
-            </div>
+            </button>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <label style={lbl}>国家</label>
-              <input className="field-inp" type="text" value={country} onChange={(e) => setCountry(e.target.value)} />
+              <label style={lbl} htmlFor="edit-country">国家</label>
+              <input id="edit-country" className="field-inp" type="text" autoComplete="country-name" value={country} onChange={(e) => setCountry(e.target.value)} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={lbl}>城市</label>
-              <input className="field-inp" data-testid="edit-city" type="text" value={city} onChange={(e) => { setCity(e.target.value); setErr(null); }} style={{ borderColor: err ? "var(--red)" : undefined }} />
+              <label style={lbl} htmlFor="edit-city">城市</label>
+              <input id="edit-city" className="field-inp" data-testid="edit-city" type="text" autoComplete="address-level2" value={city} onChange={(e) => { setCity(e.target.value); setErr(null); }} style={{ borderColor: err ? "var(--red)" : undefined }} />
             </div>
           </div>
           {err && <div data-testid="edit-err" style={{ fontSize: 12.5, color: "var(--red)" }}>⚠ {err} —— 试试附近的大城市</div>}

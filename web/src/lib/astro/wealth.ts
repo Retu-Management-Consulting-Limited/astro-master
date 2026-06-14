@@ -8,6 +8,15 @@ export interface DayWealth {
   intensity: number; // 0..100 (旺度: 高=越绿, 低=越红)
 }
 
+// Non-color cue for each day so 旺/慎 are distinguishable without relying on
+// red/green alone (color-blind safety / B2). The glyph is a shape (▲/▼), the
+// label feeds each cell's aria-label.
+export function wealthMark(level: WealthLevel): { glyph: string; label: string } {
+  if (level === "wang") return { glyph: "▲", label: "财运旺" };
+  if (level === "shen") return { glyph: "▼", label: "财运慎" };
+  return { glyph: "·", label: "财运平" };
+}
+
 function sep(a: number, b: number) {
   const d = Math.abs(a - b) % 360;
   return Math.min(d, 360 - d);

@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
-import { monthWealth, type DayWealth } from "@/lib/astro/wealth";
+import { monthWealth, wealthMark, type DayWealth } from "@/lib/astro/wealth";
 import { BackButton } from "@/components/BackButton";
 
 const TODAY = 13;
@@ -55,19 +55,23 @@ export default function WealthPage() {
           {Array.from({ length: (new Date(Date.UTC(2026, 5, 1)).getUTCDay() + 6) % 7 }).map((_, i) => <div key={`e${i}`} />)}
           {m.days.map((d) => {
             const c = color(d);
+            const mark = wealthMark(d.level);
             const gold = m.goldenDays.includes(d.day);
             const isToday = d.day === TODAY;
             return (
-              <div key={d.day} data-testid="wealth-day" style={{ aspectRatio: "1", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12.5, fontWeight: 500, position: "relative", background: c.bg, color: c.fg, boxShadow: isToday ? "0 0 0 2px var(--gold),0 0 12px rgba(201,168,97,.5)" : gold ? "inset 0 0 0 1.5px #f5e3b0" : "none" }}>
-                {isToday ? "今" : d.day}
-                {gold && <span style={{ position: "absolute", top: 1, right: 3, fontSize: 8, color: "#fff" }}>✦</span>}
+              <div key={d.day} data-testid="wealth-day" role="img"
+                aria-label={`6月${d.day}日 · ${mark.label}${gold ? " · 搞钱黄金日" : ""}${isToday ? " · 今天" : ""}`}
+                style={{ aspectRatio: "1", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", lineHeight: 1, fontSize: 12.5, fontWeight: 500, position: "relative", background: c.bg, color: c.fg, boxShadow: isToday ? "0 0 0 2px var(--gold),0 0 12px rgba(201,168,97,.5)" : gold ? "inset 0 0 0 1.5px #f5e3b0" : "none" }}>
+                <span>{isToday ? "今" : d.day}</span>
+                <span aria-hidden="true" style={{ fontSize: 7, marginTop: 1, opacity: 0.85 }}>{mark.glyph}</span>
+                {gold && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 8, color: "#fff" }}>✦</span>}
               </div>
             );
           })}
         </div>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, margin: "16px 0 6px", fontSize: 10.5, color: "var(--mute)" }}>
-          慎 <span style={{ width: 120, height: 8, borderRadius: 4, background: "linear-gradient(90deg,#c9302c,#e8a4a1,#eef1f4,#88c9a1,#1a7a3a)" }} /> 旺
+          <span style={{ fontSize: 8 }} aria-hidden="true">▼</span> 慎 <span style={{ width: 120, height: 8, borderRadius: 4, background: "linear-gradient(90deg,#c9302c,#e8a4a1,#eef1f4,#88c9a1,#1a7a3a)" }} /> 旺 <span style={{ fontSize: 8 }} aria-hidden="true">▲</span>
         </div>
 
         {wangToday ? (

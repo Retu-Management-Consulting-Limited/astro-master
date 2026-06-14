@@ -4,16 +4,17 @@ import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { apiMe, apiLogout, apiDeleteAccount, type Me } from "@/lib/auth-client";
+import { BackButton } from "@/components/BackButton";
 
 const NOTIF_KEY = "molly_notif";
 type Notif = { daily: boolean; wealth: boolean; synastry: boolean };
 const DEFAULT_NOTIF: Notif = { daily: true, wealth: true, synastry: true };
 
-function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
+function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
   return (
-    <span onClick={onClick} style={{ marginLeft: "auto", width: 42, height: 24, borderRadius: 13, background: on ? "var(--gold-deep)" : "#2a3344", position: "relative", flex: "0 0 auto", cursor: "pointer", transition: ".2s" }}>
-      <span style={{ position: "absolute", top: 2, left: on ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: on ? "#1a1305" : "#cdd3dc", transition: ".2s" }} />
-    </span>
+    <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={onClick} style={{ marginLeft: "auto", width: 42, height: 24, borderRadius: 13, background: on ? "var(--gold-deep)" : "#2a3344", position: "relative", flex: "0 0 auto", cursor: "pointer", transition: "background .2s" }}>
+      <span aria-hidden="true" style={{ position: "absolute", top: 2, left: on ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: on ? "#1a1305" : "#cdd3dc", transition: ".2s" }} />
+    </button>
   );
 }
 
@@ -90,19 +91,21 @@ export default function SettingsPage() {
     window.location.assign("/");
   };
 
-  const row = (label: React.ReactNode, right: React.ReactNode, onClick?: () => void, danger?: boolean, last?: boolean): React.ReactNode => (
-    <div onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 15px", fontSize: 14.5, color: danger ? "var(--red)" : "var(--cream)", borderBottom: last ? "none" : "1px solid rgba(255,255,255,.05)", cursor: onClick ? "pointer" : "default" }}>
-      {label}
-      {right}
-    </div>
-  );
+  const row = (label: React.ReactNode, right: React.ReactNode, onClick?: () => void, danger?: boolean, last?: boolean): React.ReactNode => {
+    const style = { display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left" as const, padding: "14px 15px", fontSize: 14.5, color: danger ? "var(--red)" : "var(--cream)", borderBottom: last ? "none" : "1px solid rgba(255,255,255,.05)", cursor: onClick ? "pointer" : "default" };
+    return onClick ? (
+      <button type="button" onClick={onClick} style={style}>{label}{right}</button>
+    ) : (
+      <div style={style}>{label}{right}</div>
+    );
+  };
 
   return (
     <main className="phone" data-testid="settings">
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 6px" }}>
-        <span onClick={() => router.back()} style={{ fontSize: 20, color: "var(--mute)", cursor: "pointer" }}>←</span>
+        <BackButton />
         <span style={{ fontWeight: 500, letterSpacing: ".32em", fontSize: 13, color: "var(--cream)" }}>设置</span>
       </div>
 
@@ -116,9 +119,9 @@ export default function SettingsPage() {
         </Group>
 
         <Group label="通知">
-          {row("每日星象提醒", <Toggle on={notif.daily} onClick={() => flip("daily")} />)}
-          {row("财运黄金日提醒", <Toggle on={notif.wealth} onClick={() => flip("wealth")} />)}
-          {row("合盘 · 对方测好了", <Toggle on={notif.synastry} onClick={() => flip("synastry")} />, undefined, false, true)}
+          {row("每日星象提醒", <Toggle on={notif.daily} onClick={() => flip("daily")} label="每日星象提醒" />)}
+          {row("财运黄金日提醒", <Toggle on={notif.wealth} onClick={() => flip("wealth")} label="财运黄金日提醒" />)}
+          {row("合盘 · 对方测好了", <Toggle on={notif.synastry} onClick={() => flip("synastry")} label="合盘 · 对方测好了提醒" />, undefined, false, true)}
         </Group>
 
         <Group label="隐私与数据">
@@ -137,7 +140,7 @@ export default function SettingsPage() {
       </div>
 
       {toast && (
-        <div style={{ position: "absolute", left: "50%", bottom: 40, transform: "translateX(-50%)", zIndex: 9, background: "rgba(10,12,20,.92)", border: "1px solid var(--field-bd)", color: "var(--cream)", fontSize: 13, padding: "9px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>{toast}</div>
+        <div role="status" aria-live="polite" style={{ position: "absolute", left: "50%", bottom: 40, transform: "translateX(-50%)", zIndex: 9, background: "rgba(10,12,20,.92)", border: "1px solid var(--field-bd)", color: "var(--cream)", fontSize: 13, padding: "9px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>{toast}</div>
       )}
     </main>
   );

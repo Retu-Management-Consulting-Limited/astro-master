@@ -124,14 +124,14 @@ export default function RegisterPage() {
 
         <div style={{ marginTop: 16, textAlign: "center", fontSize: 13, color: "var(--cream-dim)" }}>
           {mode === "signup" ? (
-            <>已经有账号了？<span onClick={() => { setMode("login"); setErr(null); }} style={{ color: "var(--gold-soft)", cursor: "pointer" }}>登录</span></>
+            <>已经有账号了？<button type="button" onClick={() => { setMode("login"); setErr(null); }} style={{ display: "inline", color: "var(--gold-soft)", cursor: "pointer", fontSize: "inherit" }}>登录</button></>
           ) : (
-            <>还没有账号？<span onClick={() => { setMode("signup"); setErr(null); }} style={{ color: "var(--gold-soft)", cursor: "pointer" }}>注册</span></>
+            <>还没有账号？<button type="button" onClick={() => { setMode("signup"); setErr(null); }} style={{ display: "inline", color: "var(--gold-soft)", cursor: "pointer", fontSize: "inherit" }}>注册</button></>
           )}
         </div>
 
         <div style={{ marginTop: "auto", textAlign: "center" }}>
-          <span data-testid="login" onClick={continueLocal} style={{ fontSize: 12.5, color: "var(--mute)", cursor: "pointer" }}>暂时不注册，先在本机用 →</span>
+          <button type="button" data-testid="login" onClick={continueLocal} style={{ fontSize: 12.5, color: "var(--mute)", cursor: "pointer" }}>暂时不注册，先在本机用 →</button>
           <div style={{ marginTop: 12, fontSize: 11.5, color: "var(--mute)" }}>🔒 你的盘只属于你 · 随时可删，绝不公开</div>
         </div>
       </div>
