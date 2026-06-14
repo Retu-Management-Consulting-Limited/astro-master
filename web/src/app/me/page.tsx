@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { metLabel } from "@/lib/relationship";
+import { birthSummary } from "@/lib/birth";
 import { TabBar } from "@/components/TabBar";
 
 export default function MePage() {
@@ -10,6 +11,7 @@ export default function MePage() {
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
   const joinedAt = useFunnel((s) => s.joinedAt);
+  const birthForm = useFunnel((s) => s.birthForm);
   if (!ready || !chart) return null;
 
   const rows = [
@@ -30,6 +32,15 @@ export default function MePage() {
             <div style={{ fontSize: 18, color: "var(--cream)", fontWeight: 600 }}>{nickname ?? "你"}</div>
             <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 3 }}>{metLabel(joinedAt)} · ♅ 上升{chart.ascSign}</div>
           </div>
+        </div>
+
+        <div data-testid="birth-card" onClick={() => router.push("/me/birth")} style={{ background: "rgba(143,182,216,.06)", border: "1px solid rgba(143,182,216,.2)", borderRadius: 16, padding: "14px 16px", marginBottom: 18, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 18, width: 22, textAlign: "center" }}>🎂</span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 3 }}>出生信息</div>
+            <div data-testid="birth-summary" style={{ fontSize: 14, color: "var(--cream)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{birthSummary(birthForm)}</div>
+          </div>
+          <span style={{ marginLeft: "auto", color: "var(--gold-soft)", fontSize: 13, flex: "0 0 auto" }}>编辑 ›</span>
         </div>
 
         <div style={{ background: "linear-gradient(180deg, rgba(201,168,97,.08), rgba(201,168,97,.02))", border: "1px solid rgba(201,168,97,.32)", borderRadius: 18, padding: 16, marginBottom: 18, boxShadow: "0 0 30px -14px rgba(201,168,97,.4)" }}>

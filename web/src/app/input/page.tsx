@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { computeChart } from "@/lib/astro/chart";
 import { useFunnel } from "@/lib/store";
+import { resolveBirth } from "@/lib/birth";
 import { track } from "@/lib/track";
 
 function Dots({ active }: { active: number }) {
@@ -31,24 +32,15 @@ export default function InputPage() {
     setErr(null);
     setLoading(true);
     try {
-      const t = knownTime ? "12:00" : time;
-      const qs = new URLSearchParams({ city, country, date, time: t });
-      const res = await fetch(`/api/geocode?${qs.toString()}`);
-      if (!res.ok) {
-        setErr(`没找到「${city}」`);
+      const form = { date, time, knownTime, country, city };
+      const r = await resolveBirth(form);
+      if ("error" in r) {
+        setErr(r.error);
         return;
       }
-      // { lat, lng, tz, label, iana } — tz is the historical offset at birth
-      const geo = (await res.json()) as { lat: number; lng: number; tz: number };
-      const [y, mo, d] = date.split("-").map(Number);
-      const [h, mi] = t.split(":").map(Number);
-      const birth = { year: y, month: mo, day: d, hour: h, minute: mi, lat: geo.lat, lng: geo.lng, tz: geo.tz };
-      const chart = computeChart(birth);
-      setChart(birth, { date, time, knownTime, country, city }, chart);
+      setChart(r.birth, form, computeChart(r.birth));
       track("funnel_input", { knownTime });
       router.push("/calibration");
-    } catch {
-      setErr("网络出了点问题，再试一次");
     } finally {
       setLoading(false);
     }
