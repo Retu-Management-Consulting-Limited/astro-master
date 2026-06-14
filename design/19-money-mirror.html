@@ -154,6 +154,28 @@
   .demo .say{font-family:var(--serif);font-size:16.5px;line-height:1.6;color:var(--cream)}
   .demo-a .say b{color:#bcd9f3}.demo-b .say b{color:#aee0c2}
 
+  /* ---- S0 入口卡（/today 语境） ---- */
+  .td-hi{font-family:var(--serif);font-size:24px;color:var(--cream);line-height:1.5;margin:14px 2px 6px}
+  .td-sub{font-size:12.5px;color:var(--mute);margin-bottom:18px}
+  .td-line{border-left:2px solid var(--gold-deep);padding:4px 0 4px 13px;margin:12px 2px;font-size:14.5px;color:var(--cream-dim);line-height:1.6}
+  .entry{margin-top:20px;border:1px solid rgba(201,168,97,.42);border-radius:18px;padding:18px 17px;background:linear-gradient(135deg,rgba(201,168,97,.1),rgba(12,17,29,.5));box-shadow:0 0 34px -14px rgba(201,168,97,.5);position:relative;overflow:hidden}
+  .entry .eyc{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:0 0 0 1px var(--gold),0 0 14px rgba(201,138,70,.45);margin-bottom:12px}
+  .entry .et{font-family:var(--serif);font-size:20px;color:var(--cream);line-height:1.45;margin-bottom:6px}
+  .entry .ed{font-size:12.5px;color:var(--cream-dim);line-height:1.55;margin-bottom:14px}
+  .entry .ego{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--gold-soft)}
+
+  /* ---- S1b meaning 修正 ---- */
+  .corr{border:1px solid var(--field-bd);background:var(--field);border-radius:16px;padding:18px 17px;margin:8px 0}
+  .corr .q{font-family:var(--serif);font-size:19px;color:var(--cream);text-align:center;margin-bottom:16px}
+  .corr .opts{display:flex;gap:9px}
+  .corr .opt{flex:1;text-align:center;border:1px solid var(--field-bd);border-radius:12px;padding:12px 6px;font-size:13.5px;color:var(--cream-dim);cursor:pointer}
+  .corr .opt.sel{border-color:var(--gold);color:var(--gold-soft);box-shadow:0 0 0 3px rgba(201,168,97,.1)}
+  .corr2{margin-top:14px;border:1px solid rgba(143,182,216,.32);border-radius:16px;padding:16px;background:linear-gradient(180deg,rgba(143,182,216,.07),rgba(143,182,216,.02))}
+  .corr2 .t{font-size:13px;color:#bcd4ea;line-height:1.6;margin-bottom:13px}
+  .corr2 .picks{display:flex;flex-wrap:wrap;gap:8px}
+  .corr2 .pick{border:1px solid #2b3a4e;border-radius:20px;padding:8px 14px;font-size:13px;color:#a9c4dd;cursor:pointer}
+  .corr2 .pick.on{border-color:var(--blue);color:#cfe2f2;background:rgba(143,182,216,.1)}
+
   .tabbar{position:relative;z-index:4;flex:0 0 auto;display:flex;justify-content:space-around;padding:10px 8px 16px;border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,#080a12,rgba(8,10,18,.6))}
   .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:#5a6173;flex:1}.tab.on{color:var(--gold)}.tab .ic{font-size:17px}
   .tab .eyeic{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:inset 0 0 0 1px #5a6173}
@@ -167,6 +189,33 @@
 </style>
 </head>
 <body>
+
+  <!-- ================= S0 · 入口/发现（/today 语境） ================= -->
+  <div class="sheet">
+    <div class="phone">
+      <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span></div>
+      <div class="scroll">
+        <div class="td-hi r1a">早，今天的你，<br>我有几句话。</div>
+        <div class="td-sub r1a">6 月 14 日 · 周日</div>
+        <div class="td-line r2a">月亮回到你的星座，今天你格外想被人懂。</div>
+        <div class="td-line r2a">别急着回那条消息，你心里其实已经有答案。</div>
+
+        <div class="entry r3a">
+          <div class="eyc"></div>
+          <div class="et">钱，对你到底意味着什么？</div>
+          <div class="ed">不是问你想赚多少。是你和钱的关系里，藏着一个连你自己都没说破的真相——我想讲给你听。</div>
+          <span class="ego">让 Molly 看穿 →</span>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><span class="ic">☾</span>今日</div>
+        <div class="tab"><span class="ic">✶</span>本命</div>
+        <div class="tab"><span class="eyeic"></span>对话</div>
+        <div class="tab"><span class="ic">✦</span>我的</div>
+      </div>
+    </div>
+    <div class="cap"><b>S0 · 入口/发现</b>（§7.1）<span class="s"> — 首次怎么到 S1：/today 与 /chart 财富主题各放一张入口卡 → S1。补 §9 漏掉的「怎么来」</span></div>
+  </div>
 
   <!-- ================= S1 · 金钱人格揭示（免费钩子·hero·被看见） ================= -->
   <div class="sheet">
@@ -200,7 +249,72 @@
         <div class="disc r7a">Molly 照见的是你这个人，不是一个会涨跌的数字。</div>
       </div>
     </div>
-    <div class="cap"><b>S1 · 钩尖揭示「钱对你意味着什么」</b>（免费钩子）<span class="s"> — v2：钩尖=随人变形的 money-meaning（此人=自由/我配得上）；盲点甩锅星盘+天赋暗面；命运预言去赌性</span></div>
+    <div class="cap"><b>S1 · 钩尖揭示「钱对你意味着什么」</b>（免费钩子）<span class="s"> — v3：meaning 是「主+次张力」（自由×安全拉扯）；盲点甩锅星盘+天赋暗面；命运预言去赌性</span></div>
+  </div>
+
+  <!-- ================= S1b · meaning 修正（猜错的兜底 + 精化入口） ================= -->
+  <div class="sheet">
+    <div class="phone">
+      <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span><span class="back">‹</span></div>
+      <div class="scroll">
+        <div class="seen r1a" style="font-size:20px;margin-top:14px">我说，钱对你是<br>「自由」和「我配得上」——</div>
+
+        <div class="corr r2a">
+          <div class="q">这，说中了吗？</div>
+          <div class="opts">
+            <div class="opt">说中了</div>
+            <div class="opt sel">有点，但不全</div>
+            <div class="opt">不太像</div>
+          </div>
+        </div>
+
+        <div class="corr2 r3a">
+          <div class="t">那我再看深一点——你盘里其实还有一股「安全」的底色。是不是这样：<b style="color:#cfe2f2">你想自由，又放不下那份踏实？</b> 你来挑，哪个更贴你：</div>
+          <div class="picks">
+            <span class="pick on">自由</span>
+            <span class="pick on">安全</span>
+            <span class="pick">我配得上</span>
+            <span class="pick">掌控</span>
+            <span class="pick">被看得起</span>
+            <span class="pick">护住所爱</span>
+          </div>
+        </div>
+
+        <button class="cta r4a" style="margin-top:20px">就这样，继续 →</button>
+        <div class="disc r4a">你每修正一次，我就更懂钱对你意味着什么——以后讲的每一页，都照这个来。</div>
+      </div>
+    </div>
+    <div class="cap"><b>S1b · meaning 修正</b>（§7.3）<span class="s"> — 钩尖猜错的兜底：「说中了吗」→ 不全/不像则给次要 meaning 或让用户自选 → 喂 behavior.ts 精化（越用越准）</span></div>
+  </div>
+
+  <!-- ================= Day-1 · 连载开篇态（无承前） ================= -->
+  <div class="sheet">
+    <div class="phone">
+      <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span></div>
+      <div class="scroll">
+        <div class="story r1a">
+          <div class="slbl"><span>你的金钱故事</span><span class="pg">第 1 页 · 从今天开始</span></div>
+          <div class="t"><b>从今天起，我每天跟你讲一页你和钱的故事。</b>你是那种「要自由、又放不下安全」的人——这股拉扯，会是这整个故事的主线。</div>
+        </div>
+        <div class="detail shen r2a" style="border-color:rgba(127,201,154,.3);background:linear-gradient(180deg,rgba(127,201,154,.08),rgba(127,201,154,.02));border-left-color:#3fa860">
+          <div class="dtag" style="color:#7fd99a">第一页 · 今天 🟢</div>
+          <div class="dtxt">巧的是，你的故事开篇就赶上一个好节点——<b>木星正照你的财帛宫</b>。这段时间，敢为「我配得上」往前一步的事，胜算偏高。我们慢慢来。</div>
+        </div>
+        <div class="witness-link r3a" style="border-color:rgba(201,168,97,.3);background:linear-gradient(180deg,rgba(201,168,97,.07),rgba(201,168,97,.02))">
+          <span class="clk">🔔</span>
+          <span class="t" style="color:var(--gold-soft)">每天清晨，我把新的一页放在这儿等你。</span>
+          <span class="arr" style="color:var(--gold)">开启提醒</span>
+        </div>
+        <div class="disc r4a">财运仅供参考 · 决定还是你做。</div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><span class="ic">☾</span>今日</div>
+        <div class="tab on"><span class="ic">✶</span>本命</div>
+        <div class="tab"><span class="eyeic"></span>对话</div>
+        <div class="tab"><span class="ic">✦</span>我的</div>
+      </div>
+    </div>
+    <div class="cap"><b>Day-1 · 连载开篇态</b>（§7.4）<span class="s"> — 第 1 页无「承前」，单独设计：引入 meaning 张力 + 第一份希望 + 开启 push（留存闭环承接动作）</span></div>
   </div>
 
   <!-- ================= S2 · 财运日历升级（每日·希望打头+护身符） ================= -->
