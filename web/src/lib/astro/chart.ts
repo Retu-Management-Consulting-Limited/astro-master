@@ -90,8 +90,12 @@ function ascMc(date: Date, lat: number, lng: number): { asc: number; mc: number 
     -(Math.sin(ramc) * Math.cos(e) + Math.tan(phi) * Math.sin(e))
   ) / DEG;
   asc = norm360(asc);
-  // ascendant must be the eastern horizon point (~90° ahead of MC); flip if needed
-  if (norm360(asc - mc) < 180) asc = norm360(asc + 180);
+  // The ascendant is the EASTERN horizon point: it must lead the MC by 0–180° in
+  // zodiacal order (ASC is the rising degree, MC already culminated). The base
+  // atan2 lands on the opposite (descendant) solution, so flip when ASC is NOT
+  // ahead of MC. (Verified by chart.accuracy.test.ts: Sun sits on the ASC at
+  // sunrise — without this correction the ascendant came out 180° wrong.)
+  if (norm360(asc - mc) >= 180) asc = norm360(asc + 180);
   return { asc, mc };
 }
 
