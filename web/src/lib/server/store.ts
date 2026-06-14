@@ -8,9 +8,10 @@ import "server-only";
 
 type Json = unknown;
 
-interface KV {
+export interface KV {
   get(k: string): Promise<Json | null>;
   set(k: string, v: Json): Promise<void>;
+  del(k: string): Promise<void>;
   lpush(k: string, v: Json): Promise<void>;
   lrange(k: string, start: number, stop: number): Promise<Json[]>;
   sadd(k: string, member: string): Promise<void>;
@@ -27,6 +28,9 @@ function memoryKV(): KV {
     },
     async set(k, v) {
       kv.set(k, v);
+    },
+    async del(k) {
+      kv.delete(k);
     },
     async lpush(k, v) {
       const l = lists.get(k) ?? [];
@@ -63,6 +67,9 @@ function kv(): Promise<KV> {
         set: async (k, v) => {
           await redis.set(k, v as never);
         },
+        del: async (k) => {
+          await redis.del(k);
+        },
         lpush: async (k, v) => {
           await redis.lpush(k, v as never);
         },
@@ -76,6 +83,11 @@ function kv(): Promise<KV> {
     return memoryKV();
   })();
   return _kv;
+}
+
+// Shared KV handle for other server modules (e.g. auth).
+export function getKV(): Promise<KV> {
+  return kv();
 }
 
 export const KV_ENABLED = !!(

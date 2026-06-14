@@ -25,7 +25,14 @@ interface FunnelState {
   setAsc: (s: string) => void;
   setNickname: (n: string) => void;
   setHasHydrated: (v: boolean) => void;
+  loadServer: (p: Partial<Pick<FunnelState, "birth" | "birthForm" | "chart" | "firstRead" | "nickname" | "joinedAt">>) => void;
   reset: () => void;
+}
+
+// The subset persisted to a user's server account (and to localStorage).
+export type FunnelSnapshot = Pick<FunnelState, "birth" | "birthForm" | "chart" | "firstRead" | "nickname" | "joinedAt">;
+export function snapshotOf(s: FunnelState): FunnelSnapshot {
+  return { birth: s.birth, birthForm: s.birthForm, chart: s.chart, firstRead: s.firstRead, nickname: s.nickname, joinedAt: s.joinedAt };
 }
 
 // Persisted to localStorage so a returning user — especially one relaunching
@@ -43,6 +50,9 @@ export const useFunnel = create<FunnelState>()(
       setAsc: (ascCandidate) => set({ ascCandidate }),
       setNickname: (nickname) => set({ nickname }),
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
+      // Load a snapshot pulled from the user's server account (cross-device).
+      loadServer: (p) =>
+        set({ birth: p.birth, birthForm: p.birthForm, chart: p.chart, firstRead: p.firstRead, nickname: p.nickname, joinedAt: p.joinedAt }),
       reset: () => set({ birth: undefined, birthForm: undefined, chart: undefined, firstRead: undefined, ascCandidate: undefined, nickname: undefined, joinedAt: undefined }),
     }),
     {

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
+import { apiMe, apiLogout, apiDeleteAccount, type Me } from "@/lib/auth-client";
 
 const NOTIF_KEY = "molly_notif";
 type Notif = { daily: boolean; wealth: boolean; synastry: boolean };
@@ -23,12 +24,14 @@ export default function SettingsPage() {
   const setNickname = useFunnel((s) => s.setNickname);
   const [notif, setNotif] = useState<Notif>(DEFAULT_NOTIF);
   const [toast, setToast] = useState<string | null>(null);
+  const [me, setMe] = useState<Me | null>(null);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(NOTIF_KEY);
       if (raw) setNotif({ ...DEFAULT_NOTIF, ...JSON.parse(raw) });
     } catch {}
+    apiMe().then(setMe);
   }, []);
 
   if (!ready || !chart) return null;
@@ -66,9 +69,16 @@ export default function SettingsPage() {
     flash("已导出 molly-my-data.json");
   };
 
-  // Real deletion — wipes the chart and ALL persisted data, then resets.
-  const deleteAll = () => {
+  const logout = async () => {
+    await apiLogout();
+    setMe(null);
+    flash("已退出登录");
+  };
+
+  // Real deletion — wipes the chart and ALL persisted data, server + local.
+  const deleteAll = async () => {
     if (!window.confirm("这会删掉你的本命盘和 Molly 对你的全部记忆，且无法恢复。确定吗？")) return;
+    await apiDeleteAccount(); // remove the account + server-side data too
     useFunnel.getState().reset();
     try {
       localStorage.removeItem("molly-funnel");
@@ -99,7 +109,10 @@ export default function SettingsPage() {
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "16px 22px 24px" }}>
         <Group label="账户">
           {row("昵称", <span style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>{nickname ?? "未设置"} ›</span>, editNick)}
-          {row("登录方式", <span style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>本机 · 未绑定 ›</span>, undefined, false, true)}
+          {me
+            ? row("登录方式", <span data-testid="account-email" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>{me.email} ›</span>, undefined, false, false)
+            : row("登录方式", <span style={{ marginLeft: "auto", color: "var(--gold-soft)", fontSize: 13 }}>本机 · 未绑定，去登录 ›</span>, () => router.push("/register"), false, true)}
+          {me && row("退出登录", <span data-testid="logout" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>›</span>, logout, false, true)}
         </Group>
 
         <Group label="通知">

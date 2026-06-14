@@ -1,0 +1,86 @@
+import { test, expect, type Page } from "@playwright/test";
+
+async function quietPage(page: Page) {
+  await page.addInitScript(() => {
+    const s = document.createElement("style");
+    s.textContent =
+      "*,*::before,*::after{animation:none!important;transition:none!important}nextjs-portal{display:none!important;pointer-events:none!important}[data-testid=feedback-fab]{display:none!important}[data-testid=install-prompt]{display:none!important}";
+    document.documentElement.appendChild(s);
+  });
+}
+
+// Walk landing → input → calibration → first-read → /register (stops there).
+async function walkToRegister(page: Page) {
+  await page.goto("/");
+  await page.getByRole("link", { name: /看穿你/ }).click();
+  await expect(page).toHaveURL(/\/input/);
+  await page.getByRole("button", { name: /看你的盘/ }).click();
+  const opt = page.locator('[data-testid="cal-opt"]').first();
+  await opt.waitFor({ state: "visible", timeout: 8000 });
+  for (let i = 0; i < 3; i++) {
+    await page.locator('[data-testid="cal-opt"]').first().click();
+    await page.waitForTimeout(400);
+  }
+  await page.locator('[data-testid="firstread"]').waitFor({ state: "visible", timeout: 8000 });
+  await page.locator('[data-testid="chip"]').first().click();
+  await page.locator('[data-testid="account-submit"]').waitFor({ state: "visible", timeout: 8000 });
+}
+
+test("real account: register persists the chart; fresh-device login restores it", async ({ page, context }) => {
+  await quietPage(page);
+  await walkToRegister(page);
+
+  const email = `e2e-${Date.now()}@test.dev`;
+  await page.locator('[data-testid="email"]').fill(email);
+  await page.locator('[data-testid="password"]').fill("password1");
+  await page.locator('[data-testid="account-submit"]').click();
+  await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
+
+  // Account exists server-side with the chart attached.
+  const me = await page.request.get("/api/auth/me");
+  expect(me.ok()).toBeTruthy();
+  const meJson = await me.json();
+  expect(meJson.email).toBe(email);
+  expect(meJson.profile?.chart).toBeTruthy();
+
+  // Simulate a FRESH DEVICE: clear localStorage AND cookies (logged out, no local chart).
+  await page.evaluate(() => localStorage.clear());
+  await context.clearCookies();
+
+  // A gated page now bounces to /input (data really is gone locally).
+  await page.goto("/today");
+  await expect(page).toHaveURL(/\/input/, { timeout: 8000 });
+
+  // Log back in → chart restored from the account → land on /today.
+  await page.goto("/register");
+  await page.getByText("登录", { exact: true }).click();
+  await page.locator('[data-testid="email"]').fill(email);
+  await page.locator('[data-testid="password"]').fill("password1");
+  await page.locator('[data-testid="account-submit"]').click();
+  await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
+
+  // And the settings page shows the bound email + can log out.
+  await page.goto("/me/settings");
+  await expect(page.locator('[data-testid="account-email"]')).toContainText(email);
+});
+
+test("wrong password is rejected", async ({ page }) => {
+  await quietPage(page);
+  await walkToRegister(page);
+
+  const email = `e2e-bad-${Date.now()}@test.dev`;
+  await page.locator('[data-testid="email"]').fill(email);
+  await page.locator('[data-testid="password"]').fill("password1");
+  await page.locator('[data-testid="account-submit"]').click();
+  await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
+
+  // log out via settings, then attempt login with a wrong password
+  await page.goto("/me/settings");
+  await page.locator('[data-testid="logout"]').click();
+  await page.goto("/register");
+  await page.getByText("登录", { exact: true }).click();
+  await page.locator('[data-testid="email"]').fill(email);
+  await page.locator('[data-testid="password"]').fill("WRONG-pass-9");
+  await page.locator('[data-testid="account-submit"]').click();
+  await expect(page.locator('[data-testid="auth-err"]')).toBeVisible({ timeout: 6000 });
+});

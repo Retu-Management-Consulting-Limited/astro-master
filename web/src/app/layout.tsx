@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { StoreHydration } from "@/components/StoreHydration";
+import { AuthHydration } from "@/components/AuthHydration";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { PageView } from "@/components/PageView";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full">
         <StoreHydration />
+        <AuthHydration />
         <PageView />
         {children}
         <InstallPrompt />
