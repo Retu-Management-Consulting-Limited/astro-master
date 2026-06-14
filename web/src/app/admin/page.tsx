@@ -1,8 +1,8 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-// Internal-test dashboard. Paste ADMIN_SECRET → fetches /api/admin/export and
-// renders funnel conversion, AI coverage, feature usage, and feedback.
+// Internal-test dashboard. Cookie session login (ADMIN_PASSWORD or ADMIN_SECRET)
+// → renders funnel conversion, AI coverage, feature usage, and feedback.
 // Not part of the product; for the operator only.
 
 interface Ev { type: string; ts?: number; ai?: boolean; id?: string }
@@ -15,28 +15,60 @@ const isTest = (name?: string) => !!name && /云测|测试|test/i.test(name);
 const fmt = (ts?: number) => (ts ? new Date(ts).toLocaleString("zh-CN", { hour12: false }) : "—");
 
 export default function AdminDashboard() {
-  const [secret, setSecret] = useState("");
+  const [pw, setPw] = useState("");
+  const [authed, setAuthed] = useState<boolean | null>(null); // null = checking cookie
   const [data, setData] = useState<Data | null>(null);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [hideTest, setHideTest] = useState(true);
 
-  async function load(s: string) {
+  // try the session cookie on mount
+  async function loadData() {
+    setErr("");
+    try {
+      const r = await fetch("/api/admin/export");
+      if (r.ok) {
+        setData(await r.json());
+        setAuthed(true);
+      } else {
+        setAuthed(false);
+      }
+    } catch {
+      setErr("网络错误");
+      setAuthed(false);
+    }
+  }
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function doLogin() {
+    if (!pw) return;
     setLoading(true);
     setErr("");
     try {
-      const r = await fetch(`/api/admin/export?secret=${encodeURIComponent(s)}`);
-      if (!r.ok) {
-        setErr(r.status === 403 ? "密钥不对" : `出错 ${r.status}`);
-        setData(null);
+      const r = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ password: pw }),
+      });
+      if (r.ok) {
+        setPw("");
+        await loadData();
       } else {
-        setData(await r.json());
+        setErr("密码不对");
       }
     } catch {
       setErr("网络错误");
     } finally {
       setLoading(false);
     }
+  }
+
+  async function logout() {
+    await fetch("/api/admin/logout", { method: "POST" }).catch(() => {});
+    setData(null);
+    setAuthed(false);
   }
 
   const view = useMemo(() => {
@@ -81,16 +113,28 @@ export default function AdminDashboard() {
     <main style={{ minHeight: "100dvh", background: "var(--void, #07090f)", color: "var(--cream)", fontFamily: "var(--sans)", padding: "28px 20px 60px", maxWidth: 780, margin: "0 auto" }}>
       <div className="starfield" />
       <h1 style={{ fontFamily: "var(--serif)", fontSize: 26, fontWeight: 600, color: "var(--gold)", marginBottom: 4 }}>Molly · 内测看板</h1>
-      <p style={{ fontSize: 12.5, color: "var(--mute)", marginBottom: 20 }}>粘 ADMIN_SECRET 看实时漏斗 / AI 覆盖 / 反馈</p>
+      <p style={{ fontSize: 12.5, color: "var(--mute)", marginBottom: 20 }}>实时漏斗 / AI 覆盖 / 反馈</p>
 
-      <div style={{ display: "flex", gap: 9, marginBottom: 22 }}>
-        <input type="password" value={secret} onChange={(e) => setSecret(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load(secret)} placeholder="ADMIN_SECRET"
-          style={{ flex: 1, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 10, padding: "11px 14px", color: "var(--cream)", fontSize: 14, outline: "none" }} />
-        <button onClick={() => load(secret)} disabled={loading || !secret} style={{ border: "none", borderRadius: 10, padding: "0 20px", fontSize: 14, fontWeight: 600, color: "#1a1408", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", cursor: "pointer", opacity: loading || !secret ? 0.5 : 1 }}>{loading ? "…" : "查看"}</button>
-      </div>
-      {err && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 16 }}>{err}</div>}
+      {/* checking cookie */}
+      {authed === null && <div style={{ fontSize: 13, color: "var(--mute)" }}>检查登录…</div>}
 
-      {view && (
+      {/* login gate */}
+      {authed === false && (
+        <div style={{ ...cardBg, maxWidth: 360 }}>
+          <div style={{ fontSize: 13, color: "var(--cream-dim)", marginBottom: 10 }}>请输入管理密码</div>
+          <div style={{ display: "flex", gap: 9 }}>
+            <input type="password" value={pw} autoFocus onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doLogin()} placeholder="密码"
+              style={{ flex: 1, background: "var(--void2, #0c111d)", border: "1px solid var(--field-bd)", borderRadius: 10, padding: "11px 14px", color: "var(--cream)", fontSize: 14, outline: "none" }} />
+            <button onClick={doLogin} disabled={loading || !pw} style={{ border: "none", borderRadius: 10, padding: "0 20px", fontSize: 14, fontWeight: 600, color: "#1a1408", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", cursor: "pointer", opacity: loading || !pw ? 0.5 : 1 }}>{loading ? "…" : "登录"}</button>
+          </div>
+          {err && <div style={{ color: "var(--red)", fontSize: 13, marginTop: 10 }}>{err}</div>}
+          <div style={{ fontSize: 11, color: "var(--mute)", marginTop: 12 }}>登录后保持 30 天,不用再输。</div>
+        </div>
+      )}
+
+      {authed && err && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 16 }}>{err}</div>}
+
+      {authed && view && (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18, fontSize: 12.5, color: "var(--cream-dim)" }}>
             <span>测试者 <b style={{ color: "var(--gold)", fontSize: 18 }}>{view.testers.length}</b></span>
@@ -98,7 +142,8 @@ export default function AdminDashboard() {
             <label style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: "var(--mute)" }}>
               <input type="checkbox" checked={hideTest} onChange={(e) => setHideTest(e.target.checked)} /> 隐藏测试数据
             </label>
-            <button onClick={() => load(secret)} style={{ background: "none", border: "1px solid var(--field-bd)", borderRadius: 8, color: "var(--cream-dim)", padding: "4px 10px", cursor: "pointer", fontSize: 12 }}>刷新</button>
+            <button onClick={loadData} style={{ background: "none", border: "1px solid var(--field-bd)", borderRadius: 8, color: "var(--cream-dim)", padding: "4px 10px", cursor: "pointer", fontSize: 12 }}>刷新</button>
+            <button onClick={logout} style={{ background: "none", border: "1px solid var(--field-bd)", borderRadius: 8, color: "var(--mute)", padding: "4px 10px", cursor: "pointer", fontSize: 12 }}>退出</button>
           </div>
 
           {/* funnel */}
