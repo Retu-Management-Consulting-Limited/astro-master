@@ -134,6 +134,9 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 - [ ] `TODO(obs)` 错误上报
 - [ ] 部署目标确认(Vercel 注意 serverless `maxDuration`;若仍用 SDK 路径会超时——再次提示:生产走 API)
 
+**下一步 · 已设计待实现（⏸️ Kevin 2026-06-14 暂缓）**
+- [ ] **反馈驱动自迭代管线（feedback-loop）** — 每小时 GitHub Actions 拉内测反馈 → 双轨：范围内文案/视觉自动开 PR（Kevin 手机 merge 上生产）+ 超范围高价值反馈聚合成分拣摘要邮件。设计＋三轮完整性复核已定稿，**实现按下不表**。**捡起看**：`docs/superpowers/specs/2026-06-14-feedback-loop-self-iteration-design.md` §13 实现待办。**硬前置**：先确认「上线护栏」workstream 已提交。
+
 **打磨**
 - [ ] `TODO(font-embed)` 金句卡品牌字体(分享物料质感)
 - [ ] `TODO(key)` 主题付费深读(变现)+ 财运模型加厚

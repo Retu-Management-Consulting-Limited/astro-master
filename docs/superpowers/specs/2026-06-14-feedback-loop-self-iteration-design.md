@@ -2,7 +2,7 @@
 
 **日期**：2026-06-14
 **项目**：astro-master（Molly / vapeincity.com）
-**状态**：待 Kevin 审核
+**状态**：✅ 设计定稿 + 三轮完整性复核已过 · ⏸️ **已 Kevin 决定：暂缓实现，留作下一步**（见 §13 实现待办）
 **作者**：Claude（经与 Kevin 头脑风暴定稿）
 
 ---
@@ -280,3 +280,23 @@ scheduled workflow 在仓库连续无活动 60 天会被自动停用（本 repo 
 
 **DD. 反馈渠道覆盖盲区**
 `/`（落地页）与 `/admin` 无反馈入口 → 这两处的反馈进不了 loop。记录备查。
+
+---
+
+## 13. 实现待办（⏸️ 下一步执行 — Kevin 2026-06-14 决定暂缓）
+
+> 设计与三轮复核已完成，**实现按下不表，留作下一个 step/session**。捡起时从这里开始，按序做；每步带验收。
+
+**🚦 硬前置（开工前先确认）**
+- [ ] **§12-O**：同仓库在途「上线护栏」workstream（`safety.ts`/`ratelimit.ts`/`cost.ts`/`identity.ts` + 改 `llm.ts`/`store.ts`，见 `2026-06-14-launch-guardrails-design.md`）**已提交落地**——否则 push 撞未提交改动。
+
+**实现顺序**
+1. [ ] 取数层：给 `/api/admin/export` 加 `Authorization: Bearer` 鉴权（保留 query/cookie 兼容，§12-G）；写拉反馈脚本，给每条算内容哈希 id `sha256(testerId|ts|text)`（§12-A），带 `page` 字段（§12-Z）
+2. [ ] 七阶段脚本（`web/scripts/feedback-loop/`，可单测）：判定/分拣三出路（§3.2）· 分拣轨摘要（§6.1）· 改码（带 persona/design-system 上下文 §12-AA，按 page 定位）· diff 自检（§12-E）· 测试闸 · 范围锁（含安全禁改区 §4-②/§12-N）· 注入防护+密钥隔离（§12-Q/R）
+3. [ ] **§12-H spike**：本地把 e2e 在类 CI 环境跑通，确认依不依赖真 Claude；补 `package.json` 的 `test`/`typecheck`/`e2e` 脚本 + 改 playwright `webServer` 可移植
+4. [ ] bootstrap GitHub（private repo，push 现有 main）+ 连**现有** Vercel 项目（Root=web，保住 vapeincity.com）+ main 开 branch protection（§5.2）
+5. [ ] `.github/workflows/feedback-loop.yml`（`cron: '0 * * * *'` + `workflow_dispatch` + `concurrency` 锁 §12-U）；配 GitHub Secrets（§5.3）；选定发信通道（Resend 优先 §12-I）
+6. [ ] `workflow_dispatch` 用一条人造反馈跑全链验收（§10 的 13 条）
+7. [ ] baseline 存量反馈（含测试数据「云测A」永久排除，§12-D）→ 开 cron → 观察
+
+**验收**：见 §10（13 条）。**唯一未实测项**：§12-H（步骤 3 解决）。
