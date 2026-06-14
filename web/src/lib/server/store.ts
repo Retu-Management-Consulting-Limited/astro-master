@@ -16,6 +16,7 @@ export interface KV {
   lpush(k: string, v: Json): Promise<void>;
   lrange(k: string, start: number, stop: number): Promise<Json[]>;
   sadd(k: string, member: string): Promise<void>;
+  srem(k: string, member: string): Promise<void>;
   smembers(k: string): Promise<string[]>;
 }
 
@@ -53,6 +54,9 @@ function memoryKV(): KV {
       s.add(member);
       sets.set(k, s);
     },
+    async srem(k, member) {
+      sets.get(k)?.delete(member);
+    },
     async smembers(k) {
       return [...(sets.get(k) ?? [])];
     },
@@ -83,6 +87,9 @@ function kv(): Promise<KV> {
         lrange: (k, s, e) => redis.lrange(k, s, e) as Promise<Json[]>,
         sadd: async (k, m) => {
           await redis.sadd(k, m);
+        },
+        srem: async (k, m) => {
+          await redis.srem(k, m);
         },
         smembers: (k) => redis.smembers(k) as Promise<string[]>,
       } satisfies KV;

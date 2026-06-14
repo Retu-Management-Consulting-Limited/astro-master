@@ -1,11 +1,9 @@
 "use client";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { monthWealth, wealthMark, type DayWealth } from "@/lib/astro/wealth";
 import { BackButton } from "@/components/BackButton";
-
-const TODAY = 13;
 function color(d: DayWealth): { bg: string; fg: string } {
   if (d.level === "wang") {
     if (d.intensity >= 85) return { bg: "#1a7a3a", fg: "#eafff1" };
@@ -23,8 +21,13 @@ function color(d: DayWealth): { bg: string; fg: string } {
 export default function WealthPage() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
-  const m = useMemo(() => (chart ? monthWealth(chart, 2026, 6) : null), [chart]);
-  if (!ready || !chart || !m) return null;
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => setNow(new Date()), []);
+  const year = now?.getFullYear() ?? 2026;
+  const month = (now?.getMonth() ?? 5) + 1; // 1-based
+  const TODAY = now?.getDate() ?? 1;
+  const m = useMemo(() => (chart && now ? monthWealth(chart, year, month) : null), [chart, now, year, month]);
+  if (!ready || !chart || !now || !m) return null;
 
   const today = m.days.find((d) => d.day === TODAY)!;
   const wangToday = today.level === "wang";
@@ -42,17 +45,17 @@ export default function WealthPage() {
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "6px 20px 18px" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "10px 2px 4px" }}>
           <h2 style={{ fontFamily: "var(--serif)", fontSize: 25, color: "var(--cream)", fontWeight: 600 }}>💰 财运日历</h2>
-          <span style={{ fontSize: 13, color: "var(--mute)" }}>2026 · 6月</span>
+          <span style={{ fontSize: 13, color: "var(--mute)" }}>{year} · {month}月</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(127,201,154,.09)", border: "1px solid rgba(127,201,154,.28)", borderRadius: 11, padding: "8px 12px", margin: "12px 0 16px", fontSize: 12.5, color: "var(--green)" }}>
-          ✨ 本月搞钱黄金日：<b style={{ color: "#ade3c2" }}>{m.goldenDays.map((g) => `6/${g}`).join(" · ")}</b> —— 到点我提醒你
+          ✨ 本月搞钱黄金日：<b style={{ color: "#ade3c2" }}>{m.goldenDays.map((g) => `${month}/${g}`).join(" · ")}</b> —— 别错过这几天
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6, marginBottom: 7 }}>
           {["一", "二", "三", "四", "五", "六", "日"].map((w) => <span key={w} style={{ textAlign: "center", fontSize: 10, color: "#5a6173" }}>{w}</span>)}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6 }}>
-          {Array.from({ length: (new Date(Date.UTC(2026, 5, 1)).getUTCDay() + 6) % 7 }).map((_, i) => <div key={`e${i}`} />)}
+          {Array.from({ length: (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7 }).map((_, i) => <div key={`e${i}`} />)}
           {m.days.map((d) => {
             const c = color(d);
             const mark = wealthMark(d.level);

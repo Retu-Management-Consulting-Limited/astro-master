@@ -75,3 +75,37 @@ self.addEventListener("fetch", (e) => {
   // API, RSC payloads, dynamic assets → always try the network first.
   e.respondWith(networkFirst(req));
 });
+
+// ---- Web Push ----
+self.addEventListener("push", (e) => {
+  let data = { title: "Molly", body: "今天有句话，我想单独跟你说 →", url: "/today" };
+  try {
+    if (e.data) data = { ...data, ...e.data.json() };
+  } catch {
+    /* keep defaults */
+  }
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/icon.svg",
+      badge: "/icon.svg",
+      data: { url: data.url || "/today" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const target = (e.notification.data && e.notification.data.url) || "/today";
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((cs) => {
+      for (const c of cs) {
+        if ("focus" in c) {
+          c.navigate(target);
+          return c.focus();
+        }
+      }
+      return self.clients.openWindow(target);
+    }),
+  );
+});

@@ -9,6 +9,15 @@ async function quietPage(page: Page) {
   });
 }
 
+// After sign-up, a one-tap daily-reminder card may appear (only when push is
+// available, e.g. VAPID configured). Dismiss it if present, then we're on /today.
+async function dismissNotifyIfShown(page: Page) {
+  await page.locator('[data-testid="notify-skip"], [data-testid="today"]').first().waitFor({ timeout: 8000 });
+  if (await page.locator('[data-testid="notify-skip"]').count()) {
+    await page.locator('[data-testid="notify-skip"]').click();
+  }
+}
+
 // Walk landing → input → calibration → first-read → /register (stops there).
 async function walkToRegister(page: Page) {
   await page.goto("/");
@@ -34,6 +43,7 @@ test("real account: register persists the chart; fresh-device login restores it"
   await page.locator('[data-testid="email"]').fill(email);
   await page.locator('[data-testid="password"]').fill("password1");
   await page.locator('[data-testid="account-submit"]').click();
+  await dismissNotifyIfShown(page);
   await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
 
   // Account exists server-side with the chart attached.
@@ -72,6 +82,7 @@ test("wrong password is rejected", async ({ page }) => {
   await page.locator('[data-testid="email"]').fill(email);
   await page.locator('[data-testid="password"]').fill("password1");
   await page.locator('[data-testid="account-submit"]').click();
+  await dismissNotifyIfShown(page);
   await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
 
   // log out via settings, then attempt login with a wrong password

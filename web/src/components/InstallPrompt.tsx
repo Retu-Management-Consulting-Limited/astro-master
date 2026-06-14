@@ -15,6 +15,7 @@ export function InstallPrompt() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [show, setShow] = useState(false);
   const [ios, setIos] = useState(false);
+  const [manual, setManual] = useState(false); // non-iOS, no native prompt → generic hint
 
   // Register service worker (production only — avoids dev HMR / stale-chunk issues).
   // updateViaCache:"none" → the browser never serves sw.js itself from HTTP cache,
@@ -79,9 +80,10 @@ export function InstallPrompt() {
       const { outcome } = await deferred.userChoice;
       setDeferred(null);
       close(outcome === "accepted");
+    } else if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+      setIos(true); // iOS Safari → share-sheet instructions
     } else {
-      // No native prompt (iOS / unsupported) — flip to manual instructions
-      setIos(true);
+      setManual(true); // other browser with no native prompt → generic menu hint
     }
   };
 
@@ -99,6 +101,10 @@ export function InstallPrompt() {
       {ios ? (
         <div style={{ marginTop: 12, fontSize: 12.5, color: "var(--cream-dim)", lineHeight: 1.7, background: "rgba(255,255,255,.04)", borderRadius: 11, padding: "10px 12px" }}>
           点底部 <b style={{ color: "var(--gold-soft)" }}>分享 ⎙</b> → 选 <b style={{ color: "var(--gold-soft)" }}>添加到主屏幕</b>，Molly 就住进你的手机了。
+        </div>
+      ) : manual ? (
+        <div style={{ marginTop: 12, fontSize: 12.5, color: "var(--cream-dim)", lineHeight: 1.7, background: "rgba(255,255,255,.04)", borderRadius: 11, padding: "10px 12px" }}>
+          打开浏览器<b style={{ color: "var(--gold-soft)" }}>菜单（⋮）</b> → 选 <b style={{ color: "var(--gold-soft)" }}>安装应用 / 添加到主屏幕</b>，Molly 就住进你的手机了。
         </div>
       ) : (
         <button onClick={install} style={{ marginTop: 12, width: "100%", border: "none", borderRadius: 12, padding: "11px 0", fontSize: 14, fontWeight: 600, color: "#1a1408", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", cursor: "pointer" }}>

@@ -50,3 +50,21 @@
 3. Push：subscribe→KV 有订阅；send（mock web-push）遍历并对 410 清理；未授权 secret 的 send→401/403；SW 含 push/notificationclick；vercel.json 有 cron。
 4. 全量 tsc + vitest + build + playwright 全绿，无回归。
 5. VAPID 密钥脚本可生成；交还 env 待办给用户。
+
+---
+
+## 实施结果（DELIVERED · 2026-06-14 存档）
+
+三块全部实现、测试、提交：
+- **财运加厚** `15ac9b2` — `wealth.ts`: `signRuler`/`houseSign`/`slowWealth`(行运木星·金星 → 本命金/木 + 2/8 宫主) 叠加在日月层之上；`wealthScore` clamp 0–100，旧 4 测不回归，新增 4 测。
+- **性别 persona** `15ac9b2` — `molly.ts`: `personaFor(gender)`+`pronoun(gender)`+`PERSONA_MALE`；`store.ts` 加 `gender` 字段（snapshot/loadServer/partialize）；`remote.ts` 从 funnel 透传 gender；reading/chat 路由 system+prompt 全参数化；input + /me/birth 加「女/男」选择器；账号 Profile 加 gender。
+- **Web Push** `34b76bc` — `web-push` 依赖；`scripts/gen-vapid.ts`；`push.ts`(KV 订阅/`sendToAll`/410 清理/防御过滤)+ KV `srem`；`api/push/{subscribe,unsubscribe,send}`(send 用 `PUSH_CRON_SECRET` 或 Vercel `CRON_SECRET` bearer 鉴权)；`public/sw.js` push+notificationclick；`push-client.ts`+settings 真订阅开关；`vercel.json` 每日 01:00 UTC cron。
+
+**测试**：vitest 166（+24）｜ tsc 0 ｜ next build 0（push/synastry/geocode 路由全注册）｜ playwright 9/9 无回归。
+机制自查修正：① reading 测试两图签名相同→缓存命中（用 distinctChart）；② `mockRejectedValue`/async-throw 触发 vitest 未处理拒绝误报（改 malformed-resolve）；③ push 路由测试 mock-bleed 第 4 次 undefined 调用 → `listSubscriptions` 防御过滤 malformed 记录 + 测试 mock guard。
+
+**部署核实（2026-06-14，`web-beige-…vercel.app`）**：本轮代码已上线（push/synastry-invite/geocode 路由 live）。
+**待办（交还 Kevin）**：
+1. Vercel env：`NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `PUSH_CRON_SECRET`（或 `CRON_SECRET`）→ 配后 `vercel --prod` 重发，推送客户端侧才激活（现 bundle 无公钥）。
+2. **`vapeincity.com` 现为 Hostinger 停放页**，未指向 Vercel app（见 STATUS §0 警告）——需修复 DNS/域名绑定，否则发测试者的自定义域名打不开。
+3. iOS 需「添加到主屏幕」+ 16.4+ 才能订阅。
