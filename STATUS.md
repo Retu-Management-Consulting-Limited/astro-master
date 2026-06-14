@@ -139,6 +139,10 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 - [ ] `TODO(key)` 主题付费深读(变现)+ 财运模型加厚
 - [ ] i18n 接线(next-intl 已装,英文未接)
 
+**未来 / 扩张（近期不做，目标人群仍为海外华人女性）**
+- [ ] `TODO(persona-gender)` 填资料时加「性别」字段。**女性 → 维持现有 Molly 这套**（亲密、被看穿，已打磨）；**男性 → 另一套语气与主题**（更偏方向/事业/关系，去掉女性向措辞与「她」代词）。
+      触及面：input 采集 → funnel store → 账号 profile → [molly.ts](web/src/lib/ai/molly.ts) PERSONA + reading/chat prompt（现「她」为硬编码）。为「扩到全体海外华人、重点仍女性」的解锁项，按分群个性化而非中性化。
+
 ---
 
 ## 8. 失败风险（来自早期 brainstorm,留作提醒）

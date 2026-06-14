@@ -20,6 +20,10 @@ export function facts(chart: Chart): string {
   return `上升${chart.ascSign}。\n${lines.join("；")}。${asp.length ? `\n主要相位：${asp.join("；")}。` : ""}`;
 }
 
+// TODO(persona-gender): this voice is female-tuned (intimate, "被看穿", "她").
+// Future: collect gender at input → keep THIS for women; serve a separate male
+// voice/theme variant for men. Near-term audience unchanged (overseas Chinese
+// women), so this stays the single default. See STATUS §7 未来/扩张.
 export const PERSONA = `你是 Molly——一位能「看穿本命」的占星向导。你的声音：
 - 第二人称「你」，像一个比她自己更懂她的人在低声说话。
 - 精准、有体温、带一点钝痛感；先戳中她藏起来的那一面，再把它翻译成力量。
