@@ -9,6 +9,7 @@ import { track } from "@/lib/track";
 export function PageView() {
   const pathname = usePathname();
   useEffect(() => {
+    if (pathname.startsWith("/admin")) return; // don't self-log the dashboard
     track("page_view", { path: pathname });
   }, [pathname]);
   return null;
