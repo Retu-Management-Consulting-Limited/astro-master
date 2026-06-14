@@ -104,7 +104,7 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 
 | 标记 | 位置 | 接什么 |
 |---|---|---|
-| `TODO(geo)` | `lib/astro/geocode.ts` | 真实地理编码 + 历史时区(现为内置城市表) |
+| ~~`TODO(geo)`~~ ✅ 已接 | `lib/astro/geo/` + `api/geocode` | 离线 GeoNames 双语库(3.3万城)+ Nominatim 兜底；出生当刻历史/DST offset 用 native Intl 算(中国 86-91 DST、分数时区全对) |
 | `TODO(push)` | `app/me/settings` | Web Push 订阅(每日星象/财运/合盘提醒) |
 | `TODO(invite)` | `app/synastry` | 合盘邀请链接 → 对方真实出生数据 |
 | `TODO(font-embed)` | `lib/share/card.ts` | 金句卡 PNG 嵌品牌衬线字体(现用通用 serif 避免 canvas 跨域污染) |
@@ -122,7 +122,7 @@ bun run build              # 18 路由 + /api/reading + /api/chat
 - [x] 已部署 Vercel production,API/KV/埋点/反馈线上验证通过 → **可发测试者**
 
 **真上线（阻断,内测之后）**
-- [ ] `TODO(geo)` 真实地理编码 + 历史时区(否则非内置城市的盘会错)
+- [x] `TODO(geo)` 真实地理编码 + 历史时区 —— 离线 GeoNames 双语库 + Nominatim 兜底；offset 按出生当刻算(DST/历史/分数全对)；7 条验收 live 通过
 - [ ] 真实账号体系(注册现为 stub,无邮箱/密码;用户数据仍 localStorage,内测埋点是旁路捕获)
 - [ ] 隐私合规：用户数据存储落地 + 设置页「导出/删除」对接真实后端(现为本地)
 
