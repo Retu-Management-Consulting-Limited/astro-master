@@ -79,6 +79,13 @@
   .hope .ic{font-size:16px;line-height:1.4}
   .hope .t{font-family:var(--serif);font-size:17px;color:#ade3c2;line-height:1.5}
   .hope .t b{color:#d6f5e3}
+  .story{background:linear-gradient(180deg,rgba(127,201,154,.1),rgba(127,201,154,.02));border:1px solid rgba(127,201,154,.3);border-radius:14px;padding:14px 15px;margin:8px 0 16px}
+  .slbl{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+  .slbl span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+  .slbl .pg{color:var(--mute);letter-spacing:.1em}
+  .story .prev{font-size:12px;line-height:1.55;color:var(--mute);padding-bottom:9px;margin-bottom:9px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .story .t{font-family:var(--serif);font-size:17px;color:#ade3c2;line-height:1.55}
+  .story .t b{color:#d6f5e3}
   .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:7px}
   .wk span{text-align:center;font-size:10px;color:#5a6173}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -138,6 +145,15 @@
   .card .mark{font-size:10px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase}
   .dl{margin-top:18px}
 
+  /* ---- 机制 · 染色示意 ---- */
+  .demo{border-radius:16px;padding:15px 16px;margin:12px 0}
+  .demo-a{border:1px solid rgba(143,182,216,.32);background:linear-gradient(180deg,rgba(143,182,216,.08),rgba(143,182,216,.02));border-left:3px solid var(--blue)}
+  .demo-b{border:1px solid rgba(127,201,154,.3);background:linear-gradient(180deg,rgba(127,201,154,.08),rgba(127,201,154,.02));border-left:3px solid var(--green)}
+  .demo .who{font-size:12.5px;color:var(--cream-dim);margin-bottom:4px}.demo .who b{color:var(--cream)}
+  .demo .transit{font-size:10.5px;letter-spacing:.08em;color:var(--mute);text-transform:uppercase;margin-bottom:10px}
+  .demo .say{font-family:var(--serif);font-size:16.5px;line-height:1.6;color:var(--cream)}
+  .demo-a .say b{color:#bcd9f3}.demo-b .say b{color:#aee0c2}
+
   .tabbar{position:relative;z-index:4;flex:0 0 auto;display:flex;justify-content:space-around;padding:10px 8px 16px;border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,#080a12,rgba(8,10,18,.6))}
   .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;color:#5a6173;flex:1}.tab.on{color:var(--gold)}.tab .ic{font-size:17px}
   .tab .eyeic{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:inset 0 0 0 1px #5a6173}
@@ -158,10 +174,10 @@
       <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span><span class="back">✕</span></div>
       <div class="scroll">
         <div class="eye-hero r1a"></div>
-        <div class="tag r1a">你的金钱人格</div>
-        <div class="seen r2a">你和钱的关系，<br>我看明白了。</div>
-        <div class="persona r3a">冲动扩张型</div>
-        <div class="style-sub r3a">金星天蝎 · 火星落二宫 · 木星照财帛</div>
+        <div class="tag r1a">钱，对你到底意味着什么</div>
+        <div class="seen r2a">我知道，钱对你<br>从来不只是钱。</div>
+        <div class="persona r3a" style="font-size:31px;letter-spacing:.06em;line-height:1.28">是自由，<br>是「我配得上」</div>
+        <div class="style-sub r3a">冲动扩张型 · 金星天蝎 · 火星落二宫</div>
 
         <div class="chips r4a">
           <span class="chip"><b>敢出手</b></span>
@@ -184,7 +200,7 @@
         <div class="disc r7a">Molly 照见的是你这个人，不是一个会涨跌的数字。</div>
       </div>
     </div>
-    <div class="cap"><b>S1 · 金钱人格揭示</b>（免费钩子）<span class="s"> — 错落 rise「被看穿」；盲点甩锅星盘+天赋暗面；命运预言去赌性（敢转向≠敢赌）；CTA→蓝图/金句卡</span></div>
+    <div class="cap"><b>S1 · 钩尖揭示「钱对你意味着什么」</b>（免费钩子）<span class="s"> — v2：钩尖=随人变形的 money-meaning（此人=自由/我配得上）；盲点甩锅星盘+天赋暗面；命运预言去赌性</span></div>
   </div>
 
   <!-- ================= S2 · 财运日历升级（每日·希望打头+护身符） ================= -->
@@ -192,9 +208,10 @@
     <div class="phone">
       <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span></div>
       <div class="scroll">
-        <div class="hope r1a">
-          <span class="ic">✶</span>
-          <div class="t"><b>9–11 月，你三年来最旺的搞钱扩张窗口</b>——开着。这段时间，敢往前一步的事，胜算都偏高。</div>
+        <div class="story r1a">
+          <div class="slbl"><span>你的金钱故事</span><span class="pg">第 18 页 · 今天</span></div>
+          <div class="prev">承前：昨天那个慎，你扛住了——你正在学会，自由不是乱花，是有底气地选。</div>
+          <div class="t"><b>而 9–11 月，你三年来最旺的扩张窗口开着。</b>这段时间，敢往前一步、敢为「我配得上」下注的事，胜算都偏高。</div>
         </div>
 
         <div class="r2a">
@@ -230,7 +247,7 @@
         <div class="tab"><span class="ic">✦</span>我的</div>
       </div>
     </div>
-    <div class="cap"><b>S2 · 财运日历升级</b>（每日）<span class="s"> — 希望(扩张窗口)打头；今天红日「护住式」非禁令；🕰️见证入口→S4；付费墙 CTA→S3</span></div>
+    <div class="cap"><b>S2 · 连载金钱叙事 + 日历</b>（每日·留存引擎）<span class="s"> — v2：日引擎=连载希望叙事（承前→今天→希望，用 meaning「自由」染色）；红日护住式给对比；🕰️见证→S4</span></div>
   </div>
 
   <!-- ================= S3 · 金钱蓝图深读（付费墙·不挡安心） ================= -->
@@ -320,6 +337,32 @@
       </div>
     </div>
     <div class="cap"><b>S5 · 搞钱命格金句卡</b>（传播）<span class="s"> — hope 峰值冲动晒；盲点写成「敢爱敢活」的尊严叙事；喂 K 因子，扩展 /share</span></div>
+  </div>
+
+  <!-- ================= 机制说明 · 钩尖随人变形（同一天行运，两种染色） ================= -->
+  <div class="sheet">
+    <div class="phone">
+      <div class="pbar"><div class="eye-mini"></div><span class="name">MOLLY</span><span class="back" style="font-size:11px;letter-spacing:.1em;color:var(--gold)">机制示意</span></div>
+      <div class="scroll">
+        <div class="seen r1a" style="font-size:20px;margin-top:12px">同一天的行运，<br>两个人，两种染色。</div>
+        <div class="disc r1a" style="margin:6px 8px 20px">钩尖不是日内容，是给日内容上色的滤镜——同一套引擎，按「钱对你意味着什么」给每个人上不同的色。</div>
+
+        <div class="demo demo-a r2a">
+          <div class="who">陈昊 · 钱 = <b>地位 + 掌控 + 不被甩下</b></div>
+          <div class="transit">木星照二宫 · 扩张窗口开</div>
+          <div class="say">「今天是你<b>拉开身位</b>的窗口——该谈的、该争的，往前一步。你怕的不是没钱，是掉队；这段时间，主动权在你手里。」</div>
+        </div>
+
+        <div class="demo demo-b r3a">
+          <div class="who">秦姐 · 钱 = <b>安全 + 照顾家人</b></div>
+          <div class="transit">木星照二宫 · 扩张窗口开（同一天）</div>
+          <div class="say">「这段时间，适合给自己和家里<b>筑一道更稳的墙</b>。不必冒险——把握住、稳稳地往前，对你这样的人，稳，就是赢。」</div>
+        </div>
+
+        <div class="disc r4a" style="margin-top:20px">同一行运（木星照二宫）、同一希望主调、同一条不报数字的红线——只有「钱对你意味着什么」变了，于是陈昊读到掌控、秦姐读到安心。这就是 v2 钩尖戳中大部分人、而非一段人的方式。</div>
+      </div>
+    </div>
+    <div class="cap"><b>机制 · 钩尖随人变形</b><span class="s"> — money-meaning 染色：persona.ts 的 meaning 轴 → narrative.ts 染色。星盘播种、行为精化（behavior.ts「越用越准」）</span></div>
   </div>
 
 </body>
