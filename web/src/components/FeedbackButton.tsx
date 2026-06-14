@@ -12,8 +12,8 @@ export function FeedbackButton() {
   const [sent, setSent] = useState(false);
 
   if (!TEST_MODE) return null;
-  // keep onboarding clean
-  if (pathname === "/") return null;
+  // keep onboarding clean; not on the operator dashboard
+  if (pathname === "/" || pathname.startsWith("/admin")) return null;
 
   const send = async () => {
     const t = text.trim();
