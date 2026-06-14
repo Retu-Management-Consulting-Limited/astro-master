@@ -7,8 +7,8 @@
 
 ## 0. 线上 / 内测部署（current）
 
-- **线上地址(发测试者)**：~~https://vapeincity.com~~ ⚠️ **2026-06-14 核实：vapeincity.com 现为 Hostinger「Parked Domain」停放页，未指向 Vercel app**（DNS/绑定掉了，需修）。**当前可用域名 = Vercel 默认域 https://web-beige-psi-kre97cof9a.vercel.app**（本轮代码已在其上验证 live）
-- **⚠️ Web Push 待配 env**：`NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `PUSH_CRON_SECRET` 未配 → 客户端 bundle 无公钥、推送未激活；配后 `vercel --prod` 重发。
+- **线上地址(发测试者)**：**https://vapeincity.com**（+ www；Vercel 默认域 https://web-beige-psi-kre97cof9a.vercel.app 仍可用）。2026-06-14 核实：apex+www 均 `server: Vercel`、返回 Molly app（之前一度看到 Hostinger 停放页，是 DNS 解析缓存的旧记录，现已正常；NS=vercel-dns、A=216.198.79.x）。
+- **Web Push 已上线并端到端验证**：VAPID env（`NEXT_PUBLIC_VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`PUSH_CRON_SECRET`）已配；`/api/push/send?secret=…` 返回 `configured:true`，真机订阅后 `sent:1`（真投递）。每日 cron 01:00 UTC。
 - **平台**：Vercel,项目 `kevin-retu-s-projects/web`(Root Directory = `web`),`vercel --prod` 部署
 - **自定义域名**：vapeincity.com — nameserver 已指向 Vercel(ns1/ns2.vercel-dns.com),apex + www 已配 SSL,验证通过
 - **AI 后端**：直连 Anthropic API(`ANTHROPIC_API_KEY` 已设)→ sonnet,~10s/次(渐进 UX 遮住:stub 秒出、后台替换)。换 `MOLLY_MODEL=haiku` 可约减半。
