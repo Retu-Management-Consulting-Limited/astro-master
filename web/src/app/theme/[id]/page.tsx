@@ -84,7 +84,7 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
 
         <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 9 }}>
           {r.chips.map((c) => (
-            <button type="button" key={c} onClick={() => router.push("/chat")} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 9, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 12, padding: "11px 14px", fontSize: 13.5, color: "var(--cream-dim)", cursor: "pointer" }}>
+            <button type="button" key={c} onClick={() => router.push(`/chat?ask=${encodeURIComponent(c)}`)} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 9, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 12, padding: "11px 14px", fontSize: 13.5, color: "var(--cream-dim)", cursor: "pointer" }}>
               <span style={{ color: "var(--gold)" }} aria-hidden="true">›</span> {c}
             </button>
           ))}
