@@ -58,4 +58,29 @@ describe("GET /api/geocode", () => {
     expect((await call("date=1998-06-13")).status).toBe(400);
     expect((await call("city=Melbourne")).status).toBe(400);
   });
+
+  it("400 on out-of-range / future / pre-1900 date (N2/M6/L1)", async () => {
+    expect((await call("city=Melbourne&date=1998-99-99")).status).toBe(400); // month/day range
+    expect((await call("city=Melbourne&date=2099-01-01")).status).toBe(400); // future
+    expect((await call("city=Melbourne&date=1899-01-01")).status).toBe(400); // pre-1900
+    expect((await call("city=Melbourne&date=1998-06-13&time=99:99")).status).toBe(400); // time range
+  });
+
+  it("400 on absurdly long city (N1: bound external lookups)", async () => {
+    expect((await call(`city=${"x".repeat(200)}&date=1998-06-13`)).status).toBe(400);
+  });
+
+  it("rate-limits per identity → 429 (N1)", async () => {
+    process.env.RL_DISABLED = "0";
+    process.env.RL_GEO_MIN = "1";
+    try {
+      const mid = `geo-rl-${Date.now()}`;
+      const c = (city: string) => GET(new Request(`http://x/api/geocode?city=${enc(city)}&date=1998-06-13`, { headers: { cookie: `mid=${mid}` } }));
+      expect((await c("墨尔本")).status).toBe(200);
+      expect((await c("上海")).status).toBe(429);
+    } finally {
+      delete process.env.RL_GEO_MIN;
+      process.env.RL_DISABLED = "1";
+    }
+  });
 });

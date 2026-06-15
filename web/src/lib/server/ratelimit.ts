@@ -21,6 +21,7 @@ const num = (env: string | undefined, dflt: number) => {
   return Number.isFinite(n) && n > 0 ? n : dflt;
 };
 
+const MIN = 60_000;
 const HOUR = 3600_000;
 const DAY = 86_400_000;
 
@@ -30,6 +31,15 @@ export const RULES = {
     { scope: "chat:h", limit: num(process.env.RL_CHAT_HOUR, 60), windowMs: HOUR },
     { scope: "chat:d", limit: num(process.env.RL_CHAT_DAY, 300), windowMs: DAY },
   ],
+  // Auth: throttle brute-force / mass account creation (M2).
+  auth: (): Rule[] => [
+    { scope: "auth:m", limit: num(process.env.RL_AUTH_MIN, 10), windowMs: MIN },
+    { scope: "auth:h", limit: num(process.env.RL_AUTH_HOUR, 60), windowMs: HOUR },
+  ],
+  // Geocode: each miss can hit external Nominatim — cap per identity (N1).
+  geocode: (): Rule[] => [{ scope: "geo:m", limit: num(process.env.RL_GEO_MIN, 30), windowMs: MIN }],
+  // Synastry invite creation (M5).
+  invite: (): Rule[] => [{ scope: "inv:h", limit: num(process.env.RL_INVITE_HOUR, 30), windowMs: HOUR }],
 };
 
 const DISABLED = () => process.env.RL_DISABLED === "1";

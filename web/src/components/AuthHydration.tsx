@@ -16,13 +16,22 @@ export function AuthHydration() {
     if (!hasHydrated || ran.current) return;
     ran.current = true;
     (async () => {
-      const me = await apiMe();
-      if (!me) return; // not logged in → nothing to reconcile
-      const local = useFunnel.getState();
-      if (local.chart) {
-        apiSync(snapshotOf(local));
-      } else if (me.profile?.chart) {
-        useFunnel.getState().loadServer(me.profile);
+      try {
+        // Bound the reconcile so a stalled /api/auth/me never strands gated
+        // pages (guard waits on authChecked). 3s then proceed as logged-out.
+        const timeout = new Promise<null>((r) => setTimeout(() => r(null), 3000));
+        const me = await Promise.race([apiMe(), timeout]);
+        if (me) {
+          const local = useFunnel.getState();
+          if (local.chart) {
+            apiSync(snapshotOf(local));
+          } else if (me.profile?.chart) {
+            useFunnel.getState().loadServer(me.profile);
+          }
+        }
+      } finally {
+        // Unblock the chart guard whether or not a user/chart was found.
+        useFunnel.getState().setAuthChecked(true);
       }
     })();
   }, [hasHydrated]);

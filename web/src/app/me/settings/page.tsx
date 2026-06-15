@@ -94,7 +94,14 @@ export default function SettingsPage() {
   const logout = async () => {
     await apiLogout();
     setMe(null);
-    flash("已退出登录");
+    // L3: also clear the locally-persisted chart so the next person on a shared
+    // device can't reach gated pages with the previous user's reading.
+    useFunnel.getState().reset();
+    try {
+      localStorage.removeItem("molly-funnel");
+      localStorage.removeItem(NOTIF_KEY);
+    } catch {}
+    window.location.assign("/");
   };
 
   // Real deletion — wipes the chart and ALL persisted data, server + local.

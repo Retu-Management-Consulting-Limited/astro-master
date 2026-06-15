@@ -19,6 +19,7 @@ const validFirstRead = JSON.stringify({ lead: "看穿你", paragraphs: [{ text: 
 beforeEach(() => vi.mocked(runLLM).mockReset());
 afterEach(() => {
   delete process.env.RL_READ_DAY;
+  process.env.RL_DISABLED = "1"; // restore vitest default
 });
 
 describe("reading route — graceful fallback (never 500)", () => {
@@ -52,6 +53,7 @@ describe("reading route — success + cost", () => {
 
 describe("reading route — rate limit serves stub (never blocks the funnel)", () => {
   it("past the daily limit returns the deterministic stub, no extra AI call", async () => {
+    process.env.RL_DISABLED = "0";
     process.env.RL_READ_DAY = "1";
     vi.mocked(runLLM).mockResolvedValue({ text: validFirstRead });
     const mid = `rl-read-${Date.now()}`;

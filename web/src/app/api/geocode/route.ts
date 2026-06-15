@@ -3,6 +3,9 @@ import { lookup } from "@/lib/astro/geo/citydb";
 import { query as nominatimQuery } from "@/lib/astro/geo/nominatim";
 import { offsetAtHours, zoneFromLatLng } from "@/lib/astro/geo/timezone";
 import { geoCacheGet, geoCacheSet } from "@/lib/server/store";
+import { resolveIdentity } from "@/lib/server/identity";
+import { rateLimit, RULES } from "@/lib/server/ratelimit";
+import { validBirthDateTime } from "@/lib/astro/birthdate";
 
 export const runtime = "nodejs";
 
@@ -34,11 +37,17 @@ export async function GET(req: Request) {
   const time = u.searchParams.get("time") ?? undefined;
 
   if (!city) return NextResponse.json({ error: "missing city" }, { status: 400 });
+  if (city.length > 80) return NextResponse.json({ error: "city too long" }, { status: 400 }); // N1: bound external lookups
   if (!date) return NextResponse.json({ error: "missing date" }, { status: 400 });
-  const local = parseLocal(date, time ?? undefined);
-  if (!local.year || !local.month || !local.day) {
+  // N2: validate ranges (month/day/time) + reject future / pre-1900 (M6/L1).
+  if (!validBirthDateTime(date, time ?? undefined)) {
     return NextResponse.json({ error: "bad date" }, { status: 400 });
   }
+  const local = parseLocal(date, time ?? undefined);
+
+  // N1: rate-limit per identity — each offline miss can hit external Nominatim.
+  const rl = await rateLimit(await resolveIdentity(req), RULES.geocode());
+  if (!rl.ok) return NextResponse.json({ error: "查询太频繁，请稍后再试" }, { status: 429, headers: rl.retryAfterSec ? { "retry-after": String(rl.retryAfterSec) } : undefined });
 
   let r: Resolved | null = lookup(city, country);
 

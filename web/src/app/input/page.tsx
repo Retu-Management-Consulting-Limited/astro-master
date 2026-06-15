@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { computeChart } from "@/lib/astro/chart";
 import { useFunnel } from "@/lib/store";
 import { resolveBirth } from "@/lib/birth";
+import { validBirthDateTime } from "@/lib/astro/birthdate";
 import { track } from "@/lib/track";
 
 function Dots({ active }: { active: number }) {
@@ -32,6 +33,15 @@ export default function InputPage() {
   async function submit() {
     if (loading) return;
     setErr(null);
+    // Field-specific validation (M1: don't blame "city" for a bad date; M6/L1:
+    // no future / pre-1900 dates).
+    if (!date) { setErr("请先选出生日期"); return; }
+    if (!knownTime && !time) { setErr("请填出生时间，或勾选「不知道准确时间」"); return; }
+    if (!validBirthDateTime(date, knownTime ? undefined : time)) {
+      setErr("出生日期看起来不对——要 1900 年以后、且不能晚于今天");
+      return;
+    }
+    if (!city.trim()) { setErr("请填出生城市"); return; }
     setLoading(true);
     try {
       const form = { date, time, knownTime, country, city };
@@ -80,7 +90,7 @@ export default function InputPage() {
           </div>
           <div className="reveal" style={{ animationDelay: ".55s" }}>
             <label style={lbl} htmlFor="birth-date">出生日期</label>
-            <input id="birth-date" className="field-inp" type="date" autoComplete="bday" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input id="birth-date" className="field-inp" type="date" autoComplete="bday" min="1900-01-01" max={new Date().toISOString().slice(0, 10)} value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div className="reveal" style={{ animationDelay: ".7s" }}>
             <label style={lbl} htmlFor="birth-time">出生时间</label>

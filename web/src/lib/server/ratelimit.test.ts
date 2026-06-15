@@ -1,5 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { rateLimit, type Rule } from "./ratelimit";
+
+// This suite tests the limiter itself → enable it (vitest defaults RL_DISABLED=1).
+beforeAll(() => { process.env.RL_DISABLED = "0"; });
+afterAll(() => { process.env.RL_DISABLED = "1"; });
 
 const uid = () => `t${Math.floor(performance.now() * 1000)}-${process.hrtime.bigint()}`;
 const rule = (scope: string, limit: number, windowMs = 3600_000): Rule => ({ scope, limit, windowMs });

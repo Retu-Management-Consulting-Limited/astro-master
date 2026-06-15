@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { computeChart } from "@/lib/astro/chart";
-import { useFunnel, snapshotOf } from "@/lib/store";
+import { useFunnel, snapshotOf, type BirthForm } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { resolveBirth } from "@/lib/birth";
 import { apiSync } from "@/lib/auth-client";
@@ -12,9 +12,20 @@ import { track } from "@/lib/track";
 // View + edit the user's own birth data. A change re-resolves through
 // /api/geocode (correct historical offset) and recomputes the chart, then syncs
 // to the account if logged in. joinedAt is preserved (setChart keeps it).
+//
+// H1 fix: the form is a CHILD mounted only after the chart guard is ready
+// (store rehydrated). That way the form's useState initializers read the user's
+// REAL stored values — not the demo defaults that the old top-level useState
+// locked in on the first (pre-hydration) frame, which then silently overwrote
+// year/date/country/gender on a deep-link or PWA cold start.
 export default function EditBirthPage() {
-  const router = useRouter();
   const { chart, ready } = useChartGuard();
+  if (!ready || !chart) return null;
+  return <EditBirthForm />;
+}
+
+function EditBirthForm() {
+  const router = useRouter();
   const birthForm = useFunnel((s) => s.birthForm);
   const storedGender = useFunnel((s) => s.gender);
   const setChart = useFunnel((s) => s.setChart);
@@ -29,14 +40,12 @@ export default function EditBirthPage() {
   const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  if (!ready || !chart) return null;
-
   async function save() {
     if (saving) return;
     setErr(null);
     setSaving(true);
     try {
-      const form = { date, time, knownTime, country, city };
+      const form: BirthForm = { date, time, knownTime, country, city };
       const r = await resolveBirth(form);
       if ("error" in r) {
         setErr(r.error);
@@ -79,7 +88,7 @@ export default function EditBirthPage() {
           </div>
           <div>
             <label style={lbl} htmlFor="edit-date">出生日期</label>
-            <input id="edit-date" className="field-inp" type="date" autoComplete="bday" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input id="edit-date" className="field-inp" type="date" autoComplete="bday" min="1900-01-01" max={new Date().toISOString().slice(0, 10)} value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div>
             <label style={lbl} htmlFor="edit-time">出生时间</label>

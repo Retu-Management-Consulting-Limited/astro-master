@@ -56,6 +56,15 @@ describe("users", () => {
     await expect(createUser(e, "password2")).rejects.toBeInstanceOf(EmailTakenError);
   });
 
+  it("treats NFC/NFD Unicode homograph emails as the same account (L5)", async () => {
+    const base = `cafe${String.fromCharCode(0x301)}-${Date.now()}@test.dev`; // e + combining acute U+0301
+    const nfc = base.normalize("NFC"); // precomposed
+    const nfd = base.normalize("NFD"); // decomposed
+    expect(nfc).not.toBe(nfd); // different byte sequences...
+    await createUser(nfc, "password1");
+    await expect(createUser(nfd, "password2")).rejects.toBeInstanceOf(EmailTakenError); // ...but one account
+  });
+
   it("authenticate: correct password → user, wrong → null, unknown email → null", async () => {
     const e = email();
     const u = await createUser(e, "password1");
