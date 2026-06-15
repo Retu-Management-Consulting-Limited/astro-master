@@ -1,4 +1,5 @@
 import type { Chart } from "@/lib/astro/chart";
+import { interpretiveFacts } from "@/lib/astro/dignities";
 
 // Shared Molly voice + chart-fact serialization, used by /api/reading and
 // /api/chat so both speak with one persona over the same real placements.
@@ -17,7 +18,10 @@ export function facts(chart: Chart): string {
   const asp = (chart.aspects ?? [])
     .slice(0, 4)
     .map((a) => `${PLANET_ZH[a.a] ?? a.a} ${a.type} ${PLANET_ZH[a.b] ?? a.b}`);
-  return `上升${chart.ascSign}。\n${lines.join("；")}。${asp.length ? `\n主要相位：${asp.join("；")}。` : ""}`;
+  // Deterministic classical judgments (sect / chart ruler / dignities / combust)
+  // so the model reads chart-SPECIFIC structure, not generic sign-column prose.
+  const interp = interpretiveFacts(chart).text;
+  return `上升${chart.ascSign}。\n${lines.join("；")}。${asp.length ? `\n主要相位：${asp.join("；")}。` : ""}\n古典判定：${interp}`;
 }
 
 export type Gender = "female" | "male";
