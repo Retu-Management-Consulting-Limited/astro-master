@@ -125,6 +125,20 @@ export async function geoCacheSet(key: string, value: Json): Promise<void> {
   await (await kv()).set(`gc:${key}`, value);
 }
 
+// ---- money narrative: per-user-per-day cache + serialized chapter log ----
+export async function narrativeDayGet(userId: string, date: string, variant: string): Promise<Json | null> {
+  return (await kv()).get(`nrd:${userId}:${date}:${variant}`);
+}
+export async function narrativeDaySet(userId: string, date: string, variant: string, value: Json): Promise<void> {
+  await (await kv()).set(`nrd:${userId}:${date}:${variant}`, value);
+}
+export async function pushChapterLog(userId: string, chapter: Json): Promise<void> {
+  await (await kv()).lpush(`nrlog:${userId}`, chapter);
+}
+export async function getChapterLog(userId: string, limit = 14): Promise<Json[]> {
+  return (await kv()).lrange(`nrlog:${userId}`, 0, limit - 1);
+}
+
 // ---- internal-test telemetry ----
 export interface TesterPatch {
   name?: string;
