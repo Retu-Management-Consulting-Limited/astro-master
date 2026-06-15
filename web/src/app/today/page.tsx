@@ -7,6 +7,7 @@ import { TabBar } from "@/components/TabBar";
 import { dayWealth } from "@/lib/astro/wealth";
 import { dailyReading, dayKey, existedYesterday } from "@/lib/reading/daily";
 import { useUnderstanding } from "@/lib/understanding";
+import { useNow } from "@/lib/useNow";
 import { track } from "@/lib/track";
 
 const MOODS = [
@@ -27,19 +28,21 @@ export default function TodayPage() {
   const understand = useUnderstanding();
   const [mood, setMood] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<"hit" | "miss" | null>(null);
-  // real "today", read after mount so it's client-only (no hydration mismatch)
-  const [now, setNow] = useState<Date | null>(null);
+  // "today" in the device's LOCAL time, refreshed whenever the app is re-shown
+  // (so a kept-open / installed PWA rolls over to the new day, not frozen).
+  const now = useNow();
+  const dkNow = now ? dayKey(now) : null;
 
+  // Load this day's persisted mood/verdict; re-runs when the day changes (e.g.
+  // user reopens after midnight) so yesterday's state doesn't bleed into today.
   useEffect(() => {
-    const d = new Date();
-    setNow(d);
-    const dk = dayKey(d);
+    if (!dkNow) return;
     try {
-      setMood(localStorage.getItem(`molly_mood_${dk}`));
-      const v = localStorage.getItem(`molly_verdict_${dk}`);
-      if (v === "hit" || v === "miss") setVerdict(v);
+      setMood(localStorage.getItem(`molly_mood_${dkNow}`));
+      const v = localStorage.getItem(`molly_verdict_${dkNow}`);
+      setVerdict(v === "hit" || v === "miss" ? v : null);
     } catch {}
-  }, []);
+  }, [dkNow]);
 
   if (!ready || !chart || !now) return null;
 

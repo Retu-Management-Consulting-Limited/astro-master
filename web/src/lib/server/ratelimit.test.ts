@@ -43,13 +43,28 @@ describe("rateLimit", () => {
     expect((await rateLimit(id, rules)).ok).toBe(false); // lo exhausted
   });
 
-  it("separate time buckets reset the count", async () => {
+  it("count fully resets after a whole window has elapsed (sliding window)", async () => {
     const id = uid();
     const w = 1000;
     const r = [rule("b", 1, w)];
-    const t0 = 10_000_000;
+    const t0 = 10_000_000; // bucket boundary (elapsed = 0)
     expect((await rateLimit(id, r, t0)).ok).toBe(true);
     expect((await rateLimit(id, r, t0)).ok).toBe(false); // same bucket
-    expect((await rateLimit(id, r, t0 + w)).ok).toBe(true); // next bucket
+    // The next bucket boundary still counts the previous bucket (sliding), so it
+    // does NOT instantly reset — only after a full window (empty neighbor).
+    expect((await rateLimit(id, r, t0 + 2 * w)).ok).toBe(true);
+  });
+
+  it("sliding window blocks a boundary-split bypass (N1)", async () => {
+    const id = uid();
+    const w = 1000;
+    const r = [rule("c", 3, w)];
+    const t0 = 5_000_000; // bucket boundary
+    expect((await rateLimit(id, r, t0)).ok).toBe(true); // 1
+    expect((await rateLimit(id, r, t0)).ok).toBe(true); // 2
+    expect((await rateLimit(id, r, t0)).ok).toBe(true); // 3 (== limit)
+    // Crossing into the next bucket must NOT reset: prev bucket (3) is still
+    // weighted in → estimate > 3 → blocked. (Fixed-window would have allowed it.)
+    expect((await rateLimit(id, r, t0 + w + 1)).ok).toBe(false);
   });
 });

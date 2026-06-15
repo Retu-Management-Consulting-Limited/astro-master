@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { monthWealth, wealthMark, type DayWealth } from "@/lib/astro/wealth";
+import { useNow } from "@/lib/useNow";
 import { BackButton } from "@/components/BackButton";
 function color(d: DayWealth): { bg: string; fg: string } {
   if (d.level === "wang") {
@@ -21,9 +22,8 @@ function color(d: DayWealth): { bg: string; fg: string } {
 export default function WealthPage() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
-  const [now, setNow] = useState<Date | null>(null);
+  const now = useNow(); // local time, refreshes on app resume (rolls over days)
   const [selDay, setSelDay] = useState<number | null>(null); // P2-3: tap a day to read it
-  useEffect(() => setNow(new Date()), []);
   const year = now?.getFullYear() ?? 2026;
   const month = (now?.getMonth() ?? 5) + 1; // 1-based
   const TODAY = now?.getDate() ?? 1;
