@@ -89,12 +89,13 @@ export default function WealthPage() {
                 aria-label={`${month}月${d.day}日 · ${mark.label}${gold ? " · 搞钱黄金日" : ""}${d.retro.length ? ` · ${retroText(d.retro)}，缓签约大额` : ""}${isToday ? " · 今天" : ""}`}
                 style={{ aspectRatio: "1", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", lineHeight: 1, fontSize: 12.5, fontWeight: 500, position: "relative", padding: 0, cursor: "pointer", background: c.bg, color: c.fg, boxShadow: isToday ? "0 0 0 2px var(--gold),0 0 12px rgba(201,168,97,.5)" : gold ? "inset 0 0 0 1.5px #f5e3b0" : "none", outline: isSel && !isToday ? "2px solid var(--cream)" : "none", outlineOffset: isSel && !isToday ? 1 : 0 }}>
                 <span>{isToday ? "今" : d.day}</span>
-                <span aria-hidden="true" style={{ fontSize: 7, marginTop: 1, opacity: 0.85 }}>{mark.glyph}</span>
-                {gold && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 8, color: "#fff" }}>✦</span>}
-                {d.retro.length > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 3, fontSize: 8, fontWeight: 700, color: c.bg === "#d9dee7" ? "#9a6a00" : "#ffe08a" }}>逆</span>}
+                <span aria-hidden="true" style={{ fontSize: 10, marginTop: 1, lineHeight: 1, opacity: 0.95 }}>{mark.glyph}</span>
+                {gold && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 11, color: "#fff", textShadow: "0 0 2px rgba(0,0,0,.4)" }}>✦</span>}
+                {d.retro.length > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 3, fontSize: 10, fontWeight: 800, color: c.bg === "#d9dee7" ? "#8a5d00" : "#ffe08a", textShadow: "0 0 2px rgba(0,0,0,.35)" }}>逆</span>}
                 {m.events.some((w) => d.day >= w.startDay && d.day <= w.endDay) && (
-                  <span aria-hidden="true" style={{ position: "absolute", bottom: 2, left: 3, width: 4, height: 4, borderRadius: 2,
-                    background: valColor(m.events.find((w) => d.day >= w.startDay && d.day <= w.endDay)!.valence) }} />
+                  <span aria-hidden="true" style={{ position: "absolute", bottom: 3, left: 6, right: 6, height: 3.5, borderRadius: 2,
+                    background: valColor(m.events.find((w) => d.day >= w.startDay && d.day <= w.endDay)!.valence),
+                    boxShadow: "0 0 0 0.5px rgba(0,0,0,.15)" }} />
                 )}
               </button>
             );
