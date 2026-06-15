@@ -9,6 +9,7 @@ import { dailyReading, dayKey, existedYesterday } from "@/lib/reading/daily";
 import { useUnderstanding } from "@/lib/understanding";
 import { useNow } from "@/lib/useNow";
 import { appendMood, parseMoodLog, moodLogKey, fmtTime, type MoodEntry } from "@/lib/mood";
+import { biorhythmSeries, criticalDims, pct, parseBirthDate, type RhythmKey } from "@/lib/biorhythm";
 import { track } from "@/lib/track";
 
 const MOODS = [
@@ -19,10 +20,18 @@ const MOODS = [
   { e: "🌧️", t: "低潮" },
 ];
 
+// 体力 / 情绪 / 智力 — label + line color, in render order
+const RHYTHMS: { k: RhythmKey; t: string; c: string }[] = [
+  { k: "physical", t: "体力", c: "#E8965A" },
+  { k: "emotional", t: "情绪", c: "#8FC2E6" },
+  { k: "intellectual", t: "智力", c: "#B69CE8" },
+];
+
 export default function TodayPage() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
+  const birthForm = useFunnel((s) => s.birthForm);
   const recordVerdict = useFunnel((s) => s.recordVerdict);
   const recordCheckin = useFunnel((s) => s.recordCheckin);
   const joinedAt = useFunnel((s) => s.joinedAt);
@@ -155,9 +164,61 @@ export default function TodayPage() {
             </div>
           )}
         </div>
+
+        {/* 体力/情绪/智力 节律 — biorhythm ±7d mini-curve (playful, not medical) */}
+        {birthForm && <BiorhythmCard birth={parseBirthDate(birthForm.date)} today={now} />}
       </div>
 
       <TabBar active="today" />
     </main>
+  );
+}
+
+// Biorhythm ±7-day mini-curve: three sine waves off days-since-birth. Deterministic and
+// playful (NOT medical/astrological) — phrased as a self-awareness mirror.
+function BiorhythmCard({ birth, today }: { birth: Date | null; today: Date }) {
+  if (!birth) return null;
+  const span = 7;
+  const series = biorhythmSeries(birth, today, span);
+  const now = series.find((p) => p.offset === 0)!.rhythm;
+  const crit = criticalDims(birth, today);
+  const W = 300, H = 92, padX = 6, padY = 14, midY = H / 2;
+  const x = (off: number) => padX + ((off + span) / (2 * span)) * (W - 2 * padX);
+  const y = (v: number) => midY - v * ((H - 2 * padY) / 2);
+  const path = (k: RhythmKey) => series.map((p) => `${x(p.offset).toFixed(1)},${y(p.rhythm[k]).toFixed(1)}`).join(" ");
+
+  return (
+    <div data-testid="biorhythm" style={{ marginTop: 12, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 17, padding: "14px 16px" }}>
+      <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 4 }}>你的节律 · 体力 / 情绪 / 智力</div>
+      <div style={{ fontSize: 11.5, color: "var(--mute)", marginBottom: 10 }}>从你出生那天起算的三条周期，给你一个自我觉察的参照 · 今天前后两周</div>
+      <svg data-testid="biorhythm-curve" viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label="体力情绪智力节律曲线" style={{ display: "block" }}>
+        {/* zero baseline */}
+        <line x1={padX} y1={midY} x2={W - padX} y2={midY} stroke="rgba(255,255,255,.1)" strokeDasharray="3 4" />
+        {/* today marker */}
+        <line x1={x(0)} y1={padY - 4} x2={x(0)} y2={H - padY + 4} stroke="var(--gold-deep)" strokeWidth={1} strokeDasharray="2 3" />
+        <text x={x(0)} y={H - 2} textAnchor="middle" fontSize="8.5" fill="var(--gold-soft)">今天</text>
+        {RHYTHMS.map((r) => (
+          <polyline key={r.k} points={path(r.k)} fill="none" stroke={r.c} strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round" />
+        ))}
+        {RHYTHMS.map((r) => (
+          <circle key={r.k} cx={x(0)} cy={y(now[r.k])} r={3} fill={r.c} stroke="#0c0f1a" strokeWidth={1} />
+        ))}
+      </svg>
+      <div style={{ display: "flex", gap: 14, marginTop: 10, flexWrap: "wrap" }}>
+        {RHYTHMS.map((r) => (
+          <div key={r.k} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+            <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: r.c, flex: "0 0 auto" }} />
+            <span style={{ color: "var(--cream-dim)" }}>{r.t}</span>
+            <b style={{ color: r.c }}>{pct(now[r.k]) > 0 ? "+" : ""}{pct(now[r.k])}%</b>
+            {crit.includes(r.k) && <span style={{ fontSize: 10, color: "var(--gold-soft)" }}>· 临界</span>}
+          </div>
+        ))}
+      </div>
+      {crit.length > 0 && (
+        <div style={{ fontSize: 11, color: "var(--mute)", marginTop: 9, lineHeight: 1.6 }}>
+          今天{crit.map((k) => RHYTHMS.find((r) => r.k === k)!.t).join("、")}正处临界点——状态容易起伏，对自己温柔一点。
+        </div>
+      )}
+    </div>
   );
 }
