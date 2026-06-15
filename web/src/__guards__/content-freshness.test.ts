@@ -50,6 +50,17 @@ describe("freshness contract · per-day surfaces differ on ADJACENT days", () =>
     const changes = days.slice(1).filter((v, i) => v !== days[i]).length;
     expect(changes, `intensity changed only ${changes}/29 days`).toBeGreaterThan(20);
   });
+
+  it("wealth: the month is decisive — not a wall of 平 (felt-signal L1)", () => {
+    // The event layer must keep charts out of the all-平 mush. Per-chart-per-month
+    // varies (a quiet money-month can be ~7/30); the strong guard is on the mean
+    // across charts ≥ 9 + every chart clearly above the all-平 floor. The full
+    // population target (平≈52%) is verified by the pre-deploy 192-chart shadow run.
+    const counts = [A, B, C].map((ch) => monthWealth(ch, 2026, 6).days.filter((d) => d.level !== "ping").length);
+    const mean = counts.reduce((a, b) => a + b, 0) / counts.length;
+    expect(mean, `mean decisive ${mean}/30`).toBeGreaterThanOrEqual(9);
+    for (const c of counts) expect(c, `a chart had only ${c}/30 decisive days`).toBeGreaterThanOrEqual(5);
+  });
 });
 
 describe("freshness contract · personalized surfaces differ between charts", () => {
@@ -92,6 +103,11 @@ describe("freshness contract · personalized surfaces differ between charts", ()
     expect(text([a.goldenDays, a.days.map((d) => d.intensity)])).not.toBe(
       text([b.goldenDays, b.days.map((d) => d.intensity)])
     );
+  });
+
+  it("named money-events are personalized (different chart → different windows)", () => {
+    const sig = (ch: typeof A) => monthWealth(ch, 2026, 6).events.map((w) => `${w.planet}:${w.startDay}-${w.endDay}`).join("|");
+    expect(sig(A)).not.toBe(sig(B));
   });
 });
 
