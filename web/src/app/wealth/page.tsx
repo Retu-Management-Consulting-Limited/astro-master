@@ -9,6 +9,8 @@ const RETRO_ZH: Record<string, string> = { Mercury: "水逆", Venus: "金逆" };
 function retroText(retro: DayWealth["retro"]): string {
   return retro.map((b) => RETRO_ZH[b] ?? b).join("·");
 }
+const PLANET_GLYPH: Record<string, string> = { Jupiter: "♃", Venus: "♀", Sun: "☉", Mars: "♂", Saturn: "♄", Mercury: "☿" };
+function valColor(v: number): string { return v > 0 ? "#7fd99a" : v < 0 ? "#e8736f" : "#aab2c0"; }
 function color(d: DayWealth): { bg: string; fg: string } {
   if (d.level === "wang") {
     if (d.intensity >= 85) return { bg: "#1a7a3a", fg: "#eafff1" };
@@ -57,6 +59,20 @@ export default function WealthPage() {
           ✨ 本月搞钱黄金日：<b style={{ color: "#ade3c2" }}>{m.goldenDays.map((g) => `${month}/${g}`).join(" · ")}</b> —— 别错过这几天
         </div>
 
+        {m.events.length > 0 && (
+          <div data-testid="wealth-events" style={{ margin: "-4px 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 11, color: "var(--mute)", letterSpacing: ".05em" }}>本月大事件</span>
+            {m.events.map((w, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--cream-dim)" }}>
+                <span aria-hidden="true" style={{ color: valColor(w.valence), fontSize: 14 }}>{PLANET_GLYPH[w.planet]}</span>
+                <b style={{ color: "var(--cream)" }}>{month}/{w.startDay}{w.endDay > w.startDay ? `–${w.endDay}` : ""}</b>
+                <span>{w.name}</span>
+                <span aria-hidden="true">{w.valence > 0 ? "🟢" : w.valence < 0 ? "🔴" : "⚪"}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6, marginBottom: 7 }}>
           {["一", "二", "三", "四", "五", "六", "日"].map((w) => <span key={w} style={{ textAlign: "center", fontSize: 10, color: "#5a6173" }}>{w}</span>)}
         </div>
@@ -76,6 +92,10 @@ export default function WealthPage() {
                 <span aria-hidden="true" style={{ fontSize: 7, marginTop: 1, opacity: 0.85 }}>{mark.glyph}</span>
                 {gold && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 8, color: "#fff" }}>✦</span>}
                 {d.retro.length > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 3, fontSize: 8, fontWeight: 700, color: c.bg === "#d9dee7" ? "#9a6a00" : "#ffe08a" }}>逆</span>}
+                {m.events.some((w) => d.day >= w.startDay && d.day <= w.endDay) && (
+                  <span aria-hidden="true" style={{ position: "absolute", bottom: 2, left: 3, width: 4, height: 4, borderRadius: 2,
+                    background: valColor(m.events.find((w) => d.day >= w.startDay && d.day <= w.endDay)!.valence) }} />
+                )}
               </button>
             );
           })}
@@ -107,6 +127,13 @@ export default function WealthPage() {
             </div>
           );
         })()}
+
+        {selData.driver && (
+          <div data-testid="wealth-driver" style={{ marginTop: 10, fontSize: 12.5, color: "var(--mute)", display: "flex", alignItems: "center", gap: 7 }}>
+            <span aria-hidden="true" style={{ color: valColor(selData.driver.valence), fontSize: 14 }}>{PLANET_GLYPH[selData.driver.planet]}</span>
+            <span>今日主导：<b style={{ color: "var(--cream-dim)" }}>{selData.driver.name}</b></span>
+          </div>
+        )}
 
         {selData.retro.length > 0 && (
           <div data-testid="wealth-retro" style={{ marginTop: 10, borderRadius: 12, padding: "11px 13px", borderLeft: "3px solid #d9a441", border: "1px solid rgba(217,164,65,.3)", background: "linear-gradient(180deg,rgba(217,164,65,.1),rgba(217,164,65,.03))" }}>
