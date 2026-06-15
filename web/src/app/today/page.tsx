@@ -178,7 +178,7 @@ export default function TodayPage() {
 // playful (NOT medical/astrological) — phrased as a self-awareness mirror.
 function BiorhythmCard({ birth, today }: { birth: Date | null; today: Date }) {
   if (!birth) return null;
-  const span = 7;
+  const span = 14;
   const series = biorhythmSeries(birth, today, span);
   const now = series.find((p) => p.offset === 0)!.rhythm;
   const crit = criticalDims(birth, today);
@@ -190,7 +190,7 @@ function BiorhythmCard({ birth, today }: { birth: Date | null; today: Date }) {
   return (
     <div data-testid="biorhythm" style={{ marginTop: 12, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 17, padding: "14px 16px" }}>
       <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 4 }}>你的节律 · 体力 / 情绪 / 智力</div>
-      <div style={{ fontSize: 11.5, color: "var(--mute)", marginBottom: 10 }}>从你出生那天起算的三条周期，给你一个自我觉察的参照 · 今天前后两周</div>
+      <div style={{ fontSize: 11.5, color: "var(--mute)", marginBottom: 10 }}>从你出生那天起算的三条周期，给你一个自我觉察的参照 · 今天前后各两周</div>
       <svg data-testid="biorhythm-curve" viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label="体力情绪智力节律曲线" style={{ display: "block" }}>
         {/* zero baseline */}
         <line x1={padX} y1={midY} x2={W - padX} y2={midY} stroke="rgba(255,255,255,.1)" strokeDasharray="3 4" />
