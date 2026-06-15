@@ -15,3 +15,13 @@
 
 - **出屏前跑 Flow-Completeness 自查**（详见 `design/DESIGN-SYSTEM.md §9`）：① 拿屏对照 spec 列的每一步（每步必有屏或标「无需屏」）② 端到端走一遍、给每个过渡命名触发动作（每屏答「怎么来+怎么走」，过渡没承接屏=漏屏）③ 多角色流程每个角色各走完整路径 ④ 别只做「英雄屏」，发送/分享/确认/loading/empty/error 最易漏。**只做目的地、漏掉路径，是反复出现的 bug——这条是 gate。**
 - **对自己的产出跑因果/机制自查**：流畅 ≠ 正确；越完整越要抽查一条承重假设（与上条同源，一管机制、一管流程完整性）。
+
+## ⚠️ 并行协作硬规则（多 agent / 多 session 必读，这是 gate 不是建议）
+
+只要会动到本 repo 的文件，**开工前必须**遵守以下三件套（完整版见 `docs/PARALLEL-COLLAB.md`）。这些已由机器强制（GitHub 分支保护 + CI + pre-push hook），违反会被**直接拒绝**——别浪费一轮去试。
+
+1. **隔离**：一个 workstream 一个 worktree + 一条分支，**不共用工作目录**。Agent/Workflow 工具 spawn 时带 `isolation: "worktree"`；手动则 `git worktree add ../molly-<name> -b feat/<name>`。共用工作树会在文件层互相覆盖（分支保护管不着）。
+2. **只进不改写**：`main` **只接受 PR**，**绝不** 对 `main` 或别人在用的分支 `reset --hard` / `rebase` / force-push。同步别人改动用 `git pull --no-rebase`。服务端已禁直推/强推/删 main（含管理员）。
+3. **CI 绿才合**：每个 PR 必过 `tsc --noEmit` + `vitest run` + `next build` + playwright e2e（required checks），红的合不进去。
+
+新 clone 一次性启用本地拦截：`git config core.hooksPath .githooks`（`web` 里 `bun install` 会自动执行，无需手动）。
