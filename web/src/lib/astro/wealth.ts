@@ -13,6 +13,7 @@ export interface DayWealth {
   level: WealthLevel;
   intensity: number; // 0..100 (旺度: 高=越绿, 低=越红)
   retro: BodyName[]; // money planets retrograde this day (Mercury/Venus), [] if none
+  driver?: Driver;   // the day's loudest named factor (for copy), if any
 }
 
 // Non-color cue for each day so 旺/慎 are distinguishable without relying on
@@ -158,12 +159,69 @@ export function dayWealth(chart: Chart, year: number, month: number, day: number
   const date = new Date(Date.UTC(year, month - 1, day, 12, 0));
   const score = wealthScore(chart, date);
   const retro = MONEY_RETRO_BODIES.filter((b) => isRetrograde(b, date));
-  return { day, level: wealthLevel(score), intensity: score, retro };
+  return { day, level: wealthLevel(score), intensity: score, retro, driver: dayDriver(chart, date) };
+}
+
+// Group a sorted ascending day list into [start,end] runs, merging when the gap
+// between consecutive days is ≤ maxGap (so a 1-day dip inside a transit window
+// doesn't split it).
+export function mergeWindows(days: number[], maxGap: number): { start: number; end: number }[] {
+  const out: { start: number; end: number }[] = [];
+  for (const d of days) {
+    const last = out[out.length - 1];
+    if (last && d - last.end <= maxGap) last.end = d;
+    else out.push({ start: d, end: d });
+  }
+  return out;
+}
+
+export interface EventWindow {
+  planet: BodyName;
+  name: string;
+  valence: Valence;
+  startDay: number;
+  endDay: number;
+  peakDay: number;
+}
+
+// Tightness (0..1) of a planet's closest event aspect to any money point on a date.
+function eventStrength(p: MoneyPlanet, pts: number[], date: Date): number {
+  const t = bodyLongitude(p.body, date);
+  let best = 0;
+  for (const mp of pts) for (const a of p.eventAspects) {
+    const o = Math.abs(sep(t, mp) - a.angle);
+    if (o <= a.orb) best = Math.max(best, 1 - o / a.orb);
+  }
+  return best;
+}
+
+// Named "big money event" windows for the month: per event-planet, the days it
+// tightly aspects a money point, merged into runs (gap ≤ 2), peak = tightest day.
+export function monthEvents(chart: Chart, year: number, month: number): EventWindow[] {
+  const pts = moneyPoints(chart);
+  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const out: EventWindow[] = [];
+  for (const p of MONEY_PLANETS) {
+    if (p.eventAspects.length === 0) continue;
+    const strength: Record<number, number> = {};
+    const hits: number[] = [];
+    for (let d = 1; d <= last; d++) {
+      const s = eventStrength(p, pts, new Date(Date.UTC(year, month - 1, d, 12, 0)));
+      if (s > 0) { hits.push(d); strength[d] = s; }
+    }
+    for (const w of mergeWindows(hits, 2)) {
+      let peakDay = w.start;
+      for (let d = w.start; d <= w.end; d++) if ((strength[d] ?? 0) > (strength[peakDay] ?? 0)) peakDay = d;
+      out.push({ planet: p.body, name: p.name, valence: p.valence, startDay: w.start, endDay: w.end, peakDay });
+    }
+  }
+  return out.sort((a, b) => a.startDay - b.startDay);
 }
 
 export interface MonthWealth {
   days: DayWealth[];
   goldenDays: number[]; // top 旺 days
+  events: EventWindow[]; // named money-event windows for the month (Layer 2)
 }
 
 export function monthWealth(chart: Chart, year: number, month: number): MonthWealth {
@@ -176,5 +234,6 @@ export function monthWealth(chart: Chart, year: number, month: number): MonthWea
     .slice(0, 2)
     .map((d) => d.day)
     .sort((a, b) => a - b);
-  return { days, goldenDays };
+  const events = monthEvents(chart, year, month);
+  return { days, goldenDays, events };
 }

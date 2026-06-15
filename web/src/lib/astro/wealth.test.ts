@@ -118,3 +118,64 @@ describe("retrograde flag (financial 水逆/金逆 — annotation, not a score i
     expect(rxDays).not.toContain(10);
   });
 });
+
+describe("felt signal · 主驱动 + named events (L1/L2)", () => {
+  const kevin = computeChart({ year: 1975, month: 2, day: 9, hour: 6, minute: 50, lat: 43.8436, lng: 126.55, tz: 8 });
+
+  it("dayDriver picks the strongest signed term; benefic on Kevin's Jupiter-lit day", () => {
+    const d = dayDriver(kevin, new Date(Date.UTC(2026, 5, 8, 12, 0)));
+    expect(d).toBeTruthy();
+    expect(d!.valence).toBe(1);
+    expect(["Jupiter", "Venus", "Sun"]).toContain(d!.planet);
+  });
+
+  it("dayWealth carries a driver without changing the score", () => {
+    const dw = dayWealth(chart, 2026, 6, 8);
+    expect(dw.intensity).toBe(wealthScore(chart, new Date(Date.UTC(2026, 5, 8, 12, 0))));
+    expect(dw).toHaveProperty("driver");
+  });
+
+  it("eventTerms excludes Mercury (event-only) from the score", () => {
+    expect(eventTerms(kevin, new Date(Date.UTC(2026, 5, 1, 12, 0))).map((t) => t.planet)).not.toContain("Mercury");
+  });
+
+  it("mergeWindows groups consecutive days, splitting on gaps > maxGap", () => {
+    expect(mergeWindows([3, 4, 5, 8, 12, 13], 2)).toEqual([
+      { start: 3, end: 5 }, { start: 8, end: 8 }, { start: 12, end: 13 },
+    ]);
+    expect(mergeWindows([], 2)).toEqual([]);
+    expect(mergeWindows([5, 7], 2)).toEqual([{ start: 5, end: 7 }]);
+    expect(mergeWindows([5, 8], 2)).toEqual([{ start: 5, end: 5 }, { start: 8, end: 8 }]);
+  });
+
+  it("monthEvents returns 少而精 named windows with a peak day inside each", () => {
+    const ev = monthEvents(kevin, 2026, 6);
+    expect(ev.length).toBeGreaterThanOrEqual(1);
+    expect(ev.length).toBeLessThanOrEqual(6);
+    for (const w of ev) {
+      expect(w.peakDay).toBeGreaterThanOrEqual(w.startDay);
+      expect(w.peakDay).toBeLessThanOrEqual(w.endDay);
+      expect(w.name.length).toBeGreaterThan(0);
+    }
+    expect(ev.map((w) => w.planet)).toContain("Venus");
+    expect(ev.map((w) => w.planet)).toContain("Mars");
+  });
+
+  it("monthWealth exposes events; different charts → different events", () => {
+    const a = monthWealth(chart, 2026, 6);
+    const other = computeChart({ year: 1983, month: 11, day: 2, hour: 14, minute: 20, lat: 22.3, lng: 114.17, tz: 8 });
+    const b = monthWealth(other, 2026, 6);
+    expect(Array.isArray(a.events)).toBe(true);
+    const sig = (m: typeof a) => m.events.map((w) => `${w.planet}:${w.startDay}-${w.endDay}`).join("|");
+    expect(sig(a)).not.toBe(sig(b));
+  });
+
+  it("MONEY_PLANETS table: Mercury is event-only, Sun is score-only", () => {
+    const merc = MONEY_PLANETS.find((p) => p.body === "Mercury")!;
+    const sun = MONEY_PLANETS.find((p) => p.body === "Sun")!;
+    expect(merc.scoreWeight).toBe(0);
+    expect(merc.eventAspects.length).toBeGreaterThan(0);
+    expect(sun.scoreWeight).toBeGreaterThan(0);
+    expect(sun.eventAspects.length).toBe(0);
+  });
+});
