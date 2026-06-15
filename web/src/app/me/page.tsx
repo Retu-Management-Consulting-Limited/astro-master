@@ -29,6 +29,7 @@ export default function MePage() {
 
   return (
     <main className="phone" data-testid="me">
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>我的</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "24px 22px 12px" }}>
@@ -53,7 +54,7 @@ export default function MePage() {
           <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 9 }}>🫀 我眼中的你</div>
           <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 19, color: "var(--gold-soft)", lineHeight: 1.45, marginBottom: 10 }}>&ldquo;{selfQuote}&rdquo;</div>
           <div style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12, color: "var(--cream-dim)" }}>
-            懂你 <span style={{ flex: 1, maxWidth: 120, height: 5, background: "#1d2333", borderRadius: 3, overflow: "hidden" }}><i style={{ display: "block", height: "100%", width: `${understand}%`, background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} /></span> {understand}% ↑ <span style={{ marginLeft: "auto", color: "var(--gold)", fontSize: 12 }}>看完整 →</span>
+            懂你 <span style={{ flex: 1, maxWidth: 120, height: 5, background: "#1d2333", borderRadius: 3, overflow: "hidden" }}><i style={{ display: "block", height: "100%", width: `${understand}%`, background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} /></span> {understand}% <span style={{ marginLeft: "auto", color: "var(--gold)", fontSize: 12 }}>看完整 →</span>
           </div>
         </button>
 

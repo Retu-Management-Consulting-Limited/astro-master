@@ -65,7 +65,7 @@ export default function InputPage() {
     <main className="phone">
       <div className="starfield" />
       <div className="grain" />
-      <div style={{ position: "relative", zIndex: 2, flex: 1, display: "flex", flexDirection: "column", padding: "30px 30px" }}>
+      <div style={{ position: "relative", zIndex: 2, flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", padding: "30px 30px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }} className="fadein">
           <div className="eye-mini" />
           <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
@@ -110,7 +110,7 @@ export default function InputPage() {
               <input id="birth-city" className="field-inp" type="text" autoComplete="address-level2" value={city} onChange={(e) => { setCity(e.target.value); setErr(null); }} style={{ borderColor: err ? "var(--red)" : undefined }} />
             </div>
           </div>
-          {err && <div style={{ fontSize: 12.5, color: "var(--red)" }}>⚠ {err} —— 试试：墨尔本 / 上海 / 纽约 / 伦敦</div>}
+          {err && <div role="alert" style={{ fontSize: 12.5, color: "var(--red)" }}>⚠ {err} —— 试试：墨尔本 / 上海 / 纽约 / 伦敦</div>}
         </div>
 
         <div className="reveal" style={{ marginTop: "auto", animationDelay: "1s" }}>

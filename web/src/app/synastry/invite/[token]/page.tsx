@@ -70,7 +70,7 @@ export default function InvitePage() {
     <main className="phone" data-testid="syn-invite">
       <div className="starfield" />
       <div className="grain" />
-      <div style={{ position: "relative", zIndex: 2, flex: 1, display: "flex", flexDirection: "column", padding: "30px 30px" }}>
+      <div style={{ position: "relative", zIndex: 2, flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", padding: "30px 30px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div className="eye-mini" />
           <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
