@@ -149,4 +149,17 @@ export function bodyLongitude(body: BodyName, date: Date): number {
   return eclipticLongitude(body, date);
 }
 
+// Apparent (geocentric) retrograde: ecliptic longitude decreasing across a ±12h
+// window centered on the date. The engine exposes no retrograde flag, so we
+// derive it from motion. The Sun and Moon never retrograde geocentrically.
+export function isRetrograde(body: BodyName, date: Date): boolean {
+  if (body === "Sun" || body === "Moon") return false;
+  const dt = 12 * 60 * 60 * 1000;
+  let d = eclipticLongitude(body, new Date(date.getTime() + dt)) -
+          eclipticLongitude(body, new Date(date.getTime() - dt));
+  if (d > 180) d -= 360;
+  if (d < -180) d += 360;
+  return d < 0;
+}
+
 export { SIGNS_ZH, BODIES };
