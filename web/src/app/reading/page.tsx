@@ -113,10 +113,7 @@ export default function ReadingPage() {
       </div>
 
       <div style={{ position: "relative", zIndex: 3, padding: "12px 22px 20px", borderTop: "1px solid rgba(255,255,255,.05)" }}>
-        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 11 }}>
-          <button type="button" onClick={gate} style={{ flex: 1, textAlign: "left", background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 22, padding: "12px 16px", color: "#566073", fontSize: 14, cursor: "pointer" }}>问问她……</button>
-          <button type="button" onClick={gate} aria-label="发送" style={{ width: 42, height: 42, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))" }}>➤</button>
-        </div>
+        <button type="button" onClick={gate} className="gold-btn" style={{ marginBottom: 11, fontSize: 15 }}>想接着问 Molly？注册后开聊 →</button>
         <button type="button" onClick={gate} data-testid="save-card" style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这段存成卡片</button>
       </div>
     </main>

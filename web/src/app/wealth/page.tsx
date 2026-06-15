@@ -46,7 +46,7 @@ export default function WealthPage() {
 
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "6px 20px 18px" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "10px 2px 4px" }}>
-          <h2 style={{ fontFamily: "var(--serif)", fontSize: 25, color: "var(--cream)", fontWeight: 600 }}>💰 财运日历</h2>
+          <h1 style={{ fontFamily: "var(--serif)", fontSize: 25, color: "var(--cream)", fontWeight: 600 }}>💰 财运日历</h1>
           <span style={{ fontSize: 13, color: "var(--mute)" }}>{year} · {month}月</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(127,201,154,.09)", border: "1px solid rgba(127,201,154,.28)", borderRadius: 11, padding: "8px 12px", margin: "12px 0 16px", fontSize: 12.5, color: "var(--green)" }}>
@@ -85,7 +85,7 @@ export default function WealthPage() {
           if (selData.level === "wang") return (
             <div data-testid="wealth-detail" style={{ marginTop: 14, borderRadius: 16, padding: "15px 16px", borderLeft: "3px solid #3fa860", border: "1px solid rgba(63,168,96,.3)", background: "linear-gradient(180deg,rgba(63,168,96,.1),rgba(63,168,96,.03))" }}>
               <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#7fd99a" }}>{when} · 财运旺 🟢</div>
-              <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}>木星照你的二宫——<b style={{ color: "var(--cream)" }}>{isTodaySel ? "今天" : "这天"}你开口要钱赢面最大</b>。该谈的薪、该收的款挑这天去推；<span style={{ color: "#a8e0bf" }}>投资的胜率也偏高</span>。</div>
+              <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}>财气在你这边——<b style={{ color: "var(--cream)" }}>{isTodaySel ? "今天" : "这天"}你开口要钱赢面最大</b>。该谈的薪、该收的款挑这天去推；<span style={{ color: "#a8e0bf" }}>投资的胜率也偏高</span>。</div>
               <div style={{ fontSize: 10.5, color: "#5f6675", marginTop: 10, borderTop: "1px solid rgba(255,255,255,.06)", paddingTop: 8 }}>旺的是时机，不是保证——功课别省，决定你来做。</div>
             </div>
           );

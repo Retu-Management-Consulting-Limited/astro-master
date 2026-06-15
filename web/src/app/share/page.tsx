@@ -62,10 +62,10 @@ export default function SharePage() {
     }
   }
 
+  // Honest: both call exportPng → "分享" opens the system share sheet (where
+  // 微信/小红书/IG appear), "保存图片" downloads. No fake per-channel deep-links (SHR-1).
   const channels = [
-    { id: "wechat", ic: "💬", l: "微信", bg: "#3eb34f", fg: "#fff" },
-    { id: "xhs", ic: "书", l: "小红书", bg: "#ff2e4d", fg: "#fff" },
-    { id: "ig", ic: "📷", l: "Instagram", bg: "linear-gradient(45deg,#f09433,#dc2743,#bc1888)", fg: "#fff" },
+    { id: "share", ic: "↗", l: "分享", bg: "linear-gradient(135deg,var(--gold),var(--gold-soft))", fg: "#1a1305" },
     { id: "save", ic: "⤓", l: "保存图片", bg: "#1c2230", fg: "var(--gold)" },
   ];
 
