@@ -5,6 +5,10 @@ import { useChartGuard } from "@/lib/guard";
 import { monthWealth, wealthMark, type DayWealth } from "@/lib/astro/wealth";
 import { useNow } from "@/lib/useNow";
 import { BackButton } from "@/components/BackButton";
+const RETRO_ZH: Record<string, string> = { Mercury: "水逆", Venus: "金逆" };
+function retroText(retro: DayWealth["retro"]): string {
+  return retro.map((b) => RETRO_ZH[b] ?? b).join("·");
+}
 function color(d: DayWealth): { bg: string; fg: string } {
   if (d.level === "wang") {
     if (d.intensity >= 85) return { bg: "#1a7a3a", fg: "#eafff1" };
@@ -66,11 +70,12 @@ export default function WealthPage() {
             const isSel = d.day === sel;
             return (
               <button type="button" key={d.day} data-testid="wealth-day" onClick={() => setSelDay(d.day)} aria-pressed={isSel}
-                aria-label={`${month}月${d.day}日 · ${mark.label}${gold ? " · 搞钱黄金日" : ""}${isToday ? " · 今天" : ""}`}
+                aria-label={`${month}月${d.day}日 · ${mark.label}${gold ? " · 搞钱黄金日" : ""}${d.retro.length ? ` · ${retroText(d.retro)}，缓签约大额` : ""}${isToday ? " · 今天" : ""}`}
                 style={{ aspectRatio: "1", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", lineHeight: 1, fontSize: 12.5, fontWeight: 500, position: "relative", padding: 0, cursor: "pointer", background: c.bg, color: c.fg, boxShadow: isToday ? "0 0 0 2px var(--gold),0 0 12px rgba(201,168,97,.5)" : gold ? "inset 0 0 0 1.5px #f5e3b0" : "none", outline: isSel && !isToday ? "2px solid var(--cream)" : "none", outlineOffset: isSel && !isToday ? 1 : 0 }}>
                 <span>{isToday ? "今" : d.day}</span>
                 <span aria-hidden="true" style={{ fontSize: 7, marginTop: 1, opacity: 0.85 }}>{mark.glyph}</span>
                 {gold && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 8, color: "#fff" }}>✦</span>}
+                {d.retro.length > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 3, fontSize: 8, fontWeight: 700, color: c.bg === "#d9dee7" ? "#9a6a00" : "#ffe08a" }}>逆</span>}
               </button>
             );
           })}
@@ -102,6 +107,13 @@ export default function WealthPage() {
             </div>
           );
         })()}
+
+        {selData.retro.length > 0 && (
+          <div data-testid="wealth-retro" style={{ marginTop: 10, borderRadius: 12, padding: "11px 13px", borderLeft: "3px solid #d9a441", border: "1px solid rgba(217,164,65,.3)", background: "linear-gradient(180deg,rgba(217,164,65,.1),rgba(217,164,65,.03))" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 5, color: "#e6bd6a" }}>☿ {retroText(selData.retro)}中</div>
+            <div style={{ fontSize: 13.5, lineHeight: 1.6, color: "var(--cream-dim)" }}>{selData.retro.includes("Venus") ? "金钱与关系都容易反复——" : "沟通、合约、付款容易反复——"}<b style={{ color: "var(--cream)" }}>重要签约、大额消费先缓一缓</b>，能等就等过这阵；旧账复盘、退款、谈回头单反而合适。</div>
+          </div>
+        )}
 
         <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "18px 0 4px" }}>财运仅供参考 · 投资有风险，最终决定还是你做</div>
         <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 晒我的搞钱黄金日</button>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeChart, type BirthInput } from "./chart";
+import { computeChart, isRetrograde, type BirthInput } from "./chart";
 import { wealthScore, wealthLevel, dayWealth, monthWealth, signRuler, houseSign, slowWealth } from "./wealth";
 
 const sample: BirthInput = { year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 };
@@ -87,5 +87,37 @@ describe("wealth model — enriched factors", () => {
       expect(wealthScore(chart, date)).toBeGreaterThanOrEqual(0);
       expect(wealthScore(chart, date)).toBeLessThanOrEqual(100);
     }
+  });
+});
+
+describe("retrograde flag (financial 水逆/金逆 — annotation, not a score input)", () => {
+  it("isRetrograde detects Mercury's 2026 retrograde station vs direct motion", () => {
+    // Mercury stations retrograde ~2026-06-29 and stays Rx through ~07-23.
+    expect(isRetrograde("Mercury", new Date(Date.UTC(2026, 5, 10, 12, 0)))).toBe(false); // 6/10 direct
+    expect(isRetrograde("Mercury", new Date(Date.UTC(2026, 5, 30, 12, 0)))).toBe(true);  // 6/30 Rx
+    expect(isRetrograde("Mercury", new Date(Date.UTC(2026, 6, 5, 12, 0)))).toBe(true);   // 7/5  Rx
+  });
+
+  it("isRetrograde: Venus Rx (2026-10) yes, June no; luminaries never retrograde", () => {
+    expect(isRetrograde("Venus", new Date(Date.UTC(2026, 9, 15, 12, 0)))).toBe(true);  // mid Venus Rx
+    expect(isRetrograde("Venus", new Date(Date.UTC(2026, 5, 15, 12, 0)))).toBe(false); // June direct
+    expect(isRetrograde("Sun", new Date(Date.UTC(2026, 5, 15, 12, 0)))).toBe(false);
+    expect(isRetrograde("Moon", new Date(Date.UTC(2026, 5, 15, 12, 0)))).toBe(false);
+  });
+
+  it("dayWealth surfaces a retro list of money planets (Mercury/Venus) without touching the score", () => {
+    const direct = dayWealth(chart, 2026, 6, 10);
+    const merRx = dayWealth(chart, 2026, 6, 30);
+    expect(direct.retro).toEqual([]);
+    expect(merRx.retro).toContain("Mercury");
+    // the flag must NOT change the score — same date scored straight is identical
+    expect(merRx.intensity).toBe(wealthScore(chart, new Date(Date.UTC(2026, 5, 30, 12, 0))));
+  });
+
+  it("monthWealth flags the late-June Mercury retrograde days", () => {
+    const m = monthWealth(chart, 2026, 6);
+    const rxDays = m.days.filter((d) => d.retro.includes("Mercury")).map((d) => d.day);
+    expect(rxDays).toContain(30);
+    expect(rxDays).not.toContain(10);
   });
 });

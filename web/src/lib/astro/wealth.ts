@@ -1,11 +1,18 @@
-import { bodyLongitude, type Chart, type BodyName } from "./chart";
+import { bodyLongitude, isRetrograde, type Chart, type BodyName } from "./chart";
 
 export type WealthLevel = "wang" | "ping" | "shen"; // 旺 / 平 / 慎
+
+// The two financial planets whose retrograde the audience acts on: Mercury
+// (contracts/commerce) and Venus (money/value/purchases). Flagged as an
+// annotation on the day — it does NOT feed the score (a flag, not a malefic),
+// so it can't distort 旺/慎 balance, only warn "缓签约/缓大额".
+export const MONEY_RETRO_BODIES: BodyName[] = ["Mercury", "Venus"];
 
 export interface DayWealth {
   day: number;
   level: WealthLevel;
   intensity: number; // 0..100 (旺度: 高=越绿, 低=越红)
+  retro: BodyName[]; // money planets retrograde this day (Mercury/Venus), [] if none
 }
 
 // Non-color cue for each day so 旺/慎 are distinguishable without relying on
@@ -110,8 +117,10 @@ export function wealthLevel(score: number): WealthLevel {
 }
 
 export function dayWealth(chart: Chart, year: number, month: number, day: number): DayWealth {
-  const score = wealthScore(chart, new Date(Date.UTC(year, month - 1, day, 12, 0)));
-  return { day, level: wealthLevel(score), intensity: score };
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0));
+  const score = wealthScore(chart, date);
+  const retro = MONEY_RETRO_BODIES.filter((b) => isRetrograde(b, date));
+  return { day, level: wealthLevel(score), intensity: score, retro };
 }
 
 export interface MonthWealth {
