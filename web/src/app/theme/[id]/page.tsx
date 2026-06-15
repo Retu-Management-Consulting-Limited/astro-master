@@ -44,6 +44,7 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
   if (!themeId) {
     return (
       <main className="phone" data-testid="theme">
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>主题深读</h1>
         <div className="starfield" />
         <div style={{ position: "relative", zIndex: 2, flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 32, textAlign: "center" }}>
           <div style={{ fontFamily: "var(--serif)", fontSize: 22, color: "var(--cream)" }}>这个主题还没解锁</div>

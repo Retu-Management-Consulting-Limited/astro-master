@@ -37,6 +37,13 @@ export default function ChatPage() {
   }, []);
   const [typing, setTyping] = useState(false);
 
+  // Auto-scroll to the newest message / typing indicator (CT-1) so a reply never
+  // lands below the fold on a full thread.
+  const endRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [msgs, typing]);
+
   // Boot once chart is ready: show the opener, then — if we arrived from a theme
   // deep-read with ?ask=… — auto-send that question (BUG-1: carry it into the
   // conversation, not just the input). Passing `base` keeps the opener in the
@@ -91,6 +98,7 @@ export default function ChatPage() {
   if (!ready || !chart) return null;
   return (
     <main className="phone" data-testid="chat">
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>对话</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 12px", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
@@ -113,12 +121,13 @@ export default function ChatPage() {
             ))}
           </div>
         )}
+        <div ref={endRef} aria-hidden="true" />
       </div>
 
       <div style={{ position: "relative", zIndex: 3, padding: "12px 16px 14px", borderTop: "1px solid rgba(255,255,255,.05)" }}>
         <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
           <input data-testid="chat-input" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) send(); }} placeholder="跟 Molly 说说……" style={{ flex: 1, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 22, padding: "12px 16px", color: "var(--cream)", fontSize: 14, outline: "none" }} />
-          <button type="button" onClick={() => send()} aria-label="发送" disabled={typing || !input.trim()} style={{ width: 42, height: 42, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))", cursor: typing || !input.trim() ? "default" : "pointer", opacity: typing || !input.trim() ? 0.45 : 1 }}>➤</button>
+          <button type="button" onClick={() => send()} aria-label="发送" disabled={typing || !input.trim()} style={{ width: 44, height: 44, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))", cursor: typing || !input.trim() ? "default" : "pointer", opacity: typing || !input.trim() ? 0.45 : 1 }}>➤</button>
         </div>
       </div>
       <TabBar active="chat" />

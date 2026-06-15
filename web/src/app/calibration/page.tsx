@@ -74,12 +74,21 @@ export default function CalibrationPage() {
     }, 280);
   }
 
+  function goBack() {
+    if (idx === 0) { router.back(); return; } // back to /input
+    setIdx(idx - 1);             // re-answer the previous question
+    setPicks(picks.slice(0, -1));
+    setSel(null);
+  }
+
   return (
     <main className="phone">
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>校准</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 2, flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", padding: "30px 30px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button type="button" onClick={goBack} aria-label={idx === 0 ? "返回" : "上一题"} style={{ fontSize: 20, lineHeight: 1, color: "var(--mute)", cursor: "pointer", padding: 4, marginLeft: -4 }}>←</button>
           <div className="eye-mini" />
           <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
           <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>{[0, 1, 2].map((i) => <span key={i} style={{ width: 6, height: 6, borderRadius: "50%", display: "block", background: i <= 1 ? "var(--gold)" : "#2a3142" }} />)}</div>

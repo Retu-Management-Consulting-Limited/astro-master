@@ -71,6 +71,7 @@ export default function SharePage() {
 
   return (
     <main className="phone" data-testid="share">
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>分享卡片</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", padding: "22px 24px 6px" }}>
