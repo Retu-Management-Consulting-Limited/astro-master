@@ -30,6 +30,37 @@ describe("daily reading (real transits, not hardcoded)", () => {
     expect(new Set(days).size).toBeGreaterThan(1); // content actually varies day to day
   });
 
+  // Root cause of「换了一天还一样」(2026-06-15): selection was too coarse, so the
+  // SAME copy rendered on consecutive days. Headline + quote must now differ for
+  // EVERY adjacent day pair (Moon-driven + per-day phrasing rotation guarantees it).
+  it("today's headline differs on EVERY consecutive day (no frozen-across-days)", () => {
+    for (let i = 0; i < 60; i++) {
+      const a = dailyReading(chart, new Date(Date.UTC(2026, 0, 1 + i, 9)));
+      const b = dailyReading(chart, new Date(Date.UTC(2026, 0, 2 + i, 9)));
+      expect(a.todayLine, `day ${i} vs ${i + 1} todayLine repeated`).not.toBe(b.todayLine);
+      expect(a.todayQuote, `day ${i} vs ${i + 1} todayQuote repeated`).not.toBe(b.todayQuote);
+    }
+  });
+
+  it("the moon-weather line also changes day to day (not stuck per sign)", () => {
+    for (let i = 0; i < 14; i++) {
+      const a = dailyReading(chart, new Date(Date.UTC(2026, 2, 1 + i, 9))).moonLine;
+      const b = dailyReading(chart, new Date(Date.UTC(2026, 2, 2 + i, 9))).moonLine;
+      expect(a).not.toBe(b);
+    }
+  });
+
+  it("backdrop (slow-planet「这阵子」) is null or an honestly-ongoing string", () => {
+    // it must never masquerade as a「今天」claim — framed as 这阵子/这几天
+    for (let i = 0; i < 40; i++) {
+      const bd = dailyReading(chart, new Date(Date.UTC(2026, 0, 1 + i, 9))).backdropLine;
+      if (bd !== null) {
+        expect(typeof bd).toBe("string");
+        expect(/这阵子|这几天/.test(bd), `backdrop not framed as ongoing: ${bd}`).toBe(true);
+      }
+    }
+  });
+
   it("differs between two different charts on the same day (personalized)", () => {
     const other = computeChart({ year: 1990, month: 11, day: 2, hour: 21, minute: 15, lat: 31.2304, lng: 121.4737, tz: 8 });
     const d = new Date(Date.UTC(2026, 5, 14, 12));

@@ -109,6 +109,11 @@ export default function TodayPage() {
           <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 9, color: "var(--gold)", display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} aria-hidden="true" />今天</div>
           <div style={{ fontSize: 15.5, color: "var(--cream)", lineHeight: 1.68 }}>{daily.todayLine}</div>
           <div style={{ marginTop: 11, fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18, color: "var(--gold-soft)", lineHeight: 1.5 }}>{daily.todayQuote}</div>
+          {daily.backdropLine && (
+            <div style={{ marginTop: 11, fontSize: 12.5, lineHeight: 1.5, color: "var(--mute)", display: "flex", gap: 6 }}>
+              <span aria-hidden="true">🌌</span><span>{daily.backdropLine}</span>
+            </div>
+          )}
           <button type="button" onClick={() => router.push("/wealth")} data-testid="fortune-chip" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 13, padding: "9px 12px", borderRadius: 11, background: "rgba(127,201,154,.07)", border: `1px solid ${fortune.c}55`, fontSize: 12.5, color: fortune.c, cursor: "pointer" }}>
             <span style={{ width: 9, height: 9, borderRadius: "50%", background: fortune.c, boxShadow: `0 0 8px ${fortune.c}` }} aria-hidden="true" /><span>今日财运 <b style={{ color: fortune.b }}>{fortune.label}</b> · {fortune.txt}</span><span style={{ marginLeft: "auto", color: "#5f8f73" }}>查日历 →</span>
           </button>
