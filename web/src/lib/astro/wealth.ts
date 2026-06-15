@@ -62,19 +62,27 @@ function moneyPoints(chart: Chart): number[] {
   return pts;
 }
 
-// Slow layer: transiting benefics (Jupiter, Venus) aspecting the natal money
-// points. Jupiter is near-static over a month (a baseline), Venus sweeps (multi-
-// day windows) — together this gives 财运 real "golden periods", not just daily
-// Moon noise. Bounded so it tilts, never dominates.
+// Slow layer: transiting benefics (Jupiter, Venus) and the malefic Saturn
+// aspecting the natal money points. Jupiter/Saturn are near-static over a month
+// (baselines), Venus sweeps (multi-day windows) — together this gives 财运 real
+// "golden periods" AND "tight-money periods", not just daily Moon noise.
+//
+// Signed and symmetric: the benefics lift (harmonious 0/60/120), Saturn pulls
+// down (hard 0/90/180). Without the Saturn term the slow layer was one-
+// directional — a month could float all-旺 but never all-慎, and a chart with a
+// strong benefic transit lost its caution days entirely (the slow floor pinned
+// the score above the 慎 threshold). Bounded ±28 so it tilts, never dominates.
 export function slowWealth(chart: Chart, date: Date): number {
   const tJup = bodyLongitude("Jupiter", date);
   const tVen = bodyLongitude("Venus", date);
+  const tSat = bodyLongitude("Saturn", date);
   let s = 0;
   for (const mp of moneyPoints(chart)) {
     s += harmonic(sep(tJup, mp), [0, 60, 120], 10) * 8;
     s += harmonic(sep(tVen, mp), [0, 60, 120], 6) * 5;
+    s -= harmonic(sep(tSat, mp), [0, 90, 180], 9) * 8; // slow malefic (土星压金钱点)
   }
-  return Math.min(s, 28);
+  return Math.max(-28, Math.min(28, s));
 }
 
 // Daily 财运 score: a fast layer (transiting Moon vs natal benefic/malefic) plus

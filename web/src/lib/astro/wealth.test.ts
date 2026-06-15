@@ -54,15 +54,28 @@ describe("wealth model — enriched factors", () => {
     expect(houseSign(10, 8)).toBe((10 + 7) % 12); // wraps
   });
 
-  it("slowWealth is bounded [0,28] and actually fires over a month", () => {
+  it("slowWealth is symmetric-bounded [-28,28] and actually fires over a month", () => {
     let nonZero = 0;
     for (let d = 1; d <= 30; d++) {
       const s = slowWealth(chart, new Date(Date.UTC(2026, 5, d, 12, 0)));
-      expect(s).toBeGreaterThanOrEqual(0);
+      expect(s).toBeGreaterThanOrEqual(-28);
       expect(s).toBeLessThanOrEqual(28);
-      if (s > 0) nonZero++;
+      if (s !== 0) nonZero++;
     }
     expect(nonZero).toBeGreaterThan(0); // the slow layer is not dead weight
+  });
+
+  it("slow malefic: transiting Saturn afflicting a money point pulls the slow layer negative", () => {
+    // Symmetry with the benefic slow layer: just as Jupiter/Venus to the money
+    // points lifts a month, Saturn hard-aspecting them must be able to push it
+    // down — otherwise a month can go all-旺 but never all-慎 (one-directional bias).
+    // Anchor: 1990-03-21 Beijing has a money point that transiting Saturn hits on
+    // 2026-03-01, where the old benefic-only layer could only return ≥0.
+    const saturnAfflicted = computeChart({
+      year: 1990, month: 3, day: 21, hour: 6, minute: 5, lat: 39.9042, lng: 116.4074, tz: 8,
+    });
+    const s = slowWealth(saturnAfflicted, new Date(Date.UTC(2026, 2, 1, 12, 0)));
+    expect(s).toBeLessThan(0);
   });
 
   it("the slow layer shifts the daily score (enrichment is wired in)", () => {
