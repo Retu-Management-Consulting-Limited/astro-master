@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8">
+<style>
+:root{
+  --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7b3f;
+  --blue:#8fc2e6; --pink:#e69ec8; --red:#e88b86; --green:#7fc99a;
+  --cream:#f0ece4; --cream-dim:#c8c4bc; --mute:#8b92a6;
+  --field:rgba(255,255,255,.045); --field-bd:rgba(255,255,255,.09);
+  --serif:Georgia,'Songti SC',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#06080f;font-family:-apple-system,'PingFang SC',sans-serif;color:var(--cream);padding:40px 36px 60px}
+.board-title{font-size:26px;font-weight:600;letter-spacing:.02em;margin-bottom:6px}
+.board-title b{color:var(--gold-soft)}
+.board-sub{color:var(--mute);font-size:14px;margin-bottom:34px;line-height:1.6}
+.grid{display:flex;flex-wrap:wrap;gap:34px 30px;align-items:flex-start}
+.col{width:380px}
+.phone{width:380px;height:812px;border-radius:42px;position:relative;overflow:hidden;
+  background:radial-gradient(120% 80% at 50% -8%,#16203c 0%,#0b1024 46%,#070a16 100%);
+  border:1px solid #1b2336;box-shadow:0 28px 70px -22px #000, inset 0 0 0 1px rgba(255,255,255,.02)}
+.phone::before{content:"";position:absolute;inset:0;background-image:
+  radial-gradient(1px 1px at 18% 12%,rgba(255,255,255,.5),transparent),
+  radial-gradient(1px 1px at 72% 22%,rgba(255,255,255,.35),transparent),
+  radial-gradient(1px 1px at 42% 34%,rgba(255,255,255,.3),transparent),
+  radial-gradient(1.2px 1.2px at 86% 60%,rgba(255,255,255,.3),transparent),
+  radial-gradient(1px 1px at 28% 72%,rgba(255,255,255,.25),transparent);pointer-events:none}
+.scr{position:relative;height:100%;padding:26px 22px;display:flex;flex-direction:column}
+.cap{margin-top:14px;font-size:12.5px;color:var(--mute);line-height:1.65}
+.cap b{color:var(--gold-soft);font-weight:500}
+.tag{display:inline-block;font-size:11px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin-bottom:7px}
+.eye{width:34px;height:34px;border-radius:50%;flex:0 0 auto;
+  background:radial-gradient(circle at 50% 42%,#f0e7c8 0%,#e0c98a 22%,#c9a861 38%,#1a2547 72%,#0c1124 100%);
+  box-shadow:0 0 14px -3px rgba(201,168,97,.6)}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.topbar .name{font-weight:500;letter-spacing:.34em;font-size:12px;color:var(--gold)}
+.kd{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--cream-dim)}
+.kd .bar{width:42px;height:4px;border-radius:3px;background:#1d2333;overflow:hidden}
+.kd .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft))}
+.card{background:var(--field);border:1px solid var(--field-bd);border-radius:16px;padding:14px 15px;margin-top:11px}
+.serif{font-family:var(--serif)}
+
+/* chat */
+.bub{max-width:82%;padding:11px 13px;border-radius:15px;font-size:13.5px;line-height:1.62;margin-top:12px}
+.me{margin-left:auto;background:rgba(201,168,97,.16);border:1px solid rgba(201,168,97,.3);color:var(--cream);border-bottom-right-radius:5px}
+.mol{background:var(--field);border:1px solid var(--field-bd);color:var(--cream-dim);border-bottom-left-radius:5px}
+.molrow{display:flex;gap:9px;align-items:flex-end}
+.chips{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.chip{text-align:left;border:1px solid rgba(201,168,97,.34);background:rgba(201,168,97,.06);color:var(--gold-soft);
+  border-radius:12px;padding:9px 12px;font-size:12.5px;line-height:1.4}
+.chip.deep{border-color:rgba(230,158,200,.4);background:rgba(230,158,200,.06);color:#f1c2dd}
+.lead{font-size:11px;color:var(--mute);margin:14px 2px 0;letter-spacing:.04em}
+.inp{margin-top:auto;display:flex;align-items:center;gap:9px;border:1px solid var(--field-bd);border-radius:24px;padding:10px 14px;color:var(--mute);font-size:13px}
+.inp .send{margin-left:auto;width:30px;height:30px;border-radius:50%;background:linear-gradient(180deg,var(--gold-soft),var(--gold));display:flex;align-items:center;justify-content:center;color:#1a1408;font-size:14px}
+
+/* highlights */
+.h-card{position:relative;border-radius:16px;padding:15px 15px 13px;margin-top:12px;
+  background:linear-gradient(180deg,rgba(201,168,97,.09),rgba(201,168,97,.02));border:1px solid rgba(201,168,97,.3);box-shadow:0 0 28px -16px rgba(201,168,97,.5)}
+.h-card.blue{background:linear-gradient(180deg,rgba(143,194,232,.09),rgba(143,194,232,.02));border-color:rgba(143,194,232,.3);box-shadow:0 0 28px -16px rgba(143,194,232,.4)}
+.h-big{font-size:15.5px;line-height:1.5;color:var(--cream);font-weight:500}
+.h-pos{font-size:11.5px;color:var(--gold-soft);margin-top:8px}
+.h-card.blue .h-pos{color:#bfe0f5}
+.h-go{font-size:11.5px;color:var(--mute);margin-top:9px;display:flex;align-items:center}
+.h-go b{color:var(--gold);margin-left:auto;font-weight:500}
+
+/* theme */
+.remember{font-size:12px;color:#bfe0f5;background:rgba(143,194,232,.08);border:1px solid rgba(143,194,232,.22);border-radius:11px;padding:8px 11px;margin-top:10px;display:flex;gap:7px;align-items:flex-start}
+.pchip{display:inline-block;font-size:12px;color:var(--gold-soft);background:rgba(201,168,97,.1);border:1px solid rgba(201,168,97,.28);border-radius:20px;padding:5px 11px;margin-top:12px}
+.para{font-size:13.7px;line-height:1.68;color:var(--cream-dim);margin-top:12px}
+.para.acc{color:var(--cream);background:rgba(255,255,255,.03);border-left:2px solid var(--gold-deep);padding:9px 12px;border-radius:0 10px 10px 0}
+.para.catch{font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--gold-soft);margin-top:13px;line-height:1.55}
+.deepen{margin-top:15px;border:1px dashed rgba(201,168,97,.4);border-radius:14px;padding:13px 14px;background:rgba(201,168,97,.03)}
+.deepen .lk{font-size:12px;color:var(--gold);display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.kbar{height:6px;border-radius:4px;background:#1d2333;overflow:hidden}
+.kbar i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft))}
+
+/* synastry */
+.syn-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.ava{width:40px;height:40px;border-radius:50%;flex:0 0 auto}
+.ava.a{background:radial-gradient(circle at 50% 42%,#f0e7c8,#c9a861 40%,#1a2547 75%);box-shadow:0 0 12px -3px var(--gold-soft)}
+.ava.b{background:radial-gradient(circle at 50% 42%,#f6d0e6,#e69ec8 40%,#3a1f33 75%);margin-left:-18px;box-shadow:0 0 12px -3px var(--pink);border:1.5px solid #0b1024}
+.syn-names{font-size:17px;color:var(--cream);font-weight:600}
+.syn-names span{color:var(--mute);margin:0 5px}
+.syn-type{font-size:11.5px;color:var(--gold);letter-spacing:.1em;margin-top:2px}
+.syn-total{text-align:center;margin:6px 0 4px}
+.syn-total .big{font-family:var(--serif);font-size:50px;color:var(--gold-soft);text-shadow:0 0 26px rgba(201,168,97,.5);line-height:1}
+.syn-total .big span{font-size:24px}
+.syn-line{font-size:14.5px;color:var(--cream-dim);margin-top:6px;line-height:1.5}
+.syn-line i{color:var(--gold-soft)}
+.syn-dims{margin-top:14px;display:flex;flex-direction:column;gap:9px}
+.dim{display:flex;align-items:center;gap:9px;font-size:12.5px}
+.dim .lb{width:42px;flex:0 0 auto;color:var(--cream-dim)}
+.dim .bar{flex:1;height:7px;border-radius:4px;background:#1a2030;overflow:hidden}
+.dim .bar i{display:block;height:100%;border-radius:4px}
+.dim .v{width:26px;text-align:right;font-weight:600}
+.dim .go{color:#4f5666;font-size:13px}
+.syn-hint{font-size:11px;color:var(--mute);margin-top:9px;text-align:center}
+.syn-cta{margin-top:14px;width:100%;border:none;border-radius:13px;padding:12px 0;font-size:14px;font-weight:600;color:#1a1408;background:linear-gradient(180deg,var(--gold-soft),var(--gold))}
+
+/* install */
+.inst{border:1px solid rgba(201,168,97,.42);border-radius:20px;padding:17px 17px;margin-top:12px;
+  background:linear-gradient(180deg,rgba(20,26,46,.96),rgba(10,12,22,.96))}
+.inst h3{font-size:15.5px;color:var(--cream);margin-bottom:3px}
+.inst .s{font-size:12px;color:var(--mute);line-height:1.55}
+.bar-mock{margin-top:14px;background:#10141f;border:1px solid #222a3a;border-radius:13px;padding:10px;display:flex;justify-content:space-around;align-items:center}
+.bar-mock .ic{color:#6b7488;display:flex;align-items:center;justify-content:center}
+.hotring{position:relative;color:var(--gold-soft)}
+.hotring::after{content:"";position:absolute;inset:-7px;border:1.5px solid var(--gold-soft);border-radius:11px;box-shadow:0 0 12px -2px var(--gold-soft)}
+.pointer{display:flex;justify-content:center;color:var(--gold-soft);margin-top:2px}
+.steps{margin-top:15px;display:flex;flex-direction:column;gap:11px}
+.step{display:flex;align-items:center;gap:11px;font-size:13px;color:var(--cream-dim)}
+.step .n{width:21px;height:21px;flex:0 0 auto;border-radius:50%;background:rgba(201,168,97,.16);border:1px solid rgba(201,168,97,.4);color:var(--gold-soft);font-size:11px;display:flex;align-items:center;justify-content:center}
+.step .ib{width:30px;height:30px;flex:0 0 auto;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--field-bd);display:flex;align-items:center;justify-content:center;color:var(--gold-soft)}
+.warn{font-size:12.5px;color:#f0c98a;background:rgba(240,201,138,.08);border:1px solid rgba(240,201,138,.25);border-radius:11px;padding:10px 12px;margin-top:14px;line-height:1.55}
+.softnote{font-size:11.5px;color:var(--mute);margin-top:12px;line-height:1.55}
+.softnote b{color:var(--gold-soft);font-weight:500}
+
+/* daily */
+.streak{display:flex;align-items:center;gap:11px;background:linear-gradient(180deg,rgba(232,150,90,.12),rgba(232,150,90,.03));border:1px solid rgba(232,150,90,.32);border-radius:16px;padding:13px 15px;margin-top:12px}
+.streak .fire{font-size:26px}
+.streak .n{font-size:20px;color:#f0b07a;font-weight:600}
+.streak .t{font-size:12px;color:var(--cream-dim);margin-top:2px}
+.streak .warn2{font-size:11px;color:var(--mute);margin-top:3px}
+.cliff{position:relative;border-radius:16px;padding:15px 16px;margin-top:12px;border:1px solid rgba(181,143,176,.3);background:var(--field);overflow:hidden;min-height:96px}
+.cliff .body{filter:blur(4px);opacity:.5;font-size:14px;color:var(--cream-dim);line-height:1.6;user-select:none}
+.cliff .lock{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center}
+.cliff .lock .t1{font-size:14.5px;color:var(--cream)}
+.cliff .lock .t2{font-size:11.5px;color:#c9a8d4}
+.win{display:flex;align-items:center;gap:8px;background:rgba(127,201,154,.07);border:1px solid rgba(127,201,154,.3);border-radius:11px;padding:10px 12px;margin-top:12px;font-size:12.5px;color:#a8e0bf}
+
+/* foundation */
+.foundation{width:100%;margin-top:8px;background:linear-gradient(135deg,rgba(201,168,97,.07),rgba(143,194,232,.05));border:1px solid rgba(201,168,97,.25);border-radius:18px;padding:22px 24px}
+.foundation h2{font-size:18px;color:var(--gold-soft);margin-bottom:12px}
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--cream-dim)}
+.node{background:rgba(255,255,255,.04);border:1px solid var(--field-bd);border-radius:11px;padding:9px 13px}
+.node.key{border-color:rgba(201,168,97,.5);color:var(--gold-soft);background:rgba(201,168,97,.08)}
+.arrow{color:var(--gold-deep)}
+</style></head>
+<body>
+<div class="board-title">Molly 关系引擎 · <b>UI/UX 提案 v2</b></div>
+<div class="board-sub">v2 改动：① Molly 文案<b style="color:var(--gold-soft)">更狠</b>（少缓冲、直戳伤口）② 补 iOS-Chrome 装桌面态 ③ 新增合盘重做。八屏 + 地基。</div>
+
+<div class="grid">
+
+<!-- A. CHAT FOLLOW-UPS (fiercer) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="topbar"><div class="eye"></div><div class="name">MOLLY</div>
+      <div class="kd">懂你 <span class="bar"><i style="width:62%"></i></span> <b style="color:var(--gold)">62%</b></div></div>
+    <div class="bub me">我最近总觉得很累，又说不上来为什么</div>
+    <div class="molrow"><div class="eye" style="width:26px;height:26px"></div>
+      <div class="bub mol">你不是累。你是撑了太久，久到忘了那叫撑。太阳摩羯、月亮狮子——你把"不麻烦任何人"练成了铠甲，可铠甲底下那个人，早就喊累喊到哑了。你只是不许自己听见。</div></div>
+    <div class="lead">顺着往下问 ↓</div>
+    <div class="chips">
+      <div class="chip">我是从什么时候起，连"累"都不敢说出口的？</div>
+      <div class="chip">是不是只要我不需要人，就没人能离开我？</div>
+      <div class="chip deep">我这身铠甲，到底是在保护谁——还是在困住谁？</div>
+    </div>
+    <div class="inp">说点什么…<span class="send">↑</span></div>
+  </div></div>
+  <div class="cap"><b>#4 对话后续（更狠）</b> · 不缓冲、直接命名。答完即长出 3 个逐级往伤口走的问题，最后一个(粉)是她不敢自己问的。<b>不依赖记忆可先上。</b></div>
+</div>
+
+<!-- B. HIGHLIGHTS (fiercer) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="tag">本命 · 第一印象</div>
+    <div class="serif" style="font-size:22px;color:var(--cream);font-weight:500;line-height:1.35">我第一眼，就看穿了<br>你<i style="color:var(--gold-soft)">三件事。</i></div>
+    <div class="h-card">
+      <div class="h-big">你爱起来不留退路——要么不碰，要么连骨头都搭进去。</div>
+      <div class="h-pos">✦ 金星天蝎 · 第七宫</div>
+      <div class="h-go">这是你最深、也最痛的一处 <b>戳给你看 →</b></div>
+    </div>
+    <div class="h-card">
+      <div class="h-big">你把最深的情绪，锁进一个连你自己都进不去的房间。钥匙是你亲手扔的。</div>
+      <div class="h-pos">✦ 月亮 · 第十二宫</div>
+      <div class="h-go"><b style="margin-left:auto">我帮你找回钥匙 →</b></div>
+    </div>
+    <div class="h-card blue">
+      <div class="h-big">你最近一直说累。不是矫情——是这颗土星压了你二十几年，你只是终于扛不动了。</div>
+      <div class="h-pos">✦ 土星 · 第一宫 · <span style="color:var(--mute)">接住了你这几天的低落</span></div>
+      <div class="h-go"><b style="margin-left:auto;color:var(--blue)">聊聊它 →</b></div>
+    </div>
+  </div></div>
+  <div class="cap"><b>#1 高亮（更狠）</b> · 情绪语言当正文、星位降旁注、整卡可点。框成"我一眼看穿你"。第三张(蓝)吃了你的近况(记忆)。</div>
+</div>
+
+<!-- C. THEME DEEP-READ + MEMORY (fiercer) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="topbar"><div style="color:var(--mute);font-size:18px">‹</div>
+      <div style="font-weight:500;letter-spacing:.18em;font-size:14px;color:var(--cream)">感情与关系</div></div>
+    <div class="remember"><span>🕯</span><span><b style="color:#dff0fc;font-weight:500">Molly 记得</b> · 上次你说，你们分开了。</span></div>
+    <div class="pchip">♀ 金星天蝎 · 第七宫</div>
+    <div class="para">放手对你比谁都难，因为你从不"有点喜欢"。你要么不爱，要么把整个自己烧进去，连退路都亲手焊死。</div>
+    <div class="para acc">你怕的从来不是失去他。你怕的是——原来你拼命掏空自己，还是能被一个人随手替换掉。</div>
+    <div class="para catch">可那份"要么全给、要么不给"的狠，正是你最贵的地方。别为了好相处，把自己磨成谁都能将就的人。</div>
+    <div class="deepen">
+      <div class="lk">🔒 还有更狠的一层</div>
+      <div class="kbar"><i></i></div>
+      <div style="font-size:11.5px;color:var(--cream-dim);margin-top:9px;line-height:1.6">懂你度 <b style="color:var(--gold-soft)">62%</b> · 再聊几次，我就敢跟你说第三层——<span style="color:var(--gold-soft)">你为什么，永远抢着先走，在被丢下之前。</span></div>
+      <div style="font-size:11px;color:var(--mute);margin-top:7px">越懂你，解锁越深 · 不是付费</div>
+    </div>
+  </div></div>
+  <div class="cap"><b>#2 深读（更狠）</b> · 事实层稳、关系层长。开头吃记忆。"更深一层"由<b>懂你度解锁，非付费墙</b>。</div>
+</div>
+
+<!-- D. SYNASTRY REDESIGN (NEW) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="syn-head">
+      <div style="display:flex"><div class="ava a"></div><div class="ava b"></div></div>
+      <div><div class="syn-names">你 <span>↔</span> 小鱼</div><div class="syn-type">恋人盘</div></div>
+    </div>
+    <div class="syn-total"><div class="big">72<span>%</span></div>
+      <div class="serif syn-line">你俩是一拍就燃、<i>却谁都不肯先低头</i>的那种。</div></div>
+    <div class="syn-dims">
+      <div class="dim"><span class="lb">心动</span><span class="bar"><i style="width:88%;background:linear-gradient(90deg,#b5708f,var(--pink))"></i></span><span class="v" style="color:var(--pink)">88</span><span class="go">›</span></div>
+      <div class="dim"><span class="lb">默契</span><span class="bar"><i style="width:74%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft))"></i></span><span class="v" style="color:var(--gold-soft)">74</span><span class="go">›</span></div>
+      <div class="dim"><span class="lb">安全感</span><span class="bar"><i style="width:41%;background:linear-gradient(90deg,#8a4a47,var(--red))"></i></span><span class="v" style="color:var(--red)">41</span><span class="go">›</span></div>
+      <div class="dim"><span class="lb">成长</span><span class="bar"><i style="width:69%;background:linear-gradient(90deg,#4f7d8f,var(--blue))"></i></span><span class="v" style="color:var(--blue)">69</span><span class="go">›</span></div>
+    </div>
+    <div class="syn-hint">点任意一项，看是哪些星位在拉扯 ↑</div>
+    <div class="para">你们最不缺的是心动——金星撞火星，一见面空气就紧。但安全感只有 41：你俩都太怕先示弱，把"我无所谓"摆在"我需要你"前头，于是双双在等对方先伸手。</div>
+    <div class="para catch">这段不会死于不爱，会死于都太硬。先开口的那个不是输，是更狠的那个。</div>
+    <button class="syn-cta">把这份合盘，甩给小鱼 →</button>
+  </div></div>
+  <div class="cap"><b>#5 合盘重做（新）</b> · 点名两人 + 维度可点下钻"哪些星位" + <b>按关系类型写</b>的解读(不再 mad-lib) + 更狠的金句 + 显眼分享回路。杀掉旧版的模板感。</div>
+</div>
+
+<!-- E. INSTALL — iOS SAFARI -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="tag">装桌面 · iOS Safari</div>
+    <div class="inst">
+      <h3>把 Molly 放进口袋</h3>
+      <div class="s">每早一句只对你说的话，不用每次找我</div>
+      <div class="pointer">
+        <svg width="26" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 V20"/><path d="M6 14 L12 20 L18 14"/></svg>
+      </div>
+      <div class="bar-mock">
+        <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></span>
+        <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5 L16 12 L9 19"/></svg></span>
+        <span class="ic hotring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14 V3"/><path d="M8.5 6.5 L12 3 L15.5 6.5"/><path d="M7 10 H6 a2 2 0 0 0-2 2 v6 a2 2 0 0 0 2 2 h12 a2 2 0 0 0 2-2 v-6 a2 2 0 0 0-2-2 h-1"/></svg></span>
+        <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6 h16 M4 12 h16 M4 18 h16" stroke-linecap="round"/></svg></span>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="n">1</span> 点底部正中的
+          <span class="ib"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14 V3"/><path d="M8.5 6.5 L12 3 L15.5 6.5"/><path d="M7 10 H6 a2 2 0 0 0-2 2 v6 a2 2 0 0 0 2 2 h12 a2 2 0 0 0 2-2 v-6 a2 2 0 0 0-2-2 h-1"/></svg></span> 分享
+        </div>
+        <div class="step"><span class="n">2</span> 选
+          <span class="ib"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4.5"/><path d="M12 8.5 V15.5 M8.5 12 H15.5"/></svg></span> 添加到主屏幕
+        </div>
+      </div>
+    </div>
+  </div></div>
+  <div class="cap"><b>#3 装桌面 · iOS Safari</b> · 真·分享键(□↑)画出来 + 箭头指向底部真实位置。</div>
+</div>
+
+<!-- F. INSTALL — iOS CHROME (NEW) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="tag">装桌面 · iOS 上的 Chrome</div>
+    <div class="inst">
+      <h3>你在 Chrome 里 · 也能装</h3>
+      <div class="s">iOS 的 Chrome 没有底部分享键，入口在它自己的 ⋯ 菜单</div>
+      <div class="pointer" style="justify-content:flex-end;margin-right:4px">
+        <svg width="24" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--gold-soft)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 V20"/><path d="M6 14 L12 20 L18 14"/></svg>
+      </div>
+      <div class="bar-mock" style="justify-content:flex-end;gap:14px">
+        <span class="ic" style="color:#6b7488;font-size:12px">aA</span>
+        <span class="ic hotring"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></span>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="n">1</span> 点右下角
+          <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></span>
+        </div>
+        <div class="step"><span class="n">2</span> 选
+          <span class="ib"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4.5"/><path d="M12 8.5 V15.5 M8.5 12 H15.5"/></svg></span> 添加到主屏幕
+        </div>
+      </div>
+      <div class="softnote">想要<b>最干净的全屏体验</b>？用 Safari 打开本页再装（上一张）——Chrome 加的图标可能还在 Chrome 里开。</div>
+    </div>
+  </div></div>
+  <div class="cap"><b>#3 装桌面 · iOS Chrome（新增）</b> · 检测 UA 含 <b>CriOS</b> → 走 Chrome 自己的 ⋯ 菜单，不是 Safari 分享键。这正是你点出的漏洞。</div>
+</div>
+
+<!-- G. INSTALL — WECHAT WEBVIEW -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="pointer" style="justify-content:flex-end;margin-right:6px;margin-top:2px">
+      <svg width="24" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--gold-soft)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(20deg)"><path d="M12 20 V5"/><path d="M6 11 L12 5 L18 11"/></svg>
+    </div>
+    <div class="tag">装桌面 · 微信/小红书内</div>
+    <div class="inst">
+      <h3>在微信里，装不了 😅</h3>
+      <div class="s">微信的浏览器不支持"加到桌面"。两步转到 Safari 就能装。</div>
+      <div class="warn">微信 webview 里压根没有"添加到主屏幕"——纯按 OS 分页面会在这翻车，所以先转浏览器。</div>
+      <div class="steps">
+        <div class="step"><span class="n">1</span> 点右上角
+          <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></svg></span>
+        </div>
+        <div class="step"><span class="n">2</span> 选 <b style="color:var(--gold-soft);font-weight:500">在 Safari 中打开</b></div>
+        <div class="step"><span class="n">3</span> 再按 Safari 那样加到主屏幕</div>
+      </div>
+    </div>
+  </div></div>
+  <div class="cap"><b>#3 装桌面 · 微信 webview</b> · 检测 <b>MicroMessenger</b> → 引导转 Safari。中文 H5 大半流量的命门。</div>
+</div>
+
+<!-- H. DAILY HOOKS -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="topbar"><div class="eye"></div><div class="name">MOLLY</div>
+      <div class="kd">懂你 <span class="bar"><i style="width:62%"></i></span> <b style="color:var(--gold)">62%</b></div></div>
+    <div class="streak">
+      <span class="fire">🔥</span>
+      <div><div class="n">连续 7 天</div><div class="t">你来见我，整整一周了。</div><div class="warn2">断一天，从头数 —— 别在第 7 天怂。</div></div>
+    </div>
+    <div class="tag" style="margin-top:18px">明天</div>
+    <div class="cliff">
+      <div class="body">明天金星换座，你第七宫被点亮，一个你以为早放下的人……</div>
+      <div class="lock"><div class="t1">🔮 明天有件事，我必须提醒你</div><div class="t2">明早来，我才肯说</div></div>
+    </div>
+    <div class="win">⏳ 今天 <b style="color:#bfe9d0">下午 2–4 点</b>，是你开口谈钱、谈条件的黄金窗口</div>
+    <div class="card" style="display:flex;align-items:center;gap:10px;margin-top:14px;border-color:rgba(201,168,97,.25)">
+      <span style="font-size:18px">🔔</span>
+      <div style="font-size:12px;color:var(--cream-dim);line-height:1.5">每早 8:00，我发你一句只对你说的话<br><span style="color:var(--mute)">——这是把你拽回来的那只手</span></div>
+    </div>
+  </div></div>
+  <div class="cap"><b>频率钩子</b> · streak(损失厌恶) + 明天悬念(开放回路) + 时间窗(定点回访) + 每日 push(日活第一驱动)。</div>
+</div>
+
+</div>
+
+<div class="foundation">
+  <h2>🔑 共享地基：一份真实的「懂你」记忆</h2>
+  <div class="flow">
+    <span class="node">心情日志</span><span class="node">说中了吗</span><span class="node">聊过什么</span>
+    <span class="arrow">⟶</span>
+    <span class="node key">UserModel（本地累积·会衰减）</span>
+    <span class="arrow">⟶</span>
+    <span class="node">#1 高亮</span><span class="node">#2 深读</span><span class="node">#3 问题</span><span class="node">#4 对话</span><span class="node">#5 合盘</span><span class="node">懂你度变真</span>
+  </div>
+  <div style="font-size:12.5px;color:var(--mute);margin-top:13px;line-height:1.6">六块共用同一份记忆。最强信号(心情/命中)不需要 NLP，对稀疏对话优雅降级。懂你度从"装饰数字"变成"标 miss 会跌"的真实校准——接住反撒谎纪律。</div>
+</div>
+
+</body></html>
