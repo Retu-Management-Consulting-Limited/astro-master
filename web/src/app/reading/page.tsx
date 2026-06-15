@@ -66,6 +66,7 @@ export default function ReadingPage() {
 
   return (
     <main className="phone" data-testid="firstread">
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>你的首读</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "26px 26px 14px", borderBottom: "1px solid rgba(255,255,255,.04)" }}>
