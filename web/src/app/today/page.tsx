@@ -8,6 +8,7 @@ import { dayWealth } from "@/lib/astro/wealth";
 import { dailyReading, dayKey, existedYesterday } from "@/lib/reading/daily";
 import { useUnderstanding } from "@/lib/understanding";
 import { useNow } from "@/lib/useNow";
+import { appendMood, parseMoodLog, moodLogKey, fmtTime, type MoodEntry } from "@/lib/mood";
 import { track } from "@/lib/track";
 
 const MOODS = [
@@ -26,7 +27,7 @@ export default function TodayPage() {
   const recordCheckin = useFunnel((s) => s.recordCheckin);
   const joinedAt = useFunnel((s) => s.joinedAt);
   const understand = useUnderstanding();
-  const [mood, setMood] = useState<string | null>(null);
+  const [moodLog, setMoodLog] = useState<MoodEntry[]>([]); // today's check-ins {mood, ts}
   const [verdict, setVerdict] = useState<"hit" | "miss" | null>(null);
   // "today" in the device's LOCAL time, refreshed whenever the app is re-shown
   // (so a kept-open / installed PWA rolls over to the new day, not frozen).
@@ -38,7 +39,7 @@ export default function TodayPage() {
   useEffect(() => {
     if (!dkNow) return;
     try {
-      setMood(localStorage.getItem(`molly_mood_${dkNow}`));
+      setMoodLog(parseMoodLog(localStorage.getItem(moodLogKey(dkNow))));
       const v = localStorage.getItem(`molly_verdict_${dkNow}`);
       setVerdict(v === "hit" || v === "miss" ? v : null);
     } catch {}
@@ -56,10 +57,14 @@ export default function TodayPage() {
     : { c: "var(--blue)", b: "#cfe0f0", label: "平", txt: "钱上没大事，按计划走就好" };
 
   function pickMood(t: string) {
-    setMood(t);
-    try { localStorage.setItem(`molly_mood_${dk}`, t); } catch {}
+    const ts = Date.now();
+    setMoodLog((prev) => {
+      const next = appendMood(prev, t, ts); // a new {mood, ts} check-in — keeps the day's history
+      try { localStorage.setItem(moodLogKey(dk), JSON.stringify(next)); } catch {}
+      return next;
+    });
     recordCheckin(dk);
-    track("mood_checkin", { mood: t });
+    track("mood_checkin", { mood: t, ts });
   }
   function pickVerdict(hit: boolean) {
     if (verdict) return; // one verdict per day
@@ -125,14 +130,14 @@ export default function TodayPage() {
           <div style={{ fontSize: 14.5, lineHeight: 1.62, color: "var(--cream-dim)" }}>{daily.tomorrowHook} 🔮</div>
         </div>
 
-        {/* 心情打卡 — real, persisted per day */}
+        {/* 心情打卡 — multi-time-per-day log: every tap records {mood, time} */}
         <div style={{ marginTop: 4, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 17, padding: "14px 16px" }}>
           <div style={{ fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 11 }}>
-            {mood ? <>今天你选了 <b style={{ color: "var(--gold-soft)" }}>{mood}</b> · 我记下了</> : "此刻的你，是哪一种？"}
+            {moodLog.length ? <>此刻的你，是哪一种？<span style={{ color: "var(--mute)" }}>· 今天记了 {moodLog.length} 次，可以再记一次</span></> : "此刻的你，是哪一种？"}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             {MOODS.map((m) => {
-              const on = mood === m.t;
+              const on = moodLog.length > 0 && moodLog[moodLog.length - 1].mood === m.t; // most recent
               return (
                 <button key={m.t} type="button" data-testid="mood" aria-label={m.t} aria-pressed={on} onClick={() => pickMood(m.t)}
                   style={{ width: 46, height: 46, borderRadius: "50%", background: on ? "rgba(201,168,97,.14)" : "#161b29", border: `1px solid ${on ? "var(--gold)" : "#2b3242"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21, cursor: "pointer", boxShadow: on ? "0 0 0 3px rgba(201,168,97,.1)" : "none" }}>
@@ -141,6 +146,14 @@ export default function TodayPage() {
               );
             })}
           </div>
+          {moodLog.length > 0 && (
+            <div data-testid="mood-timeline" style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,.06)", display: "flex", flexWrap: "wrap", gap: "5px 12px", fontSize: 11.5, color: "var(--cream-dim)" }}>
+              {moodLog.map((e, i) => {
+                const em = MOODS.find((mm) => mm.t === e.mood);
+                return <span key={i}><b style={{ color: "var(--mute)", fontWeight: 400 }}>{fmtTime(e.ts)}</b> <span aria-hidden="true">{em?.e ?? ""}</span> {e.mood}</span>;
+              })}
+            </div>
+          )}
         </div>
       </div>
 
