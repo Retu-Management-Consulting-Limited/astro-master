@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { computeChart, isRetrograde, type BirthInput } from "./chart";
-import { wealthScore, wealthLevel, dayWealth, monthWealth, signRuler, houseSign, slowWealth } from "./wealth";
+import { wealthScore, wealthLevel, dayWealth, monthWealth, signRuler, houseSign,
+         eventPressure, eventTerms, dayDriver, mergeWindows, monthEvents, MONEY_PLANETS } from "./wealth";
 
 const sample: BirthInput = { year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 };
 const chart = computeChart(sample);
@@ -54,28 +55,24 @@ describe("wealth model — enriched factors", () => {
     expect(houseSign(10, 8)).toBe((10 + 7) % 12); // wraps
   });
 
-  it("slowWealth is symmetric-bounded [-28,28] and actually fires over a month", () => {
+  it("eventPressure is bounded [-36,36] and fires over a month", () => {
     let nonZero = 0;
     for (let d = 1; d <= 30; d++) {
-      const s = slowWealth(chart, new Date(Date.UTC(2026, 5, d, 12, 0)));
-      expect(s).toBeGreaterThanOrEqual(-28);
-      expect(s).toBeLessThanOrEqual(28);
-      if (s !== 0) nonZero++;
+      const p = eventPressure(chart, new Date(Date.UTC(2026, 5, d, 12, 0)));
+      expect(p).toBeGreaterThanOrEqual(-36);
+      expect(p).toBeLessThanOrEqual(36);
+      if (p !== 0) nonZero++;
     }
-    expect(nonZero).toBeGreaterThan(0); // the slow layer is not dead weight
+    expect(nonZero).toBeGreaterThan(0);
   });
 
-  it("slow malefic: transiting Saturn afflicting a money point pulls the slow layer negative", () => {
-    // Symmetry with the benefic slow layer: just as Jupiter/Venus to the money
-    // points lifts a month, Saturn hard-aspecting them must be able to push it
-    // down — otherwise a month can go all-旺 but never all-慎 (one-directional bias).
-    // Anchor: 1990-03-21 Beijing has a money point that transiting Saturn hits on
-    // 2026-03-01, where the old benefic-only layer could only return ≥0.
-    const saturnAfflicted = computeChart({
-      year: 1990, month: 3, day: 21, hour: 6, minute: 5, lat: 39.9042, lng: 116.4074, tz: 8,
-    });
-    const s = slowWealth(saturnAfflicted, new Date(Date.UTC(2026, 2, 1, 12, 0)));
-    expect(s).toBeLessThan(0);
+  it("eventPressure: a benefic (Venus/Jupiter) transit lifts, a malefic (Mars/Saturn) drops", () => {
+    // 1990-03-21 Beijing: transiting Saturn afflicts a money point on 2026-03-01 (neg);
+    // 1975-02-09 Jilin: transiting Jupiter trines its Pisces money stellium in early June (pos).
+    const saturnAfflicted = computeChart({ year: 1990, month: 3, day: 21, hour: 6, minute: 5, lat: 39.9042, lng: 116.4074, tz: 8 });
+    const jupiterLifted = computeChart({ year: 1975, month: 2, day: 9, hour: 6, minute: 50, lat: 43.8436, lng: 126.55, tz: 8 });
+    expect(eventPressure(saturnAfflicted, new Date(Date.UTC(2026, 2, 1, 12, 0)))).toBeLessThan(0);
+    expect(eventPressure(jupiterLifted, new Date(Date.UTC(2026, 5, 3, 12, 0)))).toBeGreaterThan(0);
   });
 
   it("the slow layer shifts the daily score (enrichment is wired in)", () => {

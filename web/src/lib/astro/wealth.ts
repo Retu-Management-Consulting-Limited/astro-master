@@ -69,31 +69,69 @@ function moneyPoints(chart: Chart): number[] {
   return pts;
 }
 
-// Slow layer: transiting benefics (Jupiter, Venus) and the malefic Saturn
-// aspecting the natal money points. Jupiter/Saturn are near-static over a month
-// (baselines), Venus sweeps (multi-day windows) — together this gives 财运 real
-// "golden periods" AND "tight-money periods", not just daily Moon noise.
-//
-// Signed and symmetric: the benefics lift (harmonious 0/60/120), Saturn pulls
-// down (hard 0/90/180). Without the Saturn term the slow layer was one-
-// directional — a month could float all-旺 but never all-慎, and a chart with a
-// strong benefic transit lost its caution days entirely (the slow floor pinned
-// the score above the 慎 threshold). Bounded ±28 so it tilts, never dominates.
-export function slowWealth(chart: Chart, date: Date): number {
-  const tJup = bodyLongitude("Jupiter", date);
-  const tVen = bodyLongitude("Venus", date);
-  const tSat = bodyLongitude("Saturn", date);
-  let s = 0;
-  for (const mp of moneyPoints(chart)) {
-    s += harmonic(sep(tJup, mp), [0, 60, 120], 10) * 8;
-    s += harmonic(sep(tVen, mp), [0, 60, 120], 6) * 5;
-    s -= harmonic(sep(tSat, mp), [0, 90, 180], 9) * 8; // slow malefic (土星压金钱点)
+// Money planets that move slowly enough to form multi-day windows. Each carries
+// (a) the score weighting that drives eventPressure + the daily 主驱动, and
+// (b) the tight event orbs that drive the named windows. Mercury is event-only
+// (scoreWeight 0) — including it in the score skews 旺 up (spec §8); it stays a
+// "水星谈钱" window. Sun scores but has no window (too fast/common for a "big event").
+export type Valence = 1 | -1 | 0;
+export interface MoneyPlanet {
+  body: BodyName;
+  valence: Valence;
+  name: string;
+  scoreAspects: number[]; // [] = not in score
+  scoreOrb: number;
+  scoreWeight: number;    // 0 = event-only
+  eventAspects: { angle: number; orb: number }[]; // [] = no window
+}
+export const MONEY_PLANETS: MoneyPlanet[] = [
+  { body: "Jupiter", valence: 1,  name: "木星扩张财运",         scoreAspects: [0, 60, 120], scoreOrb: 10, scoreWeight: 8, eventAspects: [{ angle: 0, orb: 5 }, { angle: 60, orb: 3 }, { angle: 120, orb: 3 }] },
+  { body: "Venus",   valence: 1,  name: "金星照财库",           scoreAspects: [0, 60, 120], scoreOrb: 6,  scoreWeight: 6, eventAspects: [{ angle: 0, orb: 5 }, { angle: 60, orb: 3 }, { angle: 120, orb: 3 }] },
+  { body: "Sun",     valence: 1,  name: "太阳暖财",             scoreAspects: [0, 120],     scoreOrb: 5,  scoreWeight: 4, eventAspects: [] },
+  { body: "Mars",    valence: -1, name: "火星冲财·易冲动破财",  scoreAspects: [0, 90, 180], scoreOrb: 6,  scoreWeight: 8, eventAspects: [{ angle: 0, orb: 5 }, { angle: 90, orb: 3 }, { angle: 180, orb: 3 }] },
+  { body: "Saturn",  valence: -1, name: "土星压财·紧手谨慎",    scoreAspects: [0, 90, 180], scoreOrb: 9,  scoreWeight: 8, eventAspects: [{ angle: 0, orb: 5 }, { angle: 90, orb: 3 }, { angle: 180, orb: 3 }] },
+  { body: "Mercury", valence: 0,  name: "水星谈钱·宜签约谈判",  scoreAspects: [],           scoreOrb: 0,  scoreWeight: 0, eventAspects: [{ angle: 0, orb: 4 }] },
+];
+
+const EVENT_GAIN = 1.5;
+const EVENT_CAP = 36;
+const DRIVER_MIN = 1.5; // a 主驱动 must clear this raw term magnitude
+
+export interface DriverTerm { planet: BodyName; name: string; valence: Valence; value: number; }
+
+// Signed per-planet contributions to the daily score (the 5 scoring planets).
+export function eventTerms(chart: Chart, date: Date): DriverTerm[] {
+  const pts = moneyPoints(chart);
+  const out: DriverTerm[] = [];
+  for (const p of MONEY_PLANETS) {
+    if (p.scoreWeight === 0) continue;
+    const t = bodyLongitude(p.body, date);
+    let s = 0;
+    for (const mp of pts) s += harmonic(sep(t, mp), p.scoreAspects, p.scoreOrb);
+    out.push({ planet: p.body, name: p.name, valence: p.valence, value: p.valence * p.scoreWeight * s });
   }
-  return Math.max(-28, Math.min(28, s));
+  return out;
+}
+
+// Slow/event layer: real Jupiter/Venus/Sun/Mars/Saturn transits to the money
+// points, gained and bounded. Replaces the old Jupiter/Venus/Saturn-only slow layer.
+export function eventPressure(chart: Chart, date: Date): number {
+  const raw = eventTerms(chart, date).reduce((a, t) => a + t.value, 0);
+  return Math.max(-EVENT_CAP, Math.min(EVENT_CAP, EVENT_GAIN * raw));
+}
+
+export interface Driver { planet: BodyName; name: string; valence: Valence; }
+
+// The single loudest scoring factor for the day (for the day-detail copy).
+export function dayDriver(chart: Chart, date: Date): Driver | undefined {
+  let best: DriverTerm | undefined;
+  for (const t of eventTerms(chart, date)) if (!best || Math.abs(t.value) > Math.abs(best.value)) best = t;
+  if (!best || Math.abs(best.value) < DRIVER_MIN) return undefined;
+  return { planet: best.planet, name: best.name, valence: best.value > 0 ? 1 : -1 };
 }
 
 // Daily 财运 score: a fast layer (transiting Moon vs natal benefic/malefic) plus
-// a slow layer (transiting Jupiter/Venus to the natal money points).
+// the event layer (real Jup/Ven/Sun/Mars/Sat transits to the natal money points).
 export function wealthScore(chart: Chart, date: Date): number {
   const moon = bodyLongitude("Moon", date);
   const jup = chart.placements.find((p) => p.body === "Jupiter")!.lon;
@@ -107,7 +145,7 @@ export function wealthScore(chart: Chart, date: Date): number {
     harmonic(sep(moon, sat), [0, 90, 180]) * 24 +
     harmonic(sep(moon, jup), [90, 180]) * 10;
 
-  return Math.max(0, Math.min(100, Math.round(50 + benefic - malefic + slowWealth(chart, date))));
+  return Math.max(0, Math.min(100, Math.round(50 + benefic - malefic + eventPressure(chart, date))));
 }
 
 export function wealthLevel(score: number): WealthLevel {
