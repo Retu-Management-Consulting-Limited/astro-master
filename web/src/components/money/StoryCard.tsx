@@ -17,7 +17,7 @@ export function StoryCard({
   prev: string | null;
 }) {
   return (
-    <div className="rounded-2xl border border-[rgba(127,201,154,0.3)] bg-[linear-gradient(180deg,rgba(127,201,154,0.1),rgba(127,201,154,0.02))] p-4">
+    <div data-testid="money-story" className="rounded-2xl border border-[rgba(127,201,154,0.3)] bg-[linear-gradient(180deg,rgba(127,201,154,0.1),rgba(127,201,154,0.02))] p-4">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-[10px] uppercase tracking-[0.16em] text-[#c9a861]">你的金钱故事</span>
         <span className="text-[10px] tracking-[0.1em] text-[#7a8194]">

@@ -89,10 +89,15 @@ export async function POST(req: Request) {
     source: "deterministic",
   };
 
+  // The daily engine uses the fast API path only (spec §4.1: haiku via API).
+  // The Agent-SDK subscription path (~40-90s cold start) is unsuitable for a
+  // per-day-per-user engine, so without a key we serve the deterministic
+  // baseline instantly rather than block on the SDK.
+  const useAI = !!process.env.ANTHROPIC_API_KEY;
   // rate-limit only the AI path; over limit → baseline (no cost), still cached.
   const id = await resolveIdentity(req);
-  const rl = await rateLimit(id, RULES.narrative());
-  if (rl.ok) {
+  const rl = useAI ? await rateLimit(id, RULES.narrative()) : { ok: false as const };
+  if (useAI && rl.ok) {
     const ac = new AbortController();
     req.signal.addEventListener("abort", () => ac.abort());
     try {
