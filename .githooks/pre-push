@@ -1,0 +1,25 @@
+#!/bin/sh
+# Reject non-fast-forward (force / rewrite) pushes to a shared branch. A
+# rebase/reset + force-push silently drops collaborators' commits — that is how
+# commit 40e80b8 was lost. This makes history rewrites fail loudly instead.
+#
+# Enable once per clone (shared across worktrees):  git config core.hooksPath .githooks
+# Legitimate force-push (rare, your own throwaway branch):  MOLLY_ALLOW_FORCE=1 git push ...
+#
+# See docs/PARALLEL-COLLAB.md.
+
+[ "$MOLLY_ALLOW_FORCE" = "1" ] && exit 0
+z40="0000000000000000000000000000000000000000"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # creating a new remote branch (remote all-zero) or deleting (local all-zero) → allow
+  [ "$local_sha" = "$z40" ] && continue
+  [ "$remote_sha" = "$z40" ] && continue
+  # if the remote tip is NOT an ancestor of what we're pushing, this rewrites history
+  if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+    echo "✗ 拒绝非快进推送到 $remote_ref —— 会改写共享历史，可能丢掉别人的提交。" >&2
+    echo "  先 git pull --no-rebase 合并再推；确需强推：MOLLY_ALLOW_FORCE=1 git push ..." >&2
+    exit 1
+  fi
+done
+exit 0

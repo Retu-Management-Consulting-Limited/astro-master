@@ -1,0 +1,44 @@
+name: CI
+
+# Green-gate for parallel collaboration: nothing merges to main unless typecheck,
+# unit tests and the production build all pass. Catches the "half-finished change
+# breaks the build" / "type error slips in" class that bit us when two writers
+# shared one tree. See docs/PARALLEL-COLLAB.md.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: web
+
+jobs:
+  check:
+    name: typecheck · unit · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: typecheck
+        run: ./node_modules/.bin/tsc --noEmit
+      - name: unit tests
+        run: ./node_modules/.bin/vitest run
+      - name: production build
+        run: bun run build
+
+  e2e:
+    name: playwright e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
+      - name: run e2e (boot dev, playwright reuses it)
+        run: |
+          bun run dev > /tmp/dev.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3000/ && break; sleep 1; done
+          ./node_modules/.bin/playwright test

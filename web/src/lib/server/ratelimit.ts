@@ -44,15 +44,22 @@ export const RULES = {
 
 const DISABLED = () => process.env.RL_DISABLED === "1";
 
-// Increment all rules' counters; block if ANY exceeds its limit.
+// Sliding-window counter: estimate = prevBucket * (1 - elapsedFraction) + curBucket.
+// Increment the current bucket, then weight in the previous bucket by how much of
+// the window remains. This closes the fixed-window boundary-split bypass (N1):
+// spreading requests across a minute boundary no longer resets the count, because
+// the previous bucket keeps contributing until a full window has elapsed.
 export async function rateLimit(id: string, rules: Rule[], nowMs = Date.now()): Promise<RateResult> {
   if (DISABLED()) return { ok: true };
   const kv = await getKV();
   let worst = 0; // largest remaining window (sec) among exceeded rules
   for (const r of rules) {
     const bucket = Math.floor(nowMs / r.windowMs);
-    const count = await kv.incr(`rl:${r.scope}:${id}:${bucket}`);
-    if (count > r.limit) {
+    const cur = await kv.incr(`rl:${r.scope}:${id}:${bucket}`);
+    const prev = ((await kv.get(`rl:${r.scope}:${id}:${bucket - 1}`)) as number | null) ?? 0;
+    const elapsed = (nowMs % r.windowMs) / r.windowMs; // 0..1 into the current window
+    const estimate = prev * (1 - elapsed) + cur;
+    if (estimate > r.limit) {
       const retry = Math.ceil(((bucket + 1) * r.windowMs - nowMs) / 1000);
       worst = Math.max(worst, retry);
     }

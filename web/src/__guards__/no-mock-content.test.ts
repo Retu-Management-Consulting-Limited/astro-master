@@ -53,11 +53,15 @@ describe("no mock content (R7-R9 tripwire)", () => {
     }
   });
 
-  it("today & wealth derive 'now' from new Date() (real date, not frozen)", () => {
+  it("today & wealth derive 'now' from a real, non-frozen date (useNow → new Date())", () => {
     const today = read(join(APP, "today/page.tsx"));
     const wealth = read(join(APP, "wealth/page.tsx"));
-    expect(today).toContain("new Date()");
-    expect(wealth).toContain("new Date()");
+    // `new Date()` now lives in the shared useNow() hook (which also refreshes on
+    // app resume so a kept-open PWA rolls over to the new local day).
+    expect(today).toContain("useNow()");
+    expect(wealth).toContain("useNow()");
+    const useNow = read(join(process.cwd(), "src/lib/useNow.ts"));
+    expect(useNow).toContain("new Date()");
   });
 
   // X-1 (audit-2): AI/Molly output is rendered via dangerouslySetInnerHTML — those
