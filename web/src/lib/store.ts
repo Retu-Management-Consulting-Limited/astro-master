@@ -26,6 +26,7 @@ interface FunnelState {
   dailyMisses?: number;      // 「说中了吗」→ 其实没有
   checkinDays?: string[];    // distinct yyyy-mm-dd the user engaged (verdict or mood)
   hasHydrated: boolean;
+  authChecked: boolean;      // AuthHydration finished /api/auth/me reconcile (session flag, not persisted)
   setChart: (b: BirthInput, bf: BirthForm, c: Chart) => void;
   setFirstRead: (r: FirstRead) => void;
   setAsc: (s: string) => void;
@@ -34,6 +35,7 @@ interface FunnelState {
   recordVerdict: (hit: boolean, dayKey: string) => void;
   recordCheckin: (dayKey: string) => void;
   setHasHydrated: (v: boolean) => void;
+  setAuthChecked: (v: boolean) => void;
   loadServer: (p: Partial<Pick<FunnelState, "birth" | "birthForm" | "chart" | "firstRead" | "nickname" | "gender" | "joinedAt">>) => void;
   reset: () => void;
 }
@@ -53,6 +55,8 @@ export const useFunnel = create<FunnelState>()(
   persist(
     (set) => ({
       hasHydrated: false,
+      authChecked: false,
+      setAuthChecked: (authChecked) => set({ authChecked }),
       setChart: (birth, birthForm, chart) =>
         set((s) => ({ birth, birthForm, chart, joinedAt: s.joinedAt ?? Date.now() })),
       setFirstRead: (firstRead) => set({ firstRead }),

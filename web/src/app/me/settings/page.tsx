@@ -94,7 +94,14 @@ export default function SettingsPage() {
   const logout = async () => {
     await apiLogout();
     setMe(null);
-    flash("已退出登录");
+    // L3: also clear the locally-persisted chart so the next person on a shared
+    // device can't reach gated pages with the previous user's reading.
+    useFunnel.getState().reset();
+    try {
+      localStorage.removeItem("molly-funnel");
+      localStorage.removeItem(NOTIF_KEY);
+    } catch {}
+    window.location.assign("/");
   };
 
   // Real deletion — wipes the chart and ALL persisted data, server + local.
@@ -143,7 +150,7 @@ export default function SettingsPage() {
           {row("每日星象提醒", <Toggle on={notif.daily} onClick={toggleDaily} label="每日星象提醒" />)}
           {row("财运黄金日提醒", <Toggle on={notif.wealth} onClick={() => flip("wealth")} label="财运黄金日提醒" />)}
           {row("合盘 · 对方测好了", <Toggle on={notif.synastry} onClick={() => flip("synastry")} label="合盘 · 对方测好了提醒" />, undefined, false, true)}
-          <div style={{ padding: "8px 15px 12px", fontSize: 11, color: "var(--mute)", lineHeight: 1.6 }}>🔔 推送提醒即将开放——先帮你把偏好记着，开通后按这里通知你。</div>
+          <div style={{ padding: "8px 15px 12px", fontSize: 11, color: "var(--mute)", lineHeight: 1.6 }}>🔔 <b style={{ color: "var(--cream-dim)" }}>每日提醒</b>已开放（开了会收到每天的推送）。财运黄金日 / 合盘提醒<b style={{ color: "var(--cream-dim)" }}>即将开放</b>——先帮你把偏好记着。</div>
         </Group>
 
         <Group label="隐私与数据">

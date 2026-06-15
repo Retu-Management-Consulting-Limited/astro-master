@@ -68,7 +68,10 @@ export function verifyPassword(pw: string, stored: string): boolean {
 }
 
 // ---- key helpers ----
-const emailKey = (e: string) => `uemail:${e.trim().toLowerCase()}`;
+// Normalize Unicode (NFC) so visually-identical emails (NFC/NFD homographs) map
+// to one account (L5), then trim + lowercase.
+const normEmail = (e: string) => e.normalize("NFC").trim().toLowerCase();
+const emailKey = (e: string) => `uemail:${normEmail(e)}`;
 const userKey = (id: string) => `user:${id}`;
 const sessKey = (t: string) => `sess:${t}`;
 
@@ -82,7 +85,7 @@ export async function getUser(id: string): Promise<User | null> {
 
 export async function createUser(email: string, password: string, profile?: Profile): Promise<User> {
   const kv = await getKV();
-  const norm = email.trim().toLowerCase();
+  const norm = normEmail(email);
   if (await kv.get(emailKey(norm))) throw new EmailTakenError("email taken");
   const user: User = { id: randomUUID(), email: norm, pwHash: hashPassword(password), createdAt: Date.now(), profile };
   await kv.set(userKey(user.id), user);

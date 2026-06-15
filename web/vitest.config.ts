@@ -6,6 +6,10 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    // Rate limiting is OFF by default in unit tests so route tests can call an
+    // endpoint repeatedly under one identity. Tests that specifically exercise
+    // rate limiting flip RL_DISABLED="0" locally (see ratelimit / chat / reading).
+    env: { RL_DISABLED: "1" },
   },
   resolve: {
     alias: {

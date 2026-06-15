@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { computeChart, type Chart } from "@/lib/astro/chart";
+import { isFullChart } from "@/lib/astro/chart-validate";
 import { synastry, type RelType, type SynResult } from "@/lib/astro/synastry";
 import { useFunnel } from "@/lib/store";
 import { readTokens, addStoredToken } from "@/lib/synastryTokens";
@@ -64,7 +65,9 @@ export default function SynastryPage() {
           const r = await fetch(`/api/synastry/invite?token=${tk}`);
           if (!r.ok) continue;
           const j = await r.json();
-          if (j.ready && j.partner?.chart) {
+          // Defense-in-depth: only accept a structurally valid partner chart, so
+          // a legacy/corrupt KV entry never crashes synastry() on .placements.
+          if (j.ready && isFullChart(j.partner?.chart)) {
             setRealPartner(j.partner.chart as Chart);
             setPartnerName(j.partner.name ?? "对方");
             stop = true;

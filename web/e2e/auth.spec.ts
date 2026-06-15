@@ -85,9 +85,11 @@ test("wrong password is rejected", async ({ page }) => {
   await dismissNotifyIfShown(page);
   await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
 
-  // log out via settings, then attempt login with a wrong password
+  // log out via settings (now clears local data + redirects to landing, L3),
+  // then attempt login with a wrong password
   await page.goto("/me/settings");
   await page.locator('[data-testid="logout"]').click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 8000 });
   await page.goto("/register");
   await page.getByText("登录", { exact: true }).click();
   await page.locator('[data-testid="email"]').fill(email);

@@ -16,6 +16,7 @@ beforeEach(() => vi.mocked(runLLM).mockReset());
 afterEach(() => {
   delete process.env.RL_CHAT_HOUR;
   delete process.env.RL_CHAT_DAY;
+  process.env.RL_DISABLED = "1"; // restore vitest default
 });
 
 describe("chat route — crisis short-circuit", () => {
@@ -75,6 +76,7 @@ describe("chat route — gender persona", () => {
 
 describe("chat route — rate limit", () => {
   it("blocks past the hourly limit with 429 + friendly copy", async () => {
+    process.env.RL_DISABLED = "0";
     process.env.RL_CHAT_HOUR = "1";
     vi.mocked(runLLM).mockResolvedValue({ text: "嗯" });
     const mid = `rl-${Date.now()}`;

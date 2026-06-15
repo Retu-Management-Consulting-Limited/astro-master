@@ -27,6 +27,14 @@ export default function ChatPage() {
   // past conversation. No「她记得」recall until a real memory layer exists.
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
+  // Carry a follow-up question from a theme deep-read into the input (TH-1) so it
+  // isn't dropped on navigation. Prefill (not auto-send) keeps the user in control.
+  useEffect(() => {
+    try {
+      const ask = new URLSearchParams(window.location.search).get("ask");
+      if (ask) setInput(ask);
+    } catch {}
+  }, []);
   const [typing, setTyping] = useState(false);
 
   // Boot once chart is ready: show the opener, then — if we arrived from a theme
