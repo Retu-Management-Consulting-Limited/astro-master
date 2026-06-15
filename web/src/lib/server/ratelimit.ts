@@ -31,6 +31,7 @@ export const RULES = {
     { scope: "chat:h", limit: num(process.env.RL_CHAT_HOUR, 60), windowMs: HOUR },
     { scope: "chat:d", limit: num(process.env.RL_CHAT_DAY, 300), windowMs: DAY },
   ],
+  narrative: (): Rule[] => [{ scope: "narr", limit: num(process.env.RL_NARR_DAY, 6), windowMs: DAY }],
   // Auth: throttle brute-force / mass account creation (M2).
   auth: (): Rule[] => [
     { scope: "auth:m", limit: num(process.env.RL_AUTH_MIN, 10), windowMs: MIN },
