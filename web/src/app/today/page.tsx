@@ -104,6 +104,9 @@ export default function TodayPage() {
           🌙 <span>月亮入{daily.moonSign} · <b style={{ color: "#cfe0f0" }}>{daily.moonLine}</b></span>
         </div>
 
+        {/* 体力/情绪/智力 节律 — biorhythm ±7d mini-curve (playful, not medical) */}
+        {birthForm && <BiorhythmCard birth={parseBirthDate(birthForm.date)} today={now} />}
+
         {/* 昨 — only after the user has actually been around a prior day; never ask
             a day-1 user to validate a prediction we never showed them (T-1) */}
         {existedYesterday(joinedAt, now) && (
@@ -164,9 +167,6 @@ export default function TodayPage() {
             </div>
           )}
         </div>
-
-        {/* 体力/情绪/智力 节律 — biorhythm ±7d mini-curve (playful, not medical) */}
-        {birthForm && <BiorhythmCard birth={parseBirthDate(birthForm.date)} today={now} />}
       </div>
 
       <TabBar active="today" />
