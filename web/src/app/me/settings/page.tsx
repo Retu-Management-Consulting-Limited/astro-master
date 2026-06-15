@@ -11,10 +11,11 @@ const NOTIF_KEY = "molly_notif";
 type Notif = { daily: boolean; wealth: boolean; synastry: boolean };
 const DEFAULT_NOTIF: Notif = { daily: true, wealth: true, synastry: true };
 
-function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
+function Toggle({ on, onClick, label, disabled }: { on: boolean; onClick: () => void; label: string; disabled?: boolean }) {
+  const lit = on && !disabled;
   return (
-    <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={onClick} style={{ marginLeft: "auto", width: 42, height: 24, borderRadius: 13, background: on ? "var(--gold-deep)" : "#2a3344", position: "relative", flex: "0 0 auto", cursor: "pointer", transition: "background .2s" }}>
-      <span aria-hidden="true" style={{ position: "absolute", top: 2, left: on ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: on ? "#1a1305" : "#cdd3dc", transition: ".2s" }} />
+    <button type="button" role="switch" aria-checked={on} aria-disabled={disabled} disabled={disabled} aria-label={label} onClick={disabled ? undefined : onClick} style={{ marginLeft: "auto", width: 42, height: 24, borderRadius: 13, background: lit ? "var(--gold-deep)" : "#2a3344", position: "relative", flex: "0 0 auto", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.4 : 1, transition: "background .2s" }}>
+      <span aria-hidden="true" style={{ position: "absolute", top: 2, left: lit ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: lit ? "#1a1305" : "#cdd3dc", transition: ".2s" }} />
     </button>
   );
 }
@@ -130,6 +131,7 @@ export default function SettingsPage() {
 
   return (
     <main className="phone" data-testid="settings">
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>设置</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 6px" }}>
@@ -141,15 +143,15 @@ export default function SettingsPage() {
         <Group label="账户">
           {row("昵称", <span style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>{nickname ?? "未设置"} ›</span>, editNick)}
           {me
-            ? row("登录方式", <span data-testid="account-email" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>{me.email} ›</span>, undefined, false, false)
+            ? row("登录方式", <span data-testid="account-email" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180, minWidth: 0 }}>{me.email} ›</span>, undefined, false, false)
             : row("登录方式", <span style={{ marginLeft: "auto", color: "var(--gold-soft)", fontSize: 13 }}>本机 · 未绑定，去登录 ›</span>, () => router.push("/register"), false, true)}
           {me && row("退出登录", <span data-testid="logout" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>›</span>, logout, false, true)}
         </Group>
 
         <Group label="通知">
           {row("每日星象提醒", <Toggle on={notif.daily} onClick={toggleDaily} label="每日星象提醒" />)}
-          {row("财运黄金日提醒", <Toggle on={notif.wealth} onClick={() => flip("wealth")} label="财运黄金日提醒" />)}
-          {row("合盘 · 对方测好了", <Toggle on={notif.synastry} onClick={() => flip("synastry")} label="合盘 · 对方测好了提醒" />, undefined, false, true)}
+          {row(<>财运黄金日提醒 <span style={{ fontSize: 11, color: "var(--mute)" }}>· 即将开放</span></>, <Toggle on={false} onClick={() => {}} label="财运黄金日提醒（即将开放）" disabled />)}
+          {row(<>合盘 · 对方测好了 <span style={{ fontSize: 11, color: "var(--mute)" }}>· 即将开放</span></>, <Toggle on={false} onClick={() => {}} label="合盘 · 对方测好了提醒（即将开放）" disabled />, undefined, false, true)}
           <div style={{ padding: "8px 15px 12px", fontSize: 11, color: "var(--mute)", lineHeight: 1.6 }}>🔔 <b style={{ color: "var(--cream-dim)" }}>每日提醒</b>已开放（开了会收到每天的推送）。财运黄金日 / 合盘提醒<b style={{ color: "var(--cream-dim)" }}>即将开放</b>——先帮你把偏好记着。</div>
         </Group>
 

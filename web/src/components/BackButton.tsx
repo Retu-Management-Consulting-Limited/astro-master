@@ -20,7 +20,7 @@ export function BackButton({
       type="button"
       onClick={handle}
       aria-label={variant === "close" ? "关闭" : "返回"}
-      style={{ fontSize: 20, lineHeight: 1, color: "var(--mute)", cursor: "pointer", padding: 4, margin: -4 }}
+      style={{ fontSize: 20, lineHeight: 1, color: "var(--mute)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, margin: "-10px -12px", flex: "0 0 auto" }}
     >
       {variant === "close" ? "✕" : "←"}
     </button>
