@@ -9,7 +9,7 @@
 
 ## 设计文档
 
-完整设计见 `docs/`，主纲：`docs/2026-06-12-product-design-spec.md`。设计系统与出屏自查见 `design/DESIGN-SYSTEM.md`。
+完整设计见 `docs/`，主纲：`docs/2026-06-12-product-design-spec.md`。设计系统与出屏自查见 `design/DESIGN-SYSTEM.md`。验证手法（按天/动态内容是否真变、改动是否真上生产）见 `docs/VERIFY-PLAYBOOK.md`——别再临时摸索。
 
 ## 工作规约（House rules）
 
