@@ -6,6 +6,7 @@ import { generateFirstRead } from "../lib/reading/generate";
 import { generateThemeRead, THEME_IDS } from "../lib/reading/theme";
 import { synastry } from "../lib/astro/synastry";
 import { detectHighlights } from "../lib/astro/highlights";
+import { biorhythm } from "../lib/biorhythm";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 动态内容契约 (FRESHNESS CONTRACT) — see CLAUDE.md & design/DESIGN-SYSTEM.md.
@@ -99,5 +100,24 @@ describe("freshness contract · pair surfaces differ between pairs", () => {
     const ab = synastry(A, B, "lover");
     const ac = synastry(A, C, "lover");
     expect(text([ab.total, ab.dims])).not.toBe(text([ac.total, ac.dims]));
+  });
+});
+
+// biorhythm today-card: per-day AND per-birthday. Registry entry — strong form.
+describe("freshness contract · biorhythm varies by day and by birthday", () => {
+  const birth1 = new Date(1998, 5, 13);
+  const birth2 = new Date(1990, 2, 21);
+  it("ADJACENT days differ (the curve moves every day)", () => {
+    for (let i = 0; i < 40; i++) {
+      const a = biorhythm(birth1, new Date(2026, 0, 1 + i));
+      const b = biorhythm(birth1, new Date(2026, 0, 2 + i));
+      expect(text([a.physical, a.emotional, a.intellectual])).not.toBe(text([b.physical, b.emotional, b.intellectual]));
+    }
+  });
+  it("two different birthdays give different curves on the same day", () => {
+    const d = new Date(2026, 5, 15);
+    const a = biorhythm(birth1, d);
+    const b = biorhythm(birth2, d);
+    expect(text([a.physical, a.emotional, a.intellectual])).not.toBe(text([b.physical, b.emotional, b.intellectual]));
   });
 });
