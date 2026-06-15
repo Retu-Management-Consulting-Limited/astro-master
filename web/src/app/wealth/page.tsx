@@ -88,15 +88,15 @@ export default function WealthPage() {
               <button type="button" key={d.day} data-testid="wealth-day" onClick={() => setSelDay(d.day)} aria-pressed={isSel}
                 aria-label={`${month}月${d.day}日 · ${mark.label}${gold ? " · 搞钱黄金日" : ""}${d.retro.length ? ` · ${retroText(d.retro)}，缓签约大额` : ""}${isToday ? " · 今天" : ""}`}
                 style={{ aspectRatio: "1", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", lineHeight: 1, fontSize: 12.5, fontWeight: 500, position: "relative", padding: 0, cursor: "pointer", background: c.bg, color: c.fg, boxShadow: isToday ? "0 0 0 2px var(--gold),0 0 12px rgba(201,168,97,.5)" : gold ? "inset 0 0 0 1.5px #f5e3b0" : "none", outline: isSel && !isToday ? "2px solid var(--cream)" : "none", outlineOffset: isSel && !isToday ? 1 : 0 }}>
-                <span>{isToday ? "今" : d.day}</span>
-                <span aria-hidden="true" style={{ fontSize: 10, marginTop: 1, lineHeight: 1, opacity: 0.95 }}>{mark.glyph}</span>
-                {gold && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 11, color: "#fff", textShadow: "0 0 2px rgba(0,0,0,.4)" }}>✦</span>}
-                {d.retro.length > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 3, fontSize: 10, fontWeight: 800, color: c.bg === "#d9dee7" ? "#8a5d00" : "#ffe08a", textShadow: "0 0 2px rgba(0,0,0,.35)" }}>逆</span>}
-                {m.events.some((w) => d.day >= w.startDay && d.day <= w.endDay) && (
-                  <span aria-hidden="true" style={{ position: "absolute", bottom: 3, left: 6, right: 6, height: 3.5, borderRadius: 2,
-                    background: valColor(m.events.find((w) => d.day >= w.startDay && d.day <= w.endDay)!.valence),
-                    boxShadow: "0 0 0 0.5px rgba(0,0,0,.15)" }} />
-                )}
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{isToday ? "今" : d.day}</span>
+                <span aria-hidden="true" style={{ fontSize: 13, fontWeight: 700, marginTop: 0, lineHeight: 1, opacity: 1 }}>{mark.glyph}</span>
+                {gold && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 13, color: "#fff", textShadow: "0 0 3px rgba(0,0,0,.5)" }}>✦</span>}
+                {d.retro.length > 0 && <span aria-hidden="true" style={{ position: "absolute", top: -1, left: 2, fontSize: 12, fontWeight: 900, color: c.bg === "#d9dee7" ? "#7a5200" : "#ffe08a", textShadow: "0 0 3px rgba(0,0,0,.45)" }}>逆</span>}
+                {m.events.some((w) => d.day >= w.startDay && d.day <= w.endDay) && (() => {
+                  const v = m.events.find((w) => d.day >= w.startDay && d.day <= w.endDay)!.valence;
+                  return <span aria-hidden="true" style={{ position: "absolute", bottom: 2, left: 3, right: 3, height: 6, borderRadius: 3,
+                    background: v > 0 ? "#27d36e" : v < 0 ? "#ff5147" : "#9aa3b2", boxShadow: "0 0 4px " + (v > 0 ? "rgba(39,211,110,.6)" : v < 0 ? "rgba(255,81,71,.6)" : "rgba(0,0,0,.2)") }} />;
+                })()}
               </button>
             );
           })}
