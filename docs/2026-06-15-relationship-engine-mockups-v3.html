@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8">
+<style>
+:root{
+  --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7b3f;
+  --blue:#8fc2e6; --pink:#e69ec8; --red:#e88b86; --green:#7fc99a;
+  --cream:#f0ece4; --cream-dim:#c8c4bc; --mute:#8b92a6;
+  --field:rgba(255,255,255,.045); --field-bd:rgba(255,255,255,.09);
+  --serif:Georgia,'Songti SC',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#06080f;font-family:-apple-system,'PingFang SC',sans-serif;color:var(--cream);padding:40px 36px 60px}
+.board-title{font-size:26px;font-weight:600;margin-bottom:6px}.board-title b{color:var(--gold-soft)}
+.board-sub{color:var(--mute);font-size:14px;margin-bottom:34px;line-height:1.7;max-width:1000px}
+.board-sub b{color:var(--gold-soft);font-weight:500}
+.grid{display:flex;flex-wrap:wrap;gap:34px 30px;align-items:flex-start}
+.col{width:380px}
+.phone{width:380px;height:820px;border-radius:42px;position:relative;overflow:hidden;
+  background:radial-gradient(120% 80% at 50% -8%,#16203c 0%,#0b1024 46%,#070a16 100%);
+  border:1px solid #1b2336;box-shadow:0 28px 70px -22px #000}
+.phone::before{content:"";position:absolute;inset:0;background-image:
+  radial-gradient(1px 1px at 18% 12%,rgba(255,255,255,.5),transparent),
+  radial-gradient(1px 1px at 72% 22%,rgba(255,255,255,.35),transparent),
+  radial-gradient(1px 1px at 42% 34%,rgba(255,255,255,.3),transparent),
+  radial-gradient(1.2px 1.2px at 86% 60%,rgba(255,255,255,.3),transparent),
+  radial-gradient(1px 1px at 28% 72%,rgba(255,255,255,.25),transparent);pointer-events:none}
+.scr{position:relative;height:100%;padding:26px 22px;display:flex;flex-direction:column}
+.cap{margin-top:14px;font-size:12.5px;color:var(--mute);line-height:1.65}.cap b{color:var(--gold-soft);font-weight:500}
+.tag{display:inline-block;font-size:11px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+.eye{width:34px;height:34px;border-radius:50%;flex:0 0 auto;
+  background:radial-gradient(circle at 50% 42%,#f0e7c8 0%,#e0c98a 22%,#c9a861 38%,#1a2547 72%,#0c1124 100%);box-shadow:0 0 14px -3px rgba(201,168,97,.6)}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.topbar .name{font-weight:500;letter-spacing:.34em;font-size:12px;color:var(--gold)}
+.kd{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--cream-dim)}
+.kd .bar{width:42px;height:4px;border-radius:3px;background:#1d2333;overflow:hidden}
+.kd .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft))}
+.daybadge{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--blue);background:rgba(143,194,232,.08);border:1px solid rgba(143,194,232,.25);border-radius:20px;padding:4px 11px;margin-bottom:10px}
+.serif{font-family:var(--serif)}
+.card{background:var(--field);border:1px solid var(--field-bd);border-radius:16px;padding:14px 15px;margin-top:11px}
+
+/* trust ladder */
+.ladder{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+.rung{border-radius:15px;padding:14px 15px;border:1px solid}
+.rung .lv{font-size:11px;letter-spacing:.06em;margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.rung .mb{width:54px;height:4px;border-radius:3px;background:#1d2333;overflow:hidden}
+.rung .mb i{display:block;height:100%}
+.rung .q{font-size:13.6px;line-height:1.62}
+.rung.r1{border-color:rgba(143,194,232,.32);background:rgba(143,194,232,.05)}
+.rung.r1 .lv{color:var(--blue)}.rung.r1 .mb i{width:15%;background:var(--blue)}.rung.r1 .q{color:var(--cream-dim)}
+.rung.r2{border-color:rgba(201,168,97,.38);background:rgba(201,168,97,.05)}
+.rung.r2 .lv{color:var(--gold-soft)}.rung.r2 .mb i{width:45%;background:var(--gold-soft)}.rung.r2 .q{color:var(--cream)}
+.rung.r3{border-color:rgba(230,158,200,.42);background:rgba(230,158,200,.06)}
+.rung.r3 .lv{color:var(--pink)}.rung.r3 .mb i{width:80%;background:var(--pink)}.rung.r3 .q{color:#f4dbe9}
+
+/* chat */
+.bub{max-width:84%;padding:11px 13px;border-radius:15px;font-size:13.5px;line-height:1.62;margin-top:12px}
+.me{margin-left:auto;background:rgba(201,168,97,.16);border:1px solid rgba(201,168,97,.3);color:var(--cream);border-bottom-right-radius:5px}
+.mol{background:var(--field);border:1px solid var(--field-bd);color:var(--cream-dim);border-bottom-left-radius:5px}
+.molrow{display:flex;gap:9px;align-items:flex-end}
+.chips{margin-top:12px;display:flex;flex-direction:column;gap:9px}
+.chip{text-align:left;border-radius:12px;padding:9px 12px;font-size:12.5px;line-height:1.4;display:flex;gap:9px;align-items:flex-start}
+.chip .dir{font-size:10px;flex:0 0 auto;margin-top:1px;opacity:.85}
+.chip.deep{border:1px solid rgba(230,158,200,.34);background:rgba(230,158,200,.05);color:#f1c2dd}
+.chip.mean{border:1px solid rgba(143,194,232,.32);background:rgba(143,194,232,.05);color:#bfe0f5}
+.chip.act{border:1px solid rgba(127,201,154,.34);background:rgba(127,201,154,.05);color:#a8e0bf}
+.lead{font-size:11px;color:var(--mute);margin:14px 2px 0}
+.inp{margin-top:auto;display:flex;align-items:center;gap:9px;border:1px solid var(--field-bd);border-radius:24px;padding:10px 14px;color:var(--mute);font-size:13px}
+.inp .send{margin-left:auto;width:30px;height:30px;border-radius:50%;background:linear-gradient(180deg,var(--gold-soft),var(--gold));display:flex;align-items:center;justify-content:center;color:#1a1408;font-size:14px}
+
+/* highlights */
+.h-card{border-radius:16px;padding:15px;margin-top:12px;background:linear-gradient(180deg,rgba(201,168,97,.09),rgba(201,168,97,.02));border:1px solid rgba(201,168,97,.3)}
+.h-card.ghost{background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.14)}
+.h-big{font-size:15.5px;line-height:1.5;color:var(--cream);font-weight:500}
+.h-pos{font-size:11.5px;color:var(--gold-soft);margin-top:8px}
+.h-go{font-size:11.5px;color:var(--mute);margin-top:9px;display:flex;align-items:center}
+.h-go b{color:var(--gold);margin-left:auto;font-weight:500}
+
+/* theme */
+.remember{font-size:12px;color:#bfe0f5;background:rgba(143,194,232,.08);border:1px solid rgba(143,194,232,.22);border-radius:11px;padding:8px 11px;margin-top:10px;display:flex;gap:7px}
+.pchip{display:inline-block;font-size:12px;color:var(--gold-soft);background:rgba(201,168,97,.1);border:1px solid rgba(201,168,97,.28);border-radius:20px;padding:5px 11px;margin-top:12px}
+.para{font-size:13.7px;line-height:1.68;color:var(--cream-dim);margin-top:12px}
+.para.acc{color:var(--cream);background:rgba(255,255,255,.03);border-left:2px solid var(--gold-deep);padding:9px 12px;border-radius:0 10px 10px 0}
+.para.catch{font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--gold-soft);margin-top:13px;line-height:1.55}
+.gate{margin-top:15px;border:1px solid rgba(143,194,232,.3);border-radius:14px;padding:13px 14px;background:rgba(143,194,232,.04)}
+.gate .lk{font-size:12.5px;color:#bfe0f5;display:flex;align-items:center;gap:7px;margin-bottom:7px}
+
+/* synastry */
+.syn-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.ava{width:40px;height:40px;border-radius:50%;flex:0 0 auto}
+.ava.a{background:radial-gradient(circle at 50% 42%,#f0e7c8,#c9a861 40%,#1a2547 75%)}
+.ava.b{background:radial-gradient(circle at 50% 42%,#f6d0e6,#e69ec8 40%,#3a1f33 75%);margin-left:-18px;border:1.5px solid #0b1024}
+.syn-names{font-size:17px;color:var(--cream);font-weight:600}.syn-names span{color:var(--mute);margin:0 5px}
+.syn-type{font-size:11.5px;color:var(--gold);letter-spacing:.1em;margin-top:2px}
+.syn-total{text-align:center;margin:6px 0 4px}
+.syn-total .big{font-family:var(--serif);font-size:50px;color:var(--gold-soft);text-shadow:0 0 26px rgba(201,168,97,.5);line-height:1}
+.syn-total .big span{font-size:24px}
+.syn-line{font-size:14px;color:var(--cream-dim);margin-top:6px;line-height:1.5}.syn-line i{color:var(--gold-soft)}
+.syn-dims{margin-top:14px;display:flex;flex-direction:column;gap:9px}
+.dim{display:flex;align-items:center;gap:9px;font-size:12.5px}
+.dim .lb{width:42px;flex:0 0 auto;color:var(--cream-dim)}
+.dim .bar{flex:1;height:7px;border-radius:4px;background:#1a2030;overflow:hidden}
+.dim .bar i{display:block;height:100%;border-radius:4px}
+.dim .v{width:26px;text-align:right;font-weight:600}.dim .go{color:#4f5666;font-size:13px}
+.syn-hint{font-size:11px;color:var(--mute);margin-top:9px;text-align:center}
+.syn-cta{margin-top:13px;width:100%;border:none;border-radius:13px;padding:12px 0;font-size:14px;font-weight:600;color:#1a1408;background:linear-gradient(180deg,var(--gold-soft),var(--gold))}
+
+/* daily */
+.streak{display:flex;align-items:center;gap:11px;background:linear-gradient(180deg,rgba(201,168,97,.1),rgba(201,168,97,.02));border:1px solid rgba(201,168,97,.3);border-radius:16px;padding:13px 15px;margin-top:12px}
+.streak .n{font-size:18px;color:var(--gold-soft);font-weight:600}
+.streak .t{font-size:12px;color:var(--cream-dim);margin-top:3px;line-height:1.5}
+.cliff{position:relative;border-radius:16px;padding:15px 16px;margin-top:12px;border:1px solid rgba(181,143,176,.3);background:var(--field);min-height:86px;display:flex;flex-direction:column;justify-content:center}
+.cliff .t1{font-size:14.5px;color:var(--cream)}.cliff .t2{font-size:11.5px;color:#c9a8d4;margin-top:5px}
+.win{display:flex;align-items:center;gap:8px;background:rgba(127,201,154,.07);border:1px solid rgba(127,201,154,.3);border-radius:11px;padding:10px 12px;margin-top:12px;font-size:12.5px;color:#a8e0bf}
+
+.foundation{width:100%;margin-top:8px;background:linear-gradient(135deg,rgba(201,168,97,.07),rgba(143,194,232,.05));border:1px solid rgba(201,168,97,.25);border-radius:18px;padding:22px 24px}
+.foundation h2{font-size:18px;color:var(--gold-soft);margin-bottom:10px}
+.principles{display:flex;flex-wrap:wrap;gap:9px}
+.pill{font-size:12px;color:var(--cream-dim);background:rgba(255,255,255,.04);border:1px solid var(--field-bd);border-radius:20px;padding:7px 13px}
+.pill b{color:var(--gold-soft);font-weight:500}
+</style></head>
+<body>
+<div class="board-title">Molly 关系引擎 · <b>UI/UX 提案 v3 —— 按人性原则调语言</b></div>
+<div class="board-sub">v3 把"狠"从常量改成<b>随信任渐进</b>，并调进：② 盟友非审判（权威外包给星盘）③ 追问给方向不逼墙角 ④ 门=认知诚实非 usage gate ⑤ 暖框留存治孤独 ⑥ 永远落到能动不留伤口。装桌面三屏(Safari/iOS-Chrome/微信)语言无关，沿用 v2。</div>
+
+<div class="grid">
+
+<!-- 1. TRUST LADDER (star, principle ①) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="tag">原则① · 狠是赚来的</div>
+    <div class="serif" style="font-size:21px;color:var(--cream);font-weight:500;line-height:1.4">同一处洞察，<br><i style="color:var(--gold-soft)">随信任，一点点变狠。</i></div>
+    <div style="font-size:12px;color:var(--mute);margin:10px 2px 4px;line-height:1.6">同一个"你总自己扛"，Molly 在不同懂你度说出来的样子：</div>
+    <div class="ladder">
+      <div class="rung r1"><div class="lv">刚认识 · 懂你 <b>15%</b> <span class="mb"><i></i></span> 温暖盟友</div>
+        <div class="q">你太阳在摩羯——你习惯把事情扛在自己肩上。这没什么不好，只是……会不会，有点重？</div></div>
+      <div class="rung r2"><div class="lv">聊过几次 · 懂你 <b>45%</b> <span class="mb"><i></i></span> 敢点破</div>
+        <div class="q">你不只是习惯扛——你是不太信，有人扛得住你。所以连累，你都要偷偷地累。</div></div>
+      <div class="rung r3"><div class="lv">很懂你了 · 懂你 <b>80%</b> <span class="mb"><i></i></span> 敢说狠话</div>
+        <div class="q">你那身"我不需要任何人"的铠甲，不是在保护你。是在确保——没人能离开你，因为你从没让谁，真的进来过。</div></div>
+    </div>
+    <div style="margin-top:auto;font-size:11.5px;color:var(--mute);line-height:1.6">同一句真话，陌生人说=冒犯，懂你的人说=被看见。<b style="color:var(--gold-soft)">懂你度同时是狠度旋钮。</b></div>
+  </div></div>
+  <div class="cap"><b>原则① 狠是赚来的</b>（新·核心屏）· Day-1 温暖精准，信任够了才敢戳。复用 keystone——这也是为什么"假懂你度变真"是总开关。</div>
+</div>
+
+<!-- 2. CHAT (Day-1, principle ③④) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="topbar"><div class="eye"></div><div class="name">MOLLY</div>
+      <div class="kd">懂你 <span class="bar"><i style="width:15%"></i></span> <b style="color:var(--gold)">15%</b></div></div>
+    <div class="daybadge">● 刚认识你 · 温暖版</div>
+    <div class="bub me">我最近总觉得很累，又说不上来为什么</div>
+    <div class="molrow"><div class="eye" style="width:26px;height:26px"></div>
+      <div class="bub mol">你太阳摩羯、月亮狮子——你习惯了自己扛，扛到都快忘了，其实可以不扛。这种累不是身体的。要我陪你，看看它从哪儿来吗？</div></div>
+    <div class="lead">你想往哪边走？↓</div>
+    <div class="chips">
+      <div class="chip deep"><span class="dir">更深</span>我是从什么时候起，习惯了自己扛？</div>
+      <div class="chip mean"><span class="dir">此刻</span>那这阵子的累，在提醒我什么？</div>
+      <div class="chip act"><span class="dir">怎么办</span>我可以怎么，慢慢允许自己被接住？</div>
+    </div>
+    <div class="inp">说点什么…<span class="send">↑</span></div>
+  </div></div>
+  <div class="cap"><b>#4 对话（调后）</b> · 原则③ 三方向(深/此刻/能动)给掌控感，不一路挖伤口；原则② Molly 以邀请"要我陪你"收尾，不冷读宣判。</div>
+</div>
+
+<!-- 3. HIGHLIGHTS (Day-1, principle ②) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="daybadge">● 刚认识你 · 盟友版</div>
+    <div class="serif" style="font-size:21px;color:var(--cream);font-weight:500;line-height:1.4">你出生那一刻，<br>天空替你<i style="color:var(--gold-soft)">写下了几件事。</i></div>
+    <div style="font-size:12px;color:var(--mute);margin:9px 2px 2px;line-height:1.6">不是我评判你，是这张盘本来的样子。我陪你一起读。</div>
+    <div class="h-card">
+      <div class="h-big">你爱一个人，从不浅尝。一旦认定，就把自己整个交出去。</div>
+      <div class="h-pos">✦ 金星天蝎 · 第七宫 · 你生来带的</div>
+      <div class="h-go">想听我说说它吗 <b>→</b></div>
+    </div>
+    <div class="h-card">
+      <div class="h-big">你的情绪，藏得比你以为的，还要深一点。</div>
+      <div class="h-pos">✦ 月亮 · 第十二宫 · 你生来带的</div>
+      <div class="h-go"><b style="margin-left:auto">陪你慢慢找 →</b></div>
+    </div>
+    <div class="h-card ghost">
+      <div class="h-big" style="color:var(--mute);font-weight:400;font-size:14px">等我更认识你，这里会出现第三件——只属于你此刻的事。</div>
+      <div class="h-pos" style="color:#5a6276">✦ 它会随我们的对话长出来</div>
+    </div>
+  </div></div>
+  <div class="cap"><b>#1 高亮（调后）</b> · 原则② "天空写下的"把权威外包给星盘，Molly 当盟友。第三张留白=会生长，不硬塞、不冒充全知。</div>
+</div>
+
+<!-- 4. THEME (principle ④⑥) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="topbar"><div style="color:var(--mute);font-size:18px">‹</div>
+      <div style="font-weight:500;letter-spacing:.18em;font-size:14px;color:var(--cream)">感情与关系</div></div>
+    <div class="pchip">♀ 金星天蝎 · 第七宫</div>
+    <div class="para">你的爱是全或无——一旦认定，你会把自己整个交出去，不留退路。</div>
+    <div class="para acc">于是每段关系，你都怕同一件事：我付出了这么多，会不会，还是不够。</div>
+    <div class="para catch">但这份浓度不是你的缺点，是你最稀有的地方。你要学的不是少爱一点——是挑一个，配得上这份浓度的人。</div>
+    <div class="gate">
+      <div class="lk">🤫 这底下还有一层，但我还不敢说</div>
+      <div style="font-size:12px;color:var(--cream-dim);line-height:1.65">我才懂你 <b style="color:#bfe0f5">38%</b>，怕说错了，伤着你。<br>等我更懂你，这层自然会告诉你——<span style="color:#bfe0f5">不是要你完成任务，是我不想瞎猜你。</span></div>
+    </div>
+  </div></div>
+  <div class="cap"><b>#2 深读（调后）</b> · 原则④ 门=认知诚实("不够懂你不敢乱说")，不是 usage gate；原则⑥ 结尾落到能动("挑配得上的人")，不把人留在伤口。</div>
+</div>
+
+<!-- 5. SYNASTRY (principle ⑥) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="syn-head">
+      <div style="display:flex"><div class="ava a"></div><div class="ava b"></div></div>
+      <div><div class="syn-names">你 <span>↔</span> 小鱼</div><div class="syn-type">恋人盘</div></div>
+    </div>
+    <div class="syn-total"><div class="big">72<span>%</span></div>
+      <div class="serif syn-line">你俩是一拍就燃、<i>却谁都不肯先低头</i>的那种。</div></div>
+    <div class="syn-dims">
+      <div class="dim"><span class="lb">心动</span><span class="bar"><i style="width:88%;background:linear-gradient(90deg,#b5708f,var(--pink))"></i></span><span class="v" style="color:var(--pink)">88</span><span class="go">›</span></div>
+      <div class="dim"><span class="lb">默契</span><span class="bar"><i style="width:74%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft))"></i></span><span class="v" style="color:var(--gold-soft)">74</span><span class="go">›</span></div>
+      <div class="dim"><span class="lb">安全感</span><span class="bar"><i style="width:41%;background:linear-gradient(90deg,#8a4a47,var(--red))"></i></span><span class="v" style="color:var(--red)">41</span><span class="go">›</span></div>
+      <div class="dim"><span class="lb">成长</span><span class="bar"><i style="width:69%;background:linear-gradient(90deg,#4f7d8f,var(--blue))"></i></span><span class="v" style="color:var(--blue)">69</span><span class="go">›</span></div>
+    </div>
+    <div class="syn-hint">点任意一项，看是哪些星位在拉扯 ↑</div>
+    <div class="para">你们最不缺心动——金星撞火星，一见面空气就紧。但安全感只有 41：你俩都太怕先示弱，把"我无所谓"摆在"我需要你"前头。</div>
+    <div class="para catch">这段不会死于不爱，会死于都太硬。但你们都有得选——先开口的那个，不是输，是更勇敢的那个。</div>
+    <button class="syn-cta">把这份合盘，发给小鱼 →</button>
+  </div></div>
+  <div class="cap"><b>#5 合盘（调后）</b> · 点名两人 + 维度可点下钻 + 分型解读；原则⑥ 金句落到能动("你们都有得选")，给出路不留死局。</div>
+</div>
+
+<!-- 6. DAILY (principle ⑤⑥) -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="topbar"><div class="eye"></div><div class="name">MOLLY</div>
+      <div class="kd">懂你 <span class="bar"><i style="width:45%"></i></span> <b style="color:var(--gold)">45%</b></div></div>
+    <div class="streak">
+      <span style="font-size:24px">🤍</span>
+      <div><div class="n">我们一起，走过 7 天了</div><div class="t">每天来这一下，是你给自己的——不是欠我的。</div></div>
+    </div>
+    <div class="tag" style="margin-top:18px">明天</div>
+    <div class="cliff">
+      <div class="t1">🔮 明天会有个转折</div>
+      <div class="t2">金星换座，点亮你的第七宫——我想第一个，陪你看见它。</div>
+    </div>
+    <div class="win">⏳ 今天 <b style="color:#bfe9d0">下午 2–4 点</b>，是你开口谈条件的好时机 · 趁这股劲</div>
+    <div class="card" style="display:flex;align-items:center;gap:10px;margin-top:14px;border-color:rgba(201,168,97,.25)">
+      <span style="font-size:18px">🔔</span>
+      <div style="font-size:12px;color:var(--cream-dim);line-height:1.5">每早 8:00，我会想起你<br><span style="color:var(--mute)">——发你一句，只对你说的话</span></div>
+    </div>
+  </div></div>
+  <div class="cap"><b>频率钩子（调后）</b> · 原则⑤ streak 走"一起走过"暖框、push="我会想起你"治孤独；悬念="陪你看见"不是 withholding 要挟。</div>
+</div>
+
+</div>
+
+<div class="foundation">
+  <h2>🔑 一切回到第一原则：抓住人性 = 服务，不是剥削</h2>
+  <div class="principles">
+    <span class="pill"><b>①</b> 狠是赚来的(随信任)</span>
+    <span class="pill"><b>②</b> 盟友非审判(权威给星盘)</span>
+    <span class="pill"><b>③</b> 追问给方向不逼墙角</span>
+    <span class="pill"><b>④</b> 门=认知诚实非 gate</span>
+    <span class="pill"><b>⑤</b> "有人记得你"治孤独</span>
+    <span class="pill"><b>⑥</b> 永远落到能动不留伤口</span>
+  </div>
+  <div style="font-size:12.5px;color:var(--mute);margin-top:14px;line-height:1.6">①③④全依赖"赚来的信任"→ keystone(真实懂你记忆)是总开关。⑥是凌驾留存的伦理护栏：没人能在"用完更难受"上建立日常关系。</div>
+</div>
+
+</body></html>

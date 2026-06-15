@@ -1,6 +1,7 @@
 import type { Chart } from "@/lib/astro/chart";
 import type { FirstRead } from "./generate";
 import type { ThemeRead, ThemeId } from "./theme";
+import { fallbackFollowups, parseFollowups, type Followup } from "@/lib/ai/followups";
 import { useFunnel } from "@/lib/store";
 
 // Gender (for the persona variant) travels with every AI request, read from the
@@ -67,6 +68,30 @@ export async function fetchChatReply(chart: Chart, messages: ChatMsg[], nickname
     return typeof j?.text === "string" && j.text ? j.text : null;
   } catch {
     return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+// #4 follow-ups. ALWAYS resolves to 3 (deterministic fallback if AI off/fails), so
+// chips always appear under a Molly reply. Context-aware when AI is on.
+export async function fetchFollowups(chart: Chart, messages: ChatMsg[], tier: 0 | 1 | 2): Promise<Followup[]> {
+  if (!AI_ON) return fallbackFollowups(tier);
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 30000);
+  try {
+    const r = await fetch("/api/chat/followups", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chart, messages, gender: gender(), tier }),
+      signal: ctrl.signal,
+    });
+    if (!r.ok) return fallbackFollowups(tier);
+    const j = await r.json();
+    const f = parseFollowups(j?.followups);
+    return f.length === 3 ? f : fallbackFollowups(tier);
+  } catch {
+    return fallbackFollowups(tier);
   } finally {
     clearTimeout(t);
   }
