@@ -11,6 +11,7 @@ import { useNow } from "@/lib/useNow";
 import { appendMood, parseMoodLog, moodLogKey, fmtTime, type MoodEntry } from "@/lib/mood";
 import { biorhythmSeries, criticalDims, pct, parseBirthDate, type RhythmKey } from "@/lib/biorhythm";
 import { track } from "@/lib/track";
+import { EntryCard } from "@/components/money/EntryCard";
 
 const MOODS = [
   { e: "😌", t: "平静" },
@@ -135,6 +136,9 @@ export default function TodayPage() {
             <span style={{ width: 9, height: 9, borderRadius: "50%", background: fortune.c, boxShadow: `0 0 8px ${fortune.c}` }} aria-hidden="true" /><span>今日财运 <b style={{ color: fortune.b }}>{fortune.label}</b> · {fortune.txt}</span><span style={{ marginLeft: "auto", color: "#5f8f73" }}>查日历 →</span>
           </button>
         </div>
+
+        {/* S0 金钱入口 — 钱对你意味着什么 → /money */}
+        <EntryCard surface="today" />
 
         {/* 明 — real hook from tomorrow's transit */}
         <div style={{ borderRadius: 17, padding: "15px 16px", marginBottom: 12, border: "1px solid rgba(181,143,176,.26)", background: "var(--field)" }}>
