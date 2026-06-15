@@ -92,8 +92,8 @@ export default function WealthPage() {
                 <span aria-hidden="true" style={{ fontSize: 13, fontWeight: 700, marginTop: 0, lineHeight: 1, opacity: 1 }}>{mark.glyph}</span>
                 {gold && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 13, color: "#fff", textShadow: "0 0 3px rgba(0,0,0,.5)" }}>✦</span>}
                 {d.retro.length > 0 && (
-                  <span aria-hidden="true" style={{ position: "absolute", top: 1, left: 3, display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: 9.5, fontWeight: 600, letterSpacing: -0.5, lineHeight: 1, color: c.bg === "#d9dee7" ? "#7a5200" : "#ffd98a", textShadow: "0 0 3px rgba(0,0,0,.5)" }}>
-                    {d.retro.map((b) => PLANET_GLYPH[b]).join("")}<span style={{ fontStyle: "italic", fontWeight: 700 }}>℞</span>
+                  <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 2, display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: 18, fontWeight: 800, letterSpacing: -1, lineHeight: 1, color: "#ff3b30", textShadow: "0 0 2px #fff, 0 0 4px rgba(0,0,0,.5)" }}>
+                    {d.retro.map((b) => PLANET_GLYPH[b]).join("")}<span style={{ fontStyle: "italic" }}>℞</span>
                   </span>
                 )}
                 {m.events.some((w) => d.day >= w.startDay && d.day <= w.endDay) && (() => {
