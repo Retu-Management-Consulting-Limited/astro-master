@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useChartGuard } from "@/lib/guard";
 import { detectHighlights } from "@/lib/astro/highlights";
 import { TabBar } from "@/components/TabBar";
+import { EntryCard } from "@/components/money/EntryCard";
 import { useUnderstanding } from "@/lib/understanding";
 import type { BodyName } from "@/lib/astro/chart";
 
@@ -102,6 +103,7 @@ export default function ChartPage() {
             </Link>
           ))}
         </div>
+        <EntryCard surface="chart" />
         <Link href="/share" style={{ display: "block", margin: "20px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", textDecoration: "none" }}>📤 把我的星盘存成图</Link>
       </div>
 
