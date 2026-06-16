@@ -181,14 +181,21 @@ describe("freshness contract · biorhythm varies by day and by birthday", () => 
 });
 
 // #T1 今日财运判词 (todayVerdict) — per-day rotating line/quote/action/prep/ask
-// + per-chart lean. Registry entry — strong form on BOTH axes.
+// + per-chart, Moon-driven personalization. Registry entry — strong form on BOTH axes.
 //   • per-day: ADJACENT SAME-STATE days must rotate their copy. This is the exact
 //     2026-06-15「换了一天还一样」failure (same content, different day, same state),
 //     so the strong invariant is asserted on same-state pairs — NOT only on the
 //     easy state-change days where the line trivially differs.
-//   • personalized: two charts of different Mars/Saturn dominance get different
-//     leans (direct not.toBe — A is 'even', B is 'guard'; the banned
-//     Set(...).size>1 form would have hidden that A and C both render 'even').
+//   • personalized AT THE CELL: the STRONGEST form is two charts that SHARE a lean
+//     yet still render a different cell. The earlier registry only checked A vs B,
+//     and A='even'/B='guard' differ in lean by construction — so that pair could
+//     pass with the cell personalized only to the 3-bucket lean (a coarse proxy),
+//     hiding a collapse. A and C BOTH lean 'even', so a same-lean A/C pair is the
+//     adversarial case: if the cell were lean-only, A and C would render byte-
+//     identical on every homomorphic (same-state) day (this was true before the
+//     fix: 186/186 identical). The cell now wires in the chart's real Moon aspect
+//     (daily.ts dailyAspect, Moon-driven → chart-dependent) so same-lean charts
+//     diverge at the cell. Asserted directly (not.toBe), not Set(...).size>1.
 describe("freshness contract · today verdict (per-day rotation + personalized lean)", () => {
   it("ADJACENT SAME-STATE days rotate line AND quote (not just state-change days)", () => {
     for (const chart of [A, B, C]) {
@@ -237,10 +244,32 @@ describe("freshness contract · today verdict (per-day rotation + personalized l
     }
   });
 
-  it("different charts, SAME day, render a different presentation (personalized at the cell)", () => {
-    // not the lean alone — the whole rendered cell. Two dissimilar charts on the
-    // identical calendar day must not show identical copy. Strong form: direct
-    // not.toBe between A and B on a fixed day (no Set(...).size).
+  it("SAME-LEAN charts (A & C, both 'even') still render a different cell on EVERY homomorphic day", () => {
+    // The strongest, adversarial form. A and C share a lean, so if the cell were
+    // personalized ONLY to the 3-bucket lean, they would collapse to byte-identical
+    // copy on every same-state day (was 186/186 before the Moon wiring). Here we
+    // assert the cell differs on EVERY homomorphic (same-state) day across a full
+    // year — not "some day differs", and explicitly NOT only on the lean-different
+    // A/B pair that could hide a same-lean collapse.
+    expect(todayVerdict(A, new Date(Date.UTC(2026, 5, 14, 12))).lean).toBe("even");
+    expect(todayVerdict(C, new Date(Date.UTC(2026, 5, 14, 12))).lean).toBe("even");
+    const cell = (v: ReturnType<typeof todayVerdict>) =>
+      text([v.state, v.lean, v.line, v.quote, v.action, v.prep, v.askDidYouAct]);
+    let homomorphic = 0;
+    for (let i = 0; i < 365; i++) {
+      const day = new Date(Date.UTC(2026, 0, 1 + i, 12));
+      const a = todayVerdict(A, day);
+      const c = todayVerdict(C, day);
+      if (a.state !== c.state) continue;
+      homomorphic++;
+      expect(cell(a), `same-lean A/C share the whole cell (doy ${i}, state ${a.state})`).not.toBe(cell(c));
+    }
+    // not vacuous: A and C share a state on a large fraction of the year
+    expect(homomorphic, "too few homomorphic A/C days to test cell personalization").toBeGreaterThan(120);
+  });
+
+  it("different charts, SAME day, render a different presentation (lean-different pair too)", () => {
+    // kept as a second witness on the lean-different A/B pair.
     const day = new Date(Date.UTC(2026, 5, 14, 12));
     const cell = (v: ReturnType<typeof todayVerdict>) =>
       text([v.state, v.lean, v.line, v.quote, v.action, v.prep, v.askDidYouAct]);

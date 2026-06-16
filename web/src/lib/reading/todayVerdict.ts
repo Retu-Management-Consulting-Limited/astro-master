@@ -1,5 +1,6 @@
 import type { Chart, BodyName } from "../astro/chart";
 import { dayWealth, type WealthLevel } from "../astro/wealth";
+import { dailyAspect } from "./daily";
 
 // 今日财运 → 一句"该怎么过今天"的笃定判词。纯逻辑、确定性、无 AI。
 //
@@ -12,7 +13,16 @@ import { dayWealth, type WealthLevel } from "../astro/wealth";
 //
 // state 严格 1:1 来自 dayWealth().level；intensity 原样透传。lean（表型）从本命盘的
 // 火星/土星强弱推出——火星强=出手型(push)、土星强=谨守型(guard)、势均=拉扯型(even)，
-// 用来给同一态的文案上一层"这张盘的脾性"，是个性化、不是每天变的东西。
+// 用来给同一态的文案上一层"这张盘的脾性"，是每张盘固定的一层（不是每天变）。
+//
+// ⚠️ 个性化粒度（R15）：lean 只有 3 桶，太粗——同一 lean 桶里换盘会让整张今日格
+// 逐字节坍缩（A 与 C 都是 even，未接月亮态前 186 个同态日 186 张格全一样）。所以
+// 今日格的"盘个性化"不能只靠 lean。这里把当天的真实月亮相位接进来（dailyAspect，
+// 来自 daily.ts）：月亮每天移 ~13°，对每张盘的本命点结相位都不同——这是真星象、依盘
+// 而变。月亮态(target×quality)给 line 续一句"今天的心情底色"，再把本命月亮经度当 salt
+// 折进轮换序号，让同 lean 不同盘的 quote/action/prep/ask 取词也错开。两层叠加后，
+// 共享 lean 的两盘在 cell 层每个同态日都不同（content-freshness 登记的最强断言）。
+// 仍是"真"不是"编"：所有续句都是月亮相位的真实情绪映射，且全过 money/guardrail。
 //
 // 声音：笃定带温度（宪法 §5）——敢判断，但落点是陪伴而非评判；所有渲染串都过
 // money/guardrail 的 validateMoneyCopy（不报数字 / 不捅羞耻 / 不怂恿赌性）。
@@ -76,6 +86,23 @@ function pick<T>(pool: T[], ord: number): T {
   return pool[((ord % pool.length) + pool.length) % pool.length];
 }
 
+// 本命月亮经度取整，当作"这张盘"的稳定 salt——不同盘几乎必不同，用来把同 lean 不同盘
+// 的轮换序号错开（依盘而变、但同盘恒定）。月亮缺失时退回 0。
+function natalSalt(chart: Chart): number {
+  const moon = chart.placements.find((p) => p.body === "Moon");
+  return moon ? Math.floor(((moon.lon % 360) + 360) % 360) : 0;
+}
+
+// 某个本命点（行星名 / ASC / MC）的黄经。给 dailyAspect.target 用。
+function natalPointLon(chart: Chart, name: string): number {
+  if (name === "ASC") return chart.asc;
+  if (name === "MC") return chart.mc;
+  return chart.placements.find((p) => p.body === name)?.lon ?? 0;
+}
+function signIndexOf(lon: number): number {
+  return Math.floor((((lon % 360) + 360) % 360) / 30) % 12;
+}
+
 // 每一态 × 每一种 lean 的文案。lean 给同一态上一层"这张盘的脾性"，
 // 让出手型和谨守型在同一个旺/慎日读到不一样的语气。每池 ≥2 条、按日轮换。
 const RED_LINE: Record<MoneyLean, string[]> = {
@@ -126,19 +153,64 @@ const PLAIN_QUOTE = [
   "稳稳的一天，也是在替将来省力。",
 ];
 
+// ── 月亮态续句：当天行运月亮对这张盘本命点结的相位(target×quality)映成一句"心情底色"。
+//    月亮每天移 ~13°、对每张盘的本命点相位都不同——这层是真星象、依盘而变，把同 lean
+//    不同盘在 cell 层拉开。纯情绪/陪伴，不报数字、不吓人，全过 money/guardrail。──
+type MoodTarget = "Sun" | "Moon" | "Mercury" | "Venus" | "Mars" | "Saturn" | "ASC" | "MC";
+type MoodQuality = "harm" | "tense";
+const MOON_TAIL: Record<MoodTarget, Record<MoodQuality, string>> = {
+  Sun: { harm: "今天你心里那点主见是亮的，顺着它走。", tense: "今天容易被人晃了方向，握住自己的就好。" },
+  Moon: { harm: "今天情绪稳，做这些刚好不慌。", tense: "今天心绪有点起伏，慢半拍再动也不迟。" },
+  Mercury: { harm: "今天脑子顺，盘算这些正清楚。", tense: "今天思绪有点绕，想清楚了再落笔。" },
+  Venus: { harm: "今天心是软暖的，做起来也舒服。", tense: "今天容易心软妥协，先按住别急着应。" },
+  Mars: { harm: "今天有股使不完的劲，正好使在这上头。", tense: "今天火气偏旺，把这股劲收着点用。" },
+  Saturn: { harm: "今天沉得住气，踏实做最对味。", tense: "今天像有副担子压着，别一个人硬扛。" },
+  ASC: { harm: "今天状态在线，做这些也更有底气。", tense: "今天容易在意旁人眼光，不必为这分神。" },
+  MC: { harm: "今天有人在看着你，做得稳当些。", tense: "今天先别急着摊牌，话留三分。" },
+};
+
+// 被月亮点到的"本命点"落在哪个星座，给月亮态再续一缕底色。这层让同 target×quality
+// 的两盘也分开——同名点落不同星座（A 与 C 在每个相位撞日上本命点都落不同星座）。
+// 12 座各一句短底色，按本命点所在星座取，纯气质描写、不报数字。
+const SIGN_FLAVOR = [
+  "带着点冲劲。",      // 白羊
+  "稳稳地。",          // 金牛
+  "脑子转得快。",      // 双子
+  "心思偏细。",        // 巨蟹
+  "气场敞亮。",        // 狮子
+  "讲究分寸。",        // 处女
+  "想求个平衡。",      // 天秤
+  "藏着股韧劲。",      // 天蝎
+  "眼光放远些。",      // 射手
+  "踏实往前。",        // 摩羯
+  "想换个角度。",      // 水瓶
+  "顺着感觉走。",      // 双鱼
+] as const;
+
 export function todayVerdict(chart: Chart, date: Date): TodayVerdict {
   const w = dayWealth(chart, date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
   const state = levelToState(w.level);
   const lean = moneyLean(chart);
-  const ord = dayOrdinal(date);
+
+  // 真实月亮态：行运月亮对这张盘的本命点结的相位（依盘 + 依日而变）。
+  const moon = dailyAspect(chart, date);
+  // 被点到的本命点落在哪个星座，再续一缕底色——让同 target×quality 的两盘也分开。
+  const targetSign = signIndexOf(natalPointLon(chart, moon.target));
+  const moonTail = `${MOON_TAIL[moon.target as MoodTarget][moon.quality]}${SIGN_FLAVOR[targetSign]}`;
+
+  // 轮换序号：日序（相邻日 +1，保证相邻日错开）+ 本命月亮 salt（同 lean 不同盘错开）。
+  const dord = dayOrdinal(date);
+  const sord = dord + natalSalt(chart);
+  // line 与 quote 取词用 salted 序号——同 lean 不同盘也会取到不同基句。
+  const line = (base: string) => `${base}${moonTail}`;
 
   if (state === "red") {
     return {
       state,
       intensity: w.intensity,
       lean,
-      line: pick(RED_LINE[lean], ord),
-      quote: pick(RED_QUOTE, ord),
+      line: line(pick(RED_LINE[lean], sord)),
+      quote: pick(RED_QUOTE, sord),
       doorDate: ymd(date), // 红日必有门，指向当天的 /wealth
     };
   }
@@ -147,18 +219,18 @@ export function todayVerdict(chart: Chart, date: Date): TodayVerdict {
       state,
       intensity: w.intensity,
       lean,
-      line: pick(GREEN_LINE[lean], ord),
-      quote: pick(GREEN_QUOTE, ord),
-      action: pick(GREEN_ACTION, ord),
-      askDidYouAct: pick(GREEN_ASK, ord),
+      line: line(pick(GREEN_LINE[lean], sord)),
+      quote: pick(GREEN_QUOTE, sord),
+      action: pick(GREEN_ACTION, sord),
+      askDidYouAct: pick(GREEN_ASK, sord),
     };
   }
   return {
     state,
     intensity: w.intensity,
     lean,
-    line: pick(PLAIN_LINE[lean], ord),
-    quote: pick(PLAIN_QUOTE, ord),
-    prep: pick(PLAIN_PREP, ord),
+    line: line(pick(PLAIN_LINE[lean], sord)),
+    quote: pick(PLAIN_QUOTE, sord),
+    prep: pick(PLAIN_PREP, sord),
   };
 }
