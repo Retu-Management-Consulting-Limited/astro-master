@@ -52,4 +52,12 @@ test("money funnel: reveal → correct → daily story (guardrail-clean)", async
   // H3 accuracy capture works
   await page.getByRole("button", { name: "好准" }).click();
   await expect(page.getByText(/收到/)).toBeVisible();
+
+  // Flow-completeness: 选完后不能是死胡同 — there must be a way back off /money/today
+  const back = page.getByRole("button", { name: "返回" });
+  await expect(back).toBeVisible();
+  await back.click();
+  await expect(page).not.toHaveURL(/\/money\/today/);
+  // and the reveal screen (/money) is itself not a dead end
+  await expect(page.getByRole("button", { name: "返回" })).toBeVisible();
 });

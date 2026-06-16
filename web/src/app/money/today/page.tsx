@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useChartGuard } from "@/lib/guard";
+import { BackButton } from "@/components/BackButton";
 import { StoryCard } from "@/components/money/StoryCard";
 import { assignVariant } from "@/lib/money/variant";
 import { trackNarrativeView, trackDwell, trackAccuracy } from "@/lib/money/track";
@@ -65,6 +66,9 @@ export default function MoneyTodayPage() {
 
   return (
     <div className="mx-auto max-w-[400px] px-5 py-8 text-[#efe7d4]">
+      <div className="mb-4">
+        <BackButton />
+      </div>
       {!data ? (
         <p className="py-20 text-center font-serif text-[17px] text-[#c2baa6]">Molly 正在翻你的故事……</p>
       ) : (
