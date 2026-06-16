@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
+import { BackButton } from "@/components/BackButton";
 import { moneyPersona } from "@/lib/money/persona";
 import { Reveal } from "@/components/money/Reveal";
 import { track } from "@/lib/track";
@@ -26,5 +27,12 @@ export default function MoneyRevealPage() {
     router.push("/money/today");
   };
 
-  return <Reveal persona={persona} onContinue={() => router.push("/money/today")} onCorrect={onCorrect} />;
+  return (
+    <>
+      <div className="mx-auto max-w-[400px] px-5 pt-6">
+        <BackButton />
+      </div>
+      <Reveal persona={persona} onContinue={() => router.push("/money/today")} onCorrect={onCorrect} />
+    </>
+  );
 }
