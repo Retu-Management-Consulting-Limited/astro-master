@@ -37,6 +37,83 @@ describe("wealth calendar", () => {
   });
 });
 
+describe("monthly rare quota (天定 + 保底): 红≤~4, 平淡≥~60%", () => {
+  // The astrology determines WHICH days rank where (天定); the quota is a 保底
+  // rank-cap that keeps the calendar from becoming a wall of green or a wall of
+  // red. Cap 慎(red) at ≤4/month and floor 平淡(ping) at ≥60% — for EVERY chart,
+  // EVERY month, so no user ever opens a month that's all-charged.
+  const charts = [
+    computeChart({ year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 }),
+    computeChart({ year: 1990, month: 11, day: 2, hour: 21, minute: 15, lat: 31.2304, lng: 121.4737, tz: 8 }),
+    computeChart({ year: 1985, month: 3, day: 21, hour: 6, minute: 5, lat: 40.7128, lng: -74.006, tz: -5 }),
+    // a 12th-month chart that previously rendered ~26/31 旺 (a wall of green)
+    computeChart({ year: 1975, month: 2, day: 9, hour: 6, minute: 50, lat: 43.8436, lng: 126.55, tz: 8 }),
+  ];
+
+  it("every chart, every month of 2026: 慎(red) days ≤ 4", () => {
+    for (const ch of charts) {
+      for (let m = 1; m <= 12; m++) {
+        const shen = monthWealth(ch, 2026, m).days.filter((d) => d.level === "shen").length;
+        expect(shen, `month ${m} had ${shen} 慎 days`).toBeLessThanOrEqual(4);
+      }
+    }
+  });
+
+  it("every chart, every month of 2026: 平淡(ping) is ≥ 60% of the month", () => {
+    for (const ch of charts) {
+      for (let m = 1; m <= 12; m++) {
+        const days = monthWealth(ch, 2026, m).days;
+        const ping = days.filter((d) => d.level === "ping").length;
+        const floor = Math.ceil(0.6 * days.length);
+        expect(ping, `month ${m}: ${ping}/${days.length} ping, floor ${floor}`).toBeGreaterThanOrEqual(floor);
+      }
+    }
+  });
+
+  it("天定: the quota preserves the astrology RANK — kept 慎 are the lowest-intensity days, kept 旺 the highest", () => {
+    for (const ch of charts) {
+      const days = monthWealth(ch, 2026, 6).days;
+      const maxShen = Math.max(...days.filter((d) => d.level === "shen").map((d) => d.intensity), -1);
+      const minWang = Math.min(...days.filter((d) => d.level === "wang").map((d) => d.intensity), 101);
+      const pingI = days.filter((d) => d.level === "ping").map((d) => d.intensity);
+      // a ping day never out-ranks a kept 旺 day, nor under-ranks a kept 慎 day
+      for (const p of pingI) {
+        if (minWang <= 100) expect(p, "a ping out-ranks a kept 旺").toBeLessThanOrEqual(minWang);
+        if (maxShen >= 0) expect(p, "a ping under-ranks a kept 慎").toBeGreaterThanOrEqual(maxShen);
+      }
+    }
+  });
+
+  it("single-day dayWealth().level agrees with the month-quota result (no per-day vs per-month drift)", () => {
+    for (const ch of charts) {
+      const m = monthWealth(ch, 2026, 6);
+      for (const d of m.days) {
+        expect(dayWealth(ch, 2026, 6, d.day).level, `day ${d.day}`).toBe(d.level);
+      }
+    }
+  });
+
+  it("intensity is still the raw score (quota reshapes LEVEL, never the number)", () => {
+    const ch = charts[0];
+    const m = monthWealth(ch, 2026, 6);
+    for (const d of m.days) {
+      expect(d.intensity).toBe(wealthScore(ch, new Date(Date.UTC(2026, 5, d.day, 12, 0))));
+    }
+  });
+
+  it("still varies — the quota does NOT flatten every month to all-平", () => {
+    // backstop against the opposite failure: a month must keep some charge.
+    for (const ch of charts) {
+      let monthsWithCharge = 0;
+      for (let m = 1; m <= 12; m++) {
+        const days = monthWealth(ch, 2026, m).days;
+        if (days.some((d) => d.level !== "ping")) monthsWithCharge++;
+      }
+      expect(monthsWithCharge, "a whole year went flat").toBeGreaterThan(6);
+    }
+  });
+});
+
 describe("wealth model — enriched factors", () => {
   it("signRuler: traditional rulers (0=Aries..11=Pisces)", () => {
     expect(signRuler(0)).toBe("Mars"); // 白羊

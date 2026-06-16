@@ -69,15 +69,21 @@ describe("freshness contract · per-day surfaces differ on ADJACENT days", () =>
     expect(changes, `intensity changed only ${changes}/29 days`).toBeGreaterThan(20);
   });
 
-  it("wealth: the month is decisive — not a wall of 平 (felt-signal L1)", () => {
-    // The event layer must keep charts out of the all-平 mush. Per-chart-per-month
-    // varies (a quiet money-month can be ~7/30); the strong guard is on the mean
-    // across charts ≥ 9 + every chart clearly above the all-平 floor. The full
-    // population target (平≈52%) is verified by the pre-deploy 192-chart shadow run.
-    const counts = [A, B, C].map((ch) => monthWealth(ch, 2026, 6).days.filter((d) => d.level !== "ping").length);
-    const mean = counts.reduce((a, b) => a + b, 0) / counts.length;
-    expect(mean, `mean decisive ${mean}/30`).toBeGreaterThanOrEqual(9);
-    for (const c of counts) expect(c, `a chart had only ${c}/30 decisive days`).toBeGreaterThanOrEqual(5);
+  it("wealth: the month rotates LEVELS across days — presentation varies (not chargedness)", () => {
+    // R14: freshness asserts the PRESENTATION moves, not how 'charged' a month is.
+    // The old ≥9-decisive-days floor was a chargedness assertion; it collided with
+    // the deliberate rare quota (天定+保底: 慎≤4, 平淡≥60% — see wealth.ts), which
+    // MAKES charged days rare on purpose. Rarity is a feature, not a freshness bug.
+    // So here we assert only what a per-day surface owes: the level grid is not a
+    // single frozen value, and the rare quota actually holds (rarity is shaped).
+    for (const ch of [A, B, C]) {
+      const days = monthWealth(ch, 2026, 6).days;
+      expect(new Set(days.map((d) => d.level)).size, "a month rendered one frozen level").toBeGreaterThan(1);
+      const shen = days.filter((d) => d.level === "shen").length;
+      const ping = days.filter((d) => d.level === "ping").length;
+      expect(shen, `慎 quota: ${shen}/30`).toBeLessThanOrEqual(4);
+      expect(ping, `平淡 floor: ${ping}/30`).toBeGreaterThanOrEqual(Math.ceil(0.6 * days.length));
+    }
   });
 });
 
@@ -206,5 +212,38 @@ describe("freshness contract · today verdict (per-day rotation + personalized l
     const leanA = todayVerdict(A, new Date(Date.UTC(2026, 5, 10, 12))).lean; // 'even'
     const leanB = todayVerdict(B, new Date(Date.UTC(2026, 5, 10, 12))).lean; // 'guard'
     expect(leanA, `A and B share lean ${leanA}`).not.toBe(leanB);
+  });
+
+  it("ADJACENT 平淡(plain) days rotate the PRESENTATION line/quote/prep (the calm cell is not a frozen void)", () => {
+    // The rare quota (天定+保底) makes 平淡 the dominant state — so the calm cell
+    // is what a user sees MOST days. Freshness here is presentation-layer: even
+    // when the state is the same boring 平 two days running, the rendered copy
+    // (line/quote/prep) must change. Asserted specifically on plain→plain pairs.
+    for (const chart of [A, B, C]) {
+      let plainPairs = 0;
+      let prev: ReturnType<typeof todayVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = todayVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+        if (prev && prev.state === "plain" && v.state === "plain") {
+          plainPairs++;
+          expect(text([prev.line, prev.quote, prev.prep]), `frozen plain cell (doy ${i})`).not.toBe(
+            text([v.line, v.quote, v.prep])
+          );
+        }
+        prev = v;
+      }
+      // plain is the majority state under the quota, so there are plenty of pairs
+      expect(plainPairs, "too few plain→plain pairs — quota not making plain dominant?").toBeGreaterThan(40);
+    }
+  });
+
+  it("different charts, SAME day, render a different presentation (personalized at the cell)", () => {
+    // not the lean alone — the whole rendered cell. Two dissimilar charts on the
+    // identical calendar day must not show identical copy. Strong form: direct
+    // not.toBe between A and B on a fixed day (no Set(...).size).
+    const day = new Date(Date.UTC(2026, 5, 14, 12));
+    const cell = (v: ReturnType<typeof todayVerdict>) =>
+      text([v.state, v.lean, v.line, v.quote, v.action, v.prep, v.askDidYouAct]);
+    expect(cell(todayVerdict(A, day)), "A and B share the whole cell").not.toBe(cell(todayVerdict(B, day)));
   });
 });
