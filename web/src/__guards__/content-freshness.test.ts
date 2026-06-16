@@ -4,7 +4,8 @@ import { dailyReading } from "../lib/reading/daily";
 import { dayWealth, monthWealth } from "../lib/astro/wealth";
 import { generateFirstRead } from "../lib/reading/generate";
 import { generateThemeRead, THEME_IDS } from "../lib/reading/theme";
-import { synastry } from "../lib/astro/synastry";
+import { synastry, type RelType } from "../lib/astro/synastry";
+import { synScaffold } from "../lib/reading/synastry";
 import { detectHighlights } from "../lib/astro/highlights";
 import { biorhythm } from "../lib/biorhythm";
 import { moneyPersona } from "../lib/money/persona";
@@ -132,6 +133,24 @@ describe("freshness contract · pair surfaces differ between pairs", () => {
     const ab = synastry(A, B, "lover");
     const ac = synastry(A, C, "lover");
     expect(text([ab.total, ab.dims])).not.toBe(text([ac.total, ac.dims]));
+  });
+
+  // #5 合盘分型解读 (PR2) — the reading must vary by relationship TYPE and by PAIR.
+  // Killing the mad-lib means adjacent types can't render identical copy.
+  it("synastry reading differs across ADJACENT relationship types (same pair)", () => {
+    const types: RelType[] = ["lover", "partner", "colleague", "friend", "family"];
+    for (let i = 0; i < types.length - 1; i++) {
+      const a = synScaffold(synastry(A, B, types[i]));
+      const b = synScaffold(synastry(A, B, types[i + 1]));
+      expect(text([a.vibe, a.body, a.catchLine]), `types ${types[i]} vs ${types[i + 1]} share copy`).not.toBe(
+        text([b.vibe, b.body, b.catchLine])
+      );
+    }
+  });
+  it("synastry reading differs for different pairs (same type)", () => {
+    const ab = synScaffold(synastry(A, B, "lover"));
+    const ac = synScaffold(synastry(A, C, "lover"));
+    expect(text([ab.vibe, ab.body, ab.catchLine])).not.toBe(text([ac.vibe, ac.body, ac.catchLine]));
   });
 });
 

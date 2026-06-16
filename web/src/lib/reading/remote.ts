@@ -1,6 +1,8 @@
 import type { Chart } from "@/lib/astro/chart";
 import type { FirstRead } from "./generate";
 import type { ThemeRead, ThemeId } from "./theme";
+import type { SynRead } from "./synastry";
+import type { RelType } from "@/lib/astro/synastry";
 import { fallbackFollowups, parseFollowups, type Followup } from "@/lib/ai/followups";
 import { useFunnel } from "@/lib/store";
 
@@ -45,6 +47,38 @@ export async function fetchFirstRead(chart: Chart, nickname?: string): Promise<F
 export async function fetchThemeRead(chart: Chart, themeId: ThemeId, nickname?: string): Promise<ThemeRead | null> {
   if (!AI_ON) return null;
   return (await post({ kind: "theme", themeId, chart, nickname, gender: gender() })) as ThemeRead | null;
+}
+
+// #5 合盘分型解读. Progressive: callers render the deterministic synScaffold instantly,
+// then swap in this LLM prose when it resolves. Returns null when AI is off / times
+// out / shape is bad → caller keeps the scaffold (which is already per-type, so the
+// fallback is never the dead mad-lib). Perspective: pass the viewer's chart as
+// selfChart (the reading is written to "你").
+export async function fetchSynastryRead(
+  selfChart: Chart,
+  otherChart: Chart,
+  type: RelType,
+  selfName?: string,
+  otherName?: string,
+): Promise<SynRead | null> {
+  if (!AI_ON) return null;
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 120000);
+  try {
+    const r = await fetch("/api/synastry/reading", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ selfChart, otherChart, type, selfName, otherName, gender: gender() }),
+      signal: ctrl.signal,
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return typeof j?.vibe === "string" && typeof j?.body === "string" && typeof j?.catchLine === "string" ? (j as SynRead) : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 export interface ChatMsg {
