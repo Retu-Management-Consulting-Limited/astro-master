@@ -6,6 +6,14 @@ export interface SynDim {
   key: string;
   label: string;
   value: number; // 0..100
+  aspects: SynAspect[];
+}
+export interface SynAspect {
+  a: BodyName;      // A 方的星
+  b: BodyName;      // B 方的星
+  angle: number;    // 命中的相位角：0 / 60 / 90 / 120 / 180
+  kind: "harmony" | "tension";
+  strength: number; // 0..1
 }
 export interface SynResult {
   type: RelType;
@@ -27,8 +35,45 @@ const near = (angle: number, targets: number[], orb = 8) => {
   return best;
 };
 
+// Like near(), but also returns WHICH target was hit — so dimAspects can label
+// the aspect. Returns strength 0 when outside orb.
+function nearest(angle: number, targets: number[], orb = 8): { target: number; strength: number } {
+  let best = { target: targets[0], strength: 0 };
+  for (const t of targets) {
+    const o = Math.abs(angle - t);
+    if (o <= orb) {
+      const s = 1 - o / orb;
+      if (s > best.strength) best = { target: t, strength: s };
+    }
+  }
+  return best;
+}
+
 type Pair = [BodyName, BodyName];
 type Mode = "harmony" | "mixed" | "tensionGood";
+
+// Surface the real cross-aspects behind each dimension's score. Pure read of the
+// same separations dimScore() uses — the score formula is NOT touched. Returns
+// every aspect within orb (D6: no top-N cap; orb naturally bounds it), strongest
+// first. `a`=A-side body, `b`=B-side body.
+function dimAspects(a: Chart, b: Chart, pairs: Pair[]): SynAspect[] {
+  const out: SynAspect[] = [];
+  for (const [x, y] of pairs) {
+    // same-body pair (e.g. Moon-Moon): only one meaningful direction
+    const dirs: [BodyName, BodyName, number][] = x === y
+      ? [[x, y, sep(lon(a, x), lon(b, y))]]
+      : [[x, y, sep(lon(a, x), lon(b, y))], [y, x, sep(lon(a, y), lon(b, x))]];
+    for (const [pa, pb, s] of dirs) {
+      const h = nearest(s, [0, 60, 120]);
+      const t = nearest(s, [90, 180]);
+      const dom = h.strength >= t.strength
+        ? { target: h.target, strength: h.strength, kind: "harmony" as const }
+        : { target: t.target, strength: t.strength, kind: "tension" as const };
+      if (dom.strength > 0) out.push({ a: pa, b: pb, angle: dom.target, kind: dom.kind, strength: dom.strength });
+    }
+  }
+  return out.sort((p, q) => q.strength - p.strength);
+}
 
 function dimScore(a: Chart, b: Chart, pairs: Pair[], mode: Mode): number {
   let harmony = 0, tension = 0, n = 0;
@@ -80,7 +125,7 @@ const CONFIG: Record<RelType, { key: string; label: string; pairs: Pair[]; mode:
 };
 
 export function synastry(a: Chart, b: Chart, type: RelType): SynResult {
-  const dims = CONFIG[type].map((d) => ({ key: d.key, label: d.label, value: dimScore(a, b, d.pairs, d.mode) }));
+  const dims = CONFIG[type].map((d) => ({ key: d.key, label: d.label, value: dimScore(a, b, d.pairs, d.mode), aspects: dimAspects(a, b, d.pairs) }));
   const total = Math.round(dims.reduce((s, d) => s + d.value, 0) / dims.length);
   return { type, total, dims };
 }

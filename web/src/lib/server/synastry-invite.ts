@@ -1,6 +1,7 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { getKV } from "./store";
+import type { RelType } from "../astro/synastry";
 
 // Synastry invite: person A creates a token, shares the link; person B opens it
 // and submits their real birth data; A reads the partner chart back by token.
@@ -14,15 +15,23 @@ export interface Partner {
 }
 export interface Invite {
   inviterName?: string;
+  inviterChart?: unknown; // A 的计算后盘（派生，非 birthForm）——供 B 端看合盘
+  type?: RelType;         // A 选的关系类型，随邀请传给 B
   createdAt: number;
   partner: Partner | null;
 }
 
 const key = (token: string) => `synv:${token}`;
 
-export async function createInvite(inviterName?: string): Promise<string> {
+export async function createInvite(inviterName?: string, inviterChart?: unknown, type?: RelType): Promise<string> {
   const token = randomBytes(12).toString("hex");
-  const invite: Invite = { inviterName: inviterName?.slice(0, 40), createdAt: Date.now(), partner: null };
+  const invite: Invite = {
+    inviterName: inviterName?.slice(0, 40),
+    inviterChart,
+    type,
+    createdAt: Date.now(),
+    partner: null,
+  };
   await (await getKV()).set(key(token), invite);
   return token;
 }

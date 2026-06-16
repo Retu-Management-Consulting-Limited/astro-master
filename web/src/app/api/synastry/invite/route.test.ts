@@ -67,4 +67,17 @@ describe("synastry invite routes", () => {
     expect(s.partner.name).toBe("小鱼");
     expect(s.partner.birthForm).toBeUndefined(); // PII stripped
   });
+
+  it("carries inviterChart + type; GET returns them; never returns inviter birthForm (PR1.5 · §9.3)", async () => {
+    const { token } = await (await jpost("http://x/api/synastry/invite", { inviterName: "Kevin", inviterChart: validChart, type: "lover" }, create)).json();
+    const j = await (await status(new Request(`http://x/api/synastry/invite?token=${token}`))).json();
+    expect(j.type).toBe("lover");
+    expect(j.inviterChart.placements.length).toBeGreaterThan(0);
+    expect(j.inviterBirthForm).toBeUndefined(); // §9.3：绝不回原始出生表单
+  });
+
+  it("POST rejects a structurally invalid inviterChart → 400 (PR1.5)", async () => {
+    const r = await jpost("http://x/api/synastry/invite", { inviterName: "X", inviterChart: {}, type: "lover" }, create);
+    expect(r.status).toBe(400);
+  });
 });
