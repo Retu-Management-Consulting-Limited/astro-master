@@ -6,6 +6,8 @@ import { BackButton } from "@/components/BackButton";
 import { computeChart, type Chart } from "@/lib/astro/chart";
 import { isFullChart } from "@/lib/astro/chart-validate";
 import { synastry, type RelType, type SynResult } from "@/lib/astro/synastry";
+import { synScaffold, type SynRead } from "@/lib/reading/synastry";
+import { fetchSynastryRead } from "@/lib/reading/remote";
 import { useFunnel } from "@/lib/store";
 import { readTokens, addStoredToken } from "@/lib/synastryTokens";
 
@@ -18,20 +20,12 @@ const TYPES: { id: RelType; ic: string; t: string; sub: string }[] = [
 ];
 const DIM_COLOR = ["#e69ec8", "#f0a868", "#8fb6d8", "#e0c98a", "#7fc99a"];
 
+// 下钻用：星体中文 + 相位角中文。来自引擎 Unit A 暴露的真实跨盘相位（不编造）。
+const ZH: Record<string, string> = { Sun: "太阳", Moon: "月亮", Mercury: "水星", Venus: "金星", Mars: "火星", Jupiter: "木星", Saturn: "土星" };
+const ANGLE_ZH: Record<number, string> = { 0: "合", 60: "六合", 90: "刑", 120: "拱", 180: "冲" };
+
 // Sample partner — shown (labeled) until a real partner fills in the invite.
 const DEMO_PARTNER = computeChart({ year: 1995, month: 11, day: 2, hour: 21, minute: 15, lat: 31.2304, lng: 121.4737, tz: 8 });
-
-function reading(r: SynResult): { vibe: string; body: string; catchLine: string } {
-  const hi = [...r.dims].sort((a, b) => b.value - a.value)[0];
-  const lo = [...r.dims].sort((a, b) => a.value - b.value)[0];
-  const hn = hi.label.replace(/^[^一-龥]+/, "");
-  const ln = lo.label.replace(/^[^一-龥]+/, "");
-  return {
-    vibe: `${hn}够强，但${ln}是你们的短板`,
-    body: `你俩最稳的是「${hn}」——${hi.value} 分，这是你们的底气。可「${ln}」只有 ${lo.value}：${ln}不补上，时间久了会磨。`,
-    catchLine: `不是不合适，是你们得有一个人，先在「${ln}」上松口。`,
-  };
-}
 
 export default function SynastryPage() {
   const router = useRouter();
@@ -91,10 +85,12 @@ export default function SynastryPage() {
     if (creating) return;
     setCreating(true);
     try {
+      // Carry A's derived chart + the chosen relationship type so person B can
+      // see the synastry and the landing page can name the relationship (PR1.5/D3).
       const r = await fetch("/api/synastry/invite", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ inviterName: nickname }),
+        body: JSON.stringify({ inviterName: nickname, inviterChart: chart, type: type ?? undefined }),
       });
       const { token: t } = await r.json();
       setTokens(addStoredToken(t)); // kicks off polling, keeps prior invites
@@ -143,6 +139,11 @@ export default function SynastryPage() {
                 <div style={{ fontSize: 11.5, color: "var(--mute)", lineHeight: 1.6, marginBottom: 10 }}>下面的分数只是<b style={{ color: "var(--cream-dim)" }}>示例</b>。发个链接给 TA，填好出生信息就自动变成你俩的真盘。{inviteUrl ? "发出去后可以先去别处逛逛，TA 一填好这里就会自动更新。" : ""}</div>
                 {inviteUrl ? (
                   <div>
+                    {/* Waiting state (Unit E): the link is out, no partner yet — show a live pulse so it doesn't feel like a dead silent poll. */}
+                    <div data-testid="syn-waiting" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: "var(--gold-soft)", marginBottom: 8 }}>
+                      <span className="think-dot" /><span className="think-dot" style={{ animationDelay: ".18s" }} /><span className="think-dot" style={{ animationDelay: ".36s" }} />
+                      <span style={{ color: "var(--cream-dim)" }}>等 TA 填好，这里就自动出你俩的真盘</span>
+                    </div>
                     <div data-testid="syn-invite-url" style={{ fontSize: 11, color: "var(--gold-soft)", wordBreak: "break-all", background: "#0d1018", borderRadius: 8, padding: "8px 10px", marginBottom: 8 }}>{inviteUrl}</div>
                     <div style={{ display: "flex", gap: 8, fontSize: 12 }}>
                       <button onClick={createInvite} style={{ flex: "0 0 auto", background: "transparent", border: "1px solid var(--field-bd)", color: "var(--cream-dim)", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>重新生成</button>
@@ -166,16 +167,38 @@ export default function SynastryPage() {
             ))}
           </>
         ) : (
-          <Result result={result} demo={!realPartner} onConnect={() => setType(null)} />
+          <Result result={result} demo={!realPartner} onConnect={() => setType(null)} selfChart={chart} partnerChart={realPartner} partnerName={partnerName} selfName={nickname} />
         )}
       </div>
     </main>
   );
 }
 
-function Result({ result, demo, onConnect }: { result: SynResult; demo: boolean; onConnect: () => void }) {
+function Result({ result, demo, onConnect, selfChart, partnerChart, partnerName, selfName }: { result: SynResult; demo: boolean; onConnect: () => void; selfChart: Chart; partnerChart: Chart | null; partnerName: string | null; selfName?: string }) {
   const router = useRouter();
   const typeLabel = TYPES.find((t) => t.id === result.type)!.t;
+  const [read, setRead] = useState<SynRead>(() => synScaffold(result, selfName ?? undefined, partnerName ?? undefined));
+  const [openDim, setOpenDim] = useState<string | null>(null);
+
+  // Re-seed the deterministic scaffold whenever the pairing/type changes.
+  useEffect(() => {
+    setRead(synScaffold(result, selfName ?? undefined, partnerName ?? undefined));
+    setOpenDim(null);
+  }, [result, selfName, partnerName]);
+
+  // Progressive upgrade (real partner only): render the instant scaffold, then
+  // swap in the LLM prose when it lands. Null → keep the per-type scaffold.
+  useEffect(() => {
+    if (demo || !partnerChart) return;
+    let alive = true;
+    fetchSynastryRead(selfChart, partnerChart, result.type, selfName ?? undefined, partnerName ?? undefined).then((r) => {
+      if (alive && r) setRead(r);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [demo, selfChart, partnerChart, result.type, selfName, partnerName]);
+
   // 强卡口（R4 / 宪法 §8.3 不误导）：没有真实 partner 时，绝不给任何契合度分数
   // 或解读——连模糊的假分都不给，杜绝被当真实结果截图分享。只展示「这个关系会
   // 测哪些面」(维度名、不带分值) 当裂变钩子，并引导去邀请对方。
@@ -196,28 +219,52 @@ function Result({ result, demo, onConnect }: { result: SynResult; demo: boolean;
       </div>
     );
   }
-  const r = reading(result);
+  const who = partnerName ?? "对方";
   return (
     <div data-testid="syn-result">
-      <div>
-        <div style={{ textAlign: "center", margin: "6px 0 4px" }}>
-          <div style={{ fontSize: 10.5, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 3 }}>{typeLabel} · 契合度</div>
-          <div style={{ fontFamily: "var(--serif)", fontSize: 58, fontWeight: 600, color: "var(--gold)", lineHeight: 1, textShadow: "0 0 30px rgba(201,168,97,.3)" }}>{result.total}<small style={{ fontSize: 22 }}>%</small></div>
-          <div style={{ marginTop: 7, fontSize: 12.5, color: "var(--green)" }}>{r.vibe}</div>
-        </div>
-        <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-          {result.dims.map((d, i) => (
-            <div key={d.key}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 5 }}><span>{d.label}</span><b style={{ color: DIM_COLOR[i % DIM_COLOR.length] }}>{d.value}</b></div>
-              <div style={{ height: 7, background: "#1b2130", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, width: `${d.value}%`, background: DIM_COLOR[i % DIM_COLOR.length] }} /></div>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 24 }}>
-          <p style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 18.5, lineHeight: 1.6, color: "var(--cream-dim)", marginBottom: 13 }}>{r.body}</p>
-          <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{r.catchLine}</p>
-        </div>
+      {/* 总分（点名两人）→ 维度条（可下钻）→ 解读  (D4 顺序) */}
+      <div style={{ textAlign: "center", margin: "6px 0 4px" }}>
+        <div data-testid="syn-names" style={{ fontFamily: "var(--serif)", fontSize: 21, color: "var(--cream)", fontWeight: 500 }}>你 <span style={{ color: "var(--gold-deep)" }}>↔</span> <b style={{ color: "var(--gold-soft)" }}>{who}</b></div>
+        <div style={{ fontSize: 10.5, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--mute)", margin: "6px 0 2px" }}>{typeLabel} · 契合度</div>
+        <div style={{ fontFamily: "var(--serif)", fontSize: 56, fontWeight: 600, color: "var(--gold)", lineHeight: 1, textShadow: "0 0 30px rgba(201,168,97,.3)" }}>{result.total}<small style={{ fontSize: 22 }}>%</small></div>
+        <div style={{ marginTop: 7, fontSize: 12.5, color: "var(--green)" }}>{read.vibe}</div>
       </div>
+
+      <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+        {result.dims.map((d, i) => {
+          const open = openDim === d.key;
+          const color = DIM_COLOR[i % DIM_COLOR.length];
+          return (
+            <div key={d.key}>
+              <button type="button" data-testid="syn-dim" onClick={() => setOpenDim(open ? null : d.key)} aria-expanded={open} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", textAlign: "left", background: "transparent", border: "none", padding: 0, marginBottom: 5, cursor: "pointer" }}>
+                <span style={{ fontSize: 12.5, color: "var(--cream-dim)" }}>{d.label} <span style={{ fontSize: 10, color: "var(--mute)" }}>{open ? "收起 ⌃" : "看星位 ⌄"}</span></span>
+                <b style={{ fontSize: 12.5, color }}>{d.value}</b>
+              </button>
+              <div style={{ height: 7, background: "#1b2130", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, width: `${d.value}%`, background: color }} /></div>
+              {open && (
+                <div data-testid="syn-drill" style={{ marginTop: 9, background: "#0d1119", border: "1px solid #20283a", borderRadius: 11, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 7 }}>
+                  {d.aspects.length ? (
+                    d.aspects.map((x, j) => (
+                      <div key={j} style={{ display: "flex", gap: 9, alignItems: "center", fontSize: 12, color: "var(--cream-dim)" }}>
+                        <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 6, flex: "0 0 auto", color: x.kind === "harmony" ? "var(--green)" : "var(--orange)", background: x.kind === "harmony" ? "rgba(127,201,154,.12)" : "rgba(240,168,104,.12)" }}>{ANGLE_ZH[x.angle] ?? `${x.angle}°`}</span>
+                        <span>你的<b style={{ color: "var(--cream)" }}>{ZH[x.a] ?? x.a}</b> — {who}的<b style={{ color: "var(--cream)" }}>{ZH[x.b] ?? x.b}</b></span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ fontSize: 12, color: "var(--mute)" }}>这个维度你俩没有显著相位——不强也不冲，平平。</div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <p style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 18.5, lineHeight: 1.6, color: "var(--cream-dim)", marginBottom: 13 }}>{read.body}</p>
+        <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{read.catchLine}</p>
+      </div>
+
       <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</button>
       <div style={{ marginTop: 0, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
     </div>
