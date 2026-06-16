@@ -28,7 +28,7 @@ interface FunnelState {
   hasHydrated: boolean;
   authChecked: boolean;      // AuthHydration finished /api/auth/me reconcile (session flag, not persisted)
   setChart: (b: BirthInput, bf: BirthForm, c: Chart) => void;
-  setFirstRead: (r: FirstRead) => void;
+  setFirstRead: (r: FirstRead | undefined) => void;
   setAsc: (s: string) => void;
   setNickname: (n: string) => void;
   setGender: (g: Gender) => void;
