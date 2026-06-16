@@ -10,6 +10,7 @@ import { detectHighlights } from "../lib/astro/highlights";
 import { biorhythm } from "../lib/biorhythm";
 import { moneyPersona } from "../lib/money/persona";
 import { nextChapter } from "../lib/money/narrative";
+import { todayVerdict } from "../lib/reading/todayVerdict";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 动态内容契约 (FRESHNESS CONTRACT) — see CLAUDE.md & design/DESIGN-SYSTEM.md.
@@ -170,5 +171,40 @@ describe("freshness contract · biorhythm varies by day and by birthday", () => 
     const a = biorhythm(birth1, d);
     const b = biorhythm(birth2, d);
     expect(text([a.physical, a.emotional, a.intellectual])).not.toBe(text([b.physical, b.emotional, b.intellectual]));
+  });
+});
+
+// #T1 今日财运判词 (todayVerdict) — per-day rotating line/quote/action/prep/ask
+// + per-chart lean. Registry entry — strong form on BOTH axes.
+//   • per-day: ADJACENT SAME-STATE days must rotate their copy. This is the exact
+//     2026-06-15「换了一天还一样」failure (same content, different day, same state),
+//     so the strong invariant is asserted on same-state pairs — NOT only on the
+//     easy state-change days where the line trivially differs.
+//   • personalized: two charts of different Mars/Saturn dominance get different
+//     leans (direct not.toBe — A is 'even', B is 'guard'; the banned
+//     Set(...).size>1 form would have hidden that A and C both render 'even').
+describe("freshness contract · today verdict (per-day rotation + personalized lean)", () => {
+  it("ADJACENT SAME-STATE days rotate line AND quote (not just state-change days)", () => {
+    for (const chart of [A, B, C]) {
+      let sameStatePairs = 0;
+      let prev: ReturnType<typeof todayVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = todayVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+        if (prev && prev.state === v.state) {
+          sameStatePairs++;
+          expect(prev.line, `frozen line, same-state adjacent days (doy ${i})`).not.toBe(v.line);
+          expect(prev.quote, `frozen quote, same-state adjacent days (doy ${i})`).not.toBe(v.quote);
+        }
+        prev = v;
+      }
+      // not-vacuous: a full year always carries many same-state runs
+      expect(sameStatePairs, "too few same-state pairs to test rotation").toBeGreaterThan(50);
+    }
+  });
+
+  it("two charts of different Mars/Saturn dominance get different leans (personalized)", () => {
+    const leanA = todayVerdict(A, new Date(Date.UTC(2026, 5, 10, 12))).lean; // 'even'
+    const leanB = todayVerdict(B, new Date(Date.UTC(2026, 5, 10, 12))).lean; // 'guard'
+    expect(leanA, `A and B share lean ${leanA}`).not.toBe(leanB);
   });
 });

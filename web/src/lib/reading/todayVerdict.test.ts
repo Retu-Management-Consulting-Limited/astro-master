@@ -95,11 +95,16 @@ describe("todayVerdict · lean ← Mars/Saturn dominance in the natal chart", ()
     expect(["push", "guard", "even"]).toContain(v1.lean);
   });
 
-  it("a Mars-in-money-house chart leans differently than a Saturn-dominant one (personalized)", () => {
-    // strongest available: across the three dissimilar fixtures the lean is not
-    // uniform — the phenotype actually tracks the chart, not a constant.
-    const leans = [A, B, C].map((ch) => todayVerdict(ch, d(2026, 6, 10)).lean);
-    expect(new Set(leans).size, `leans were all ${leans[0]}`).toBeGreaterThan(1);
+  it("two charts of different Mars/Saturn dominance get DIFFERENT leans (personalized, strongest form)", () => {
+    // STRONG: a direct not.toBe between two specific dissimilar charts — the
+    // banned `new Set(...).size > 1` form hid that A and C both render 'even'
+    // (it passed only because B happened to differ). A 'even'-Mars/Saturn-balanced
+    // chart (A) and a Saturn-dominant chart (B) must NOT share a lean.
+    const leanA = todayVerdict(A, d(2026, 6, 10)).lean;
+    const leanB = todayVerdict(B, d(2026, 6, 10)).lean;
+    expect(leanA, `A and B share lean ${leanA}`).not.toBe(leanB);
+    // and the lean is a declared phenotype value, not garbage
+    for (const l of [leanA, leanB]) expect(["push", "guard", "even"]).toContain(l);
   });
 });
 
@@ -151,6 +156,30 @@ describe("todayVerdict · per-day freshness (adjacent days that change state mus
         const b = todayVerdict(chart, d(2026, 6, day + 1));
         if (a.state !== b.state) expect(a.line).not.toBe(b.line);
       }
+    }
+  });
+
+  it("STRONG: adjacent SAME-STATE days rotate their copy — the '换了一天还一样' invariant", () => {
+    // This is the exact 2026-06-15 failure mode the freshness registry exists to
+    // catch: same content, different day, SAME state. The state-change guard above
+    // says nothing about it. Here we walk a full year per chart and assert that
+    // wherever two consecutive days share a state, BOTH the line and the quote
+    // differ — and that the window actually contains enough same-state pairs that
+    // the assertion is not vacuously true.
+    for (const chart of [A, B, C]) {
+      let sameStatePairs = 0;
+      let prev: ReturnType<typeof todayVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = todayVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+        if (prev && prev.state === v.state) {
+          sameStatePairs++;
+          expect(prev.line, `frozen line across adjacent same-state days (day-of-year ${i})`).not.toBe(v.line);
+          expect(prev.quote, `frozen quote across adjacent same-state days (day-of-year ${i})`).not.toBe(v.quote);
+        }
+        prev = v;
+      }
+      // guard against a vacuous pass: a year always has many same-state runs
+      expect(sameStatePairs, `too few same-state adjacent pairs to test rotation`).toBeGreaterThan(50);
     }
   });
 
