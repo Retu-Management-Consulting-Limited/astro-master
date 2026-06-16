@@ -1,0 +1,41 @@
+name: constitution-gate
+
+# 改宪法人工闸：宪法（或其 eval rubric）一旦在 PR 里被改动，必须同时在
+# docs/CONSTITUTION-CHANGELOG.md 登记一条变更——否则这个 check 红，PR 合不进。
+# 配合分支保护（require PR review）= 改宪法必须人工审 + bump 版本 + 记录理由。
+# 见 docs/CONSTITUTION-CHANGELOG.md。
+
+on:
+  pull_request:
+    paths:
+      - 'docs/2026-06-16-molly-constitution.md'
+      - 'docs/2026-06-16-constitution-eval-rubric.md'
+
+jobs:
+  changelog-required:
+    name: constitution change must be logged
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: require CONSTITUTION-CHANGELOG entry
+        run: |
+          BASE="origin/${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}" --depth=0 || git fetch origin "${{ github.base_ref }}"
+          CHANGED="$(git diff --name-only "$BASE"...HEAD)"
+          echo "Changed files:"; echo "$CHANGED"
+          touched_law=false
+          echo "$CHANGED" | grep -qx 'docs/2026-06-16-molly-constitution.md' && touched_law=true
+          echo "$CHANGED" | grep -qx 'docs/2026-06-16-constitution-eval-rubric.md' && touched_law=true
+          if [ "$touched_law" = true ]; then
+            if echo "$CHANGED" | grep -qx 'docs/CONSTITUTION-CHANGELOG.md'; then
+              echo "✓ 宪法/rubric 改动已在 CONSTITUTION-CHANGELOG.md 登记。"
+            else
+              echo "::error::改了宪法或其 rubric，但 docs/CONSTITUTION-CHANGELOG.md 没有对应登记。" \
+                   "宪法是软部件，改它必须：人工审 + bump 版本 + 在 CONSTITUTION-CHANGELOG.md 记录理由。"
+              exit 1
+            fi
+          else
+            echo "未触及宪法，跳过。"
+          fi
