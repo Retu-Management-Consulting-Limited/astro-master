@@ -5,6 +5,10 @@ import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { generateThemeRead, THEME_IDS, type ThemeId, type ThemeRead } from "@/lib/reading/theme";
 import { fetchThemeRead, AI_ON } from "@/lib/reading/remote";
+import { memoryPreface, honestGate } from "@/lib/reading/themeMemory";
+import { collectMoodHistory } from "@/lib/moodHistory";
+import { moodTrend, lowStreak, type MoodTrend } from "@/lib/model/userModel";
+import { useUnderstanding } from "@/lib/understanding";
 import { MollyThinking } from "@/components/MollyThinking";
 import { BackButton } from "@/components/BackButton";
 import { track } from "@/lib/track";
@@ -17,6 +21,15 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
   const themeId = (THEME_IDS as string[]).includes(id) ? (id as ThemeId) : null;
   const [r, setR] = useState<ThemeRead | null>(null);
   const [refining, setRefining] = useState(false);
+  // keystone回喂 + honest gate read live state. Mood from the user's own check-ins.
+  const understand = useUnderstanding();
+  const [mood, setMood] = useState<{ trend: MoodTrend; lowStreak: number }>({ trend: "flat", lowStreak: 0 });
+  useEffect(() => {
+    try {
+      const d = collectMoodHistory(localStorage);
+      setMood({ trend: moodTrend(d), lowStreak: lowStreak(d) });
+    } catch {}
+  }, []);
 
   // instant deterministic stub, then upgrade in place to Claude's prose (AI on)
   useEffect(() => {
@@ -66,9 +79,17 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
       </div>
 
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "10px 24px 24px" }}>
-        <div data-testid="theme-read" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12.5, color: "var(--gold-soft)", background: "rgba(201,168,97,.08)", border: "1px solid rgba(201,168,97,.28)", borderRadius: 20, padding: "6px 13px", margin: "8px 0 18px" }}>
+        <div data-testid="theme-read" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12.5, color: "var(--gold-soft)", background: "rgba(201,168,97,.08)", border: "1px solid rgba(201,168,97,.28)", borderRadius: 20, padding: "6px 13px", margin: "8px 0 14px" }}>
           {r.planetLabel}
         </div>
+
+        {/* keystone回喂: read this theme "with the current you in mind" (real mood signal) */}
+        {memoryPreface(mood) && (
+          <div data-testid="theme-memory" style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12.5, color: "#bfe0f5", background: "rgba(143,194,232,.08)", border: "1px solid rgba(143,194,232,.22)", borderRadius: 12, padding: "10px 12px", marginBottom: 16, lineHeight: 1.6 }}>
+            <span aria-hidden="true">🕯</span>
+            <span><b style={{ color: "#dff0fc", fontWeight: 500 }}>我记得</b> · {memoryPreface(mood)}</span>
+          </div>
+        )}
 
         {refining && (
           <MollyThinking
@@ -91,11 +112,18 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
           ))}
         </div>
 
-        {/* 更深的一层 — paywall stub. TODO(key): gated deep synthesis via Claude. */}
-        <div style={{ marginTop: 18, borderRadius: 14, padding: "15px 16px", border: "1px solid rgba(201,168,97,.3)", background: "linear-gradient(180deg, rgba(201,168,97,.07), rgba(201,168,97,.02))", textAlign: "center" }}>
-          <div style={{ fontSize: 13.5, color: "var(--gold-soft)" }}>🔒 更深的一层：{r.title}里，你到底卡在哪</div>
-          <div style={{ fontSize: 11, color: "#5f6675", marginTop: 5 }}>解锁完整解读 · 即将开放</div>
-        </div>
+        {/* 更深的一层 — honest gate (R18④): withheld because she's not sure she knows
+            you yet, NOT behind a paywall. The way to deepen is to talk → /chat. */}
+        {(() => {
+          const g = honestGate(understand);
+          return (
+            <button type="button" data-testid="deep-gate" onClick={() => router.push("/chat")} style={{ width: "100%", textAlign: "left", marginTop: 18, borderRadius: 14, padding: "14px 16px", border: "1px solid rgba(143,194,232,.3)", background: "rgba(143,194,232,.05)", cursor: "pointer" }}>
+              <div style={{ fontSize: 13.5, color: "#bfe0f5", marginBottom: 7 }}>{g.headline}</div>
+              <div style={{ fontSize: 12.5, color: "var(--cream-dim)", lineHeight: 1.65 }}>{g.sub}</div>
+              <div style={{ fontSize: 11, color: "var(--mute)", marginTop: 8, display: "flex", alignItems: "center" }}>{g.note}<b style={{ marginLeft: "auto", color: "var(--blue)", fontWeight: 500 }}>跟我聊聊 →</b></div>
+            </button>
+          );
+        })()}
 
         <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "18px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这段存成卡片</button>
       </div>

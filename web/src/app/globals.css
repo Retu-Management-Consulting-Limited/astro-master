@@ -9,13 +9,18 @@
   --serif:'Cormorant Garamond','Noto Serif SC',Georgia,serif;
   --sans:'Hanken Grotesk','Noto Sans SC',system-ui,sans-serif;
 }
-*{margin:0;padding:0;box-sizing:border-box}
+/* Reset lives in @layer base so Tailwind v4 utilities (@layer utilities) win.
+   An UNLAYERED universal reset beats every spacing, border and background
+   utility (cascade-layers rule: unlayered wins over layered) — that silently
+   broke Money Mirror on 2026-06-16. Guarded by scripts/check-css-layers.mjs
+   plus e2e/css-layer-invariant.spec.ts. */
+@layer base { *{margin:0;padding:0;box-sizing:border-box} }
 html,body{height:100%}
 body{background:#04050a;font-family:var(--sans);-webkit-font-smoothing:antialiased;color:var(--cream)}
 
 /* ===== a11y baseline (DESIGN-SYSTEM §11 / R1) ===== */
 /* Native <button> used for real actions: inherit type, neutral chrome, good touch. */
-button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+@layer base { button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation} }
 /* Visible keyboard focus everywhere; never a bare outline:none. */
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
 /* Honor reduced-motion: kill the spins/breathing/shimmer for vestibular safety. */

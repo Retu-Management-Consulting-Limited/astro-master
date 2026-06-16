@@ -24,6 +24,13 @@ export function InstallPrompt() {
   // instead of showing stale content.
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
+    // Was this page ALREADY controlled by a SW at load time? Snapshot it now,
+    // BEFORE registering — because sw.js calls clients.claim() on activate, which
+    // sets navigator.serviceWorker.controller during the FIRST install too. So
+    // checking controller after activation can't tell first-install from update,
+    // and first-time visitors would get a jarring reload (and every mount-based
+    // metric double-fires). Only a genuine update has a controller up front.
+    const hadController = !!navigator.serviceWorker.controller;
     let reloaded = false;
     navigator.serviceWorker
       .register("/sw.js", { updateViaCache: "none" })
@@ -32,8 +39,8 @@ export function InstallPrompt() {
         reg.addEventListener("updatefound", () => {
           const nw = reg.installing;
           nw?.addEventListener("statechange", () => {
-            // controller present = there was a previous SW → this is an update
-            if (nw.state === "activated" && navigator.serviceWorker.controller && !reloaded) {
+            // hadController (pre-register) = there was a previous SW → real update
+            if (nw.state === "activated" && hadController && !reloaded) {
               reloaded = true;
               window.location.reload();
             }

@@ -1,8 +1,13 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useChartGuard } from "@/lib/guard";
 import { detectHighlights } from "@/lib/astro/highlights";
+import { highlightHeadline, highlightHook, highlightTheme } from "@/lib/reading/highlightCopy";
+import { collectMoodHistory } from "@/lib/moodHistory";
+import { lowStreak } from "@/lib/model/userModel";
 import { TabBar } from "@/components/TabBar";
+import { EntryCard } from "@/components/money/EntryCard";
 import { useUnderstanding } from "@/lib/understanding";
 import type { BodyName } from "@/lib/astro/chart";
 
@@ -19,10 +24,20 @@ function pos(lon: number, r: number) {
 export default function ChartPage() {
   const { chart, ready } = useChartGuard();
   const understand = useUnderstanding();
+  // keystone回喂: a recent low-mood streak lets the highlight acknowledge it (her own
+  // check-ins; warm, lands on care — R18 ②⑥). Loaded client-side from localStorage.
+  const [low, setLow] = useState(0);
+  useEffect(() => {
+    try { setLow(lowStreak(collectMoodHistory(localStorage))); } catch {}
+  }, []);
   if (!ready || !chart) return null;
 
   const highlights = detectHighlights(chart);
   const glowBodies = new Set(highlights.flatMap((h) => h.bodies));
+  // one card per life-area: dedupe by domain (headlines are domain-keyed, so two
+  // same-domain hits would otherwise print the identical line twice).
+  const seenDomain = new Set<string>();
+  const topHighlights = highlights.filter((h) => (seenDomain.has(h.domain) ? false : (seenDomain.add(h.domain), true))).slice(0, 3);
   const sun = chart.placements.find((p) => p.body === "Sun")!;
   const moon = chart.placements.find((p) => p.body === "Moon")!;
 
@@ -79,18 +94,22 @@ export default function ChartPage() {
           <div style={{ marginTop: 8, fontSize: 11, color: "var(--mute)" }}>亮的是你盘上<b style={{ color: "var(--gold)" }}>最强的几处</b> · 你越常来，我越懂你</div>
         </div>
 
-        <div style={{ marginTop: 18, fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)" }}>✨ <span style={{ color: "var(--gold)" }}>你盘上最亮的几处</span></div>
-        {highlights.slice(0, 3).map((h, i) => {
+        <div style={{ marginTop: 20 }}>
+          <div style={{ fontFamily: "var(--serif)", fontSize: 19, color: "var(--cream)", fontWeight: 500, lineHeight: 1.4 }}>你出生那一刻，<i style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>天空替你写下了几件事。</i></div>
+          <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 6, lineHeight: 1.6 }}>不是我评判你，是这张盘本来的样子——我陪你一起读。</div>
+        </div>
+        {topHighlights.map((h, i) => {
           const pink = h.bodies.includes("Venus");
+          const moodNote = i === 0 && low >= 2; // first card warmly acknowledges a recent low streak (keystone回喂)
           return (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 13, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 14, padding: "13px 15px", marginTop: 10 }}>
-              <span style={{ width: 34, height: 34, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flex: "0 0 auto", background: "#161b29", color: pink ? "#e69ec8" : "#e0c98a" }}>✦</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, marginBottom: 2, color: pink ? "#e69ec8" : "#e0c98a" }}>{h.summary}</div>
-                <div style={{ fontSize: 12, color: "var(--mute)" }}>{({ love: "你的感情，从不浅尝", career: "事业是你人生的主轴", lonely: "你把情绪藏得最深", self: "你一直在找你自己", mind: "你的脑子从不肯停", shadow: "你藏起来的力量" } as Record<string, string>)[h.domain]}</div>
+            <Link key={i} href={`/theme/${highlightTheme(h.domain)}`} data-testid="highlight" style={{ display: "block", textDecoration: "none", background: "linear-gradient(180deg, rgba(201,168,97,.08), rgba(201,168,97,.02))", border: `1px solid ${pink ? "rgba(230,158,200,.3)" : "rgba(201,168,97,.3)"}`, borderRadius: 16, padding: "14px 15px", marginTop: 11, boxShadow: `0 0 26px -16px ${pink ? "rgba(230,158,200,.5)" : "rgba(201,168,97,.5)"}` }}>
+              <div style={{ fontSize: 15, lineHeight: 1.5, color: "var(--cream)", fontWeight: 500 }}>{highlightHeadline(h.domain)}</div>
+              <div style={{ fontSize: 11.5, color: pink ? "#f1c2dd" : "var(--gold-soft)", marginTop: 8, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <span aria-hidden="true">✦</span> {h.summary} · 你生来带的
+                {moodNote && <span style={{ color: "var(--blue)" }}>· 也接住了你这几天的低落</span>}
               </div>
-              <span style={{ color: "#4f5666" }}>›</span>
-            </div>
+              <div style={{ fontSize: 11.5, color: "var(--mute)", marginTop: 9, display: "flex", alignItems: "center" }}>{highlightHook(h.domain)}<b style={{ marginLeft: "auto", color: pink ? "#e69ec8" : "var(--gold)", fontWeight: 500 }}>→</b></div>
+            </Link>
           );
         })}
 
@@ -102,6 +121,7 @@ export default function ChartPage() {
             </Link>
           ))}
         </div>
+        <EntryCard surface="chart" />
         <Link href="/share" style={{ display: "block", margin: "20px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", textDecoration: "none" }}>📤 把我的星盘存成图</Link>
       </div>
 

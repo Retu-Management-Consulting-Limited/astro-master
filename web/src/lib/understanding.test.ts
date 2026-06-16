@@ -36,6 +36,23 @@ describe("understanding score", () => {
     expect(v).toBe(62); // 26+12+10+6+8
   });
 
+  it("R18④: a miss makes Molly PAY — the meter dips when she's wrong (not a one-way sticker)", () => {
+    // same hits, but adding misses must LOWER understanding (old formula ignored misses)
+    const allHits = understanding({ ...base, confirms: 3, misses: 0 });
+    const halfWrong = understanding({ ...base, confirms: 3, misses: 3 });
+    expect(halfWrong).toBeLessThan(allHits);
+    // pure misses drop below a no-feedback baseline
+    expect(understanding({ ...base, misses: 3 })).toBeLessThan(understanding(base));
+    // …but it never craters: floored so she always at least knows your chart
+    expect(understanding({ ...base, misses: 99 })).toBeGreaterThanOrEqual(18);
+  });
+
+  it("reduces to the old hits-only behavior when there are no misses (no regression)", () => {
+    expect(understanding({ ...base, confirms: 1, misses: 0 })).toBe(28);
+    expect(understanding({ ...base, confirms: 3, misses: 0 })).toBe(32);
+    expect(understanding({ ...base, confirms: 999, misses: 0 })).toBe(36); // 26 + 10 cap
+  });
+
   it("never returns a fractional or out-of-range value", () => {
     for (const days of [0, 1, 3, 7, 24, 100]) {
       for (const confirms of [0, 2, 50]) {
