@@ -149,6 +149,17 @@ export function bodyLongitude(body: BodyName, date: Date): number {
   return eclipticLongitude(body, date);
 }
 
+// Recompute the four angles (here ASC + MC) for a given birth date at an
+// ARBITRARY clock hour/minute at the same place. The natal angles are the only
+// part of the chart that move fast with birth time (~1°/4min on the MC), so
+// rectification — inferring the true birth time from life events that hit the
+// angles — needs to sweep candidate hours and recompute ASC/MC for each. The
+// planets barely move within a day, so we don't recompute them here. Thin
+// wrapper over the (unexported) ascMc; keeps rectify.ts out of the ephemeris.
+export function anglesAt(b: BirthInput, hour: number, minute: number): { asc: number; mc: number } {
+  return ascMc(utcDate({ ...b, hour, minute }), b.lat, b.lng);
+}
+
 // Apparent (geocentric) retrograde: ecliptic longitude decreasing across a ±12h
 // window centered on the date. The engine exposes no retrograde flag, so we
 // derive it from motion. The Sun and Moon never retrograde geocentrically.
