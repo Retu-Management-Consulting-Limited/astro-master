@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "check:css": "node scripts/check-css-layers.mjs",
+    "test:e2e": "playwright test",
+    "prebuild": "node scripts/check-css-layers.mjs",
     "build": "next build",
     "start": "next start",
     "postinstall": "git -C .. config core.hooksPath .githooks 2>/dev/null || true"

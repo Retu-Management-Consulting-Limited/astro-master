@@ -8,6 +8,12 @@
 #
 # See docs/PARALLEL-COLLAB.md.
 
+# P1 guard (2026-06-16 incident): block unlayered CSS resets that silently
+# override Tailwind @layer utilities. Static + fast; runs on every push.
+if [ -f web/scripts/check-css-layers.mjs ]; then
+  node web/scripts/check-css-layers.mjs || exit 1
+fi
+
 [ "$MOLLY_ALLOW_FORCE" = "1" ] && exit 0
 z40="0000000000000000000000000000000000000000"
 
