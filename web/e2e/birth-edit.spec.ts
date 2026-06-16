@@ -61,3 +61,27 @@ test("editing to an unknown city shows an error, does not navigate away", async 
   await expect(page.locator('[data-testid="edit-err"]')).toBeVisible({ timeout: 6000 });
   await expect(page.locator('[data-testid="edit-birth"]')).toBeVisible(); // stayed on page
 });
+
+// Journey-level gate: editing birth info re-resolves the chart, so the old
+// firstRead (the "我眼中的你" self-quote, generated from the PREVIOUS chart) is
+// now stale and must NOT linger. After save it should fall back, not show the
+// old chart's quote. Property scans can't catch this — every value stays truthy.
+test("editing birth info clears the stale firstRead — no old self-quote lingers", async ({ page }) => {
+  await quietPage(page);
+  await walkToToday(page);
+
+  await page.locator('a[href="/me"]').click();
+  await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 5000 });
+  // A real firstRead exists from onboarding → the fallback quote is NOT shown yet.
+  await expect(page.getByText(/先看看你自己/)).toHaveCount(0);
+
+  // Edit birth → save → chart changes → old firstRead is stale.
+  await page.locator('[data-testid="birth-card"]').click();
+  await expect(page.locator('[data-testid="edit-birth"]')).toBeVisible({ timeout: 5000 });
+  await page.locator('[data-testid="edit-city"]').fill("上海");
+  await page.locator('[data-testid="save-birth"]').click();
+  await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 8000 });
+
+  // Stale firstRead must be gone → "我眼中的你" falls back to the default quote.
+  await expect(page.getByText(/先看看你自己/)).toBeVisible();
+});

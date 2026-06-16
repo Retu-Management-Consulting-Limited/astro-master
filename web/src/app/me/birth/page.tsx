@@ -30,6 +30,7 @@ function EditBirthForm() {
   const storedGender = useFunnel((s) => s.gender);
   const setChart = useFunnel((s) => s.setChart);
   const setGender = useFunnel((s) => s.setGender);
+  const setFirstRead = useFunnel((s) => s.setFirstRead);
 
   const [date, setDate] = useState(birthForm?.date ?? "1998-06-13");
   const [time, setTime] = useState(birthForm?.time ?? "08:40");
@@ -53,6 +54,11 @@ function EditBirthForm() {
       }
       setGender(gender);
       setChart(r.birth, form, computeChart(r.birth));
+      // The chart changed → the old firstRead (self-quote/chips) was generated
+      // from the PREVIOUS chart and is now stale. Clear it so "我眼中的你" and
+      // chat openers fall back instead of showing the old chart's description;
+      // it regenerates next time the user visits /reading.
+      setFirstRead(undefined);
       apiSync(snapshotOf(useFunnel.getState())); // persist to account if logged in
       track("birth_edited");
       router.push("/me");
@@ -73,7 +79,7 @@ function EditBirthForm() {
         <span style={{ fontWeight: 500, letterSpacing: ".32em", fontSize: 13, color: "var(--cream)" }}>出生信息</span>
       </div>
 
-      <div style={{ position: "relative", zIndex: 2, flex: 1, display: "flex", flexDirection: "column", padding: "12px 30px 30px" }}>
+      <div style={{ position: "relative", zIndex: 2, flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", padding: "12px 30px 30px" }}>
         <p style={{ fontWeight: 300, fontSize: 13.5, lineHeight: 1.7, color: "var(--cream-dim)", marginBottom: 22 }}>
           改对了，我会立刻为你重新排盘。出生地或时间一变，整张盘都会跟着更新。
         </p>
