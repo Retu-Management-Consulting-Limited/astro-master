@@ -58,9 +58,15 @@ test("synastry invite: A invites → B submits real birth → A sees real partne
   await expect(page.locator('[data-testid="syn-partner-real"]')).toBeVisible({ timeout: 15000 });
   await expect(page.locator('[data-testid="syn-partner-real"]')).toContainText("小鱼");
 
-  // a real compatibility result still renders
+  // a real compatibility result renders, names both people, shows a score, and
+  // each dimension drills down to the real cross-aspects (PR3)
   await page.locator('[data-testid="syn-type"]').first().click();
-  await expect(page.locator('[data-testid="syn-result"]')).toBeVisible({ timeout: 5000 });
+  const result = page.locator('[data-testid="syn-result"]');
+  await expect(result).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('[data-testid="syn-names"]')).toContainText("小鱼"); // 点名两人
+  await expect(result).toContainText("%"); // real score present
+  await page.locator('[data-testid="syn-dim"]').first().click(); // 维度下钻
+  await expect(page.locator('[data-testid="syn-drill"]').first()).toBeVisible({ timeout: 3000 });
 });
 
 test("synastry invite: invalid token shows a friendly message", async ({ page }) => {
