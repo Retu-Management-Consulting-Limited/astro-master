@@ -76,5 +76,28 @@ export function completeEvent(events: LifeEvent[], target: LifeEvent, month: num
   };
 }
 
+// ── 时辰侦探文案 (detective band copy) ────────────────────────────────────────
+// The one user-facing line the "时辰侦探" surface (Phase 5 UI) renders under the
+// 24h band: "已锁到 X 小时内 / 还没锁定". It is generated from the belief — never a
+// fixed mad-lib — so it stays honest: a WIDE belief says we haven't locked the
+// hour yet (no false precision); a sharp one names the real span we've narrowed to.
+//
+// Charter (charter v1.6 / 宪法 §5.2 镜子非算命) — this copy must:
+//   • 真 via 对天象: it reports what her real events narrowed (a span of hours),
+//     it never announces a single exact birth minute as fact.
+//   • 不假装算命 / 不冒充: no 命中注定/预言/算准 framing — it's an inference that
+//     gets sharper, explicitly still uncertain ("大概/还在收窄"), never god-view.
+// The width comes straight from belief.topRange, so the string moves with the
+// belief (registered as a dynamic surface in __guards__/content-freshness.test.ts).
+export function detectiveBandCopy(belief: TimeBelief): string {
+  const [lo, hi] = belief.topRange;
+  const hours = ((hi - lo + 24) % 24) || 24; // wrap-aware span width in hours
+  // Still wide → be honest that we haven't locked it; don't fake a window.
+  if (belief.confidence < 0.15 || hours >= 20) {
+    return "你的出生时辰还在收窄——多补一件人生大事，我就能锁得更准。";
+  }
+  return `照你说的那些大事，我大概把你的出生时辰锁到了 ${hours} 小时内——再补一件，还能更窄。`;
+}
+
 // Re-exported for callers that want the wide/sharp cut without importing rectify.
 export { refine };

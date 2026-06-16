@@ -11,6 +11,8 @@ import { biorhythm } from "../lib/biorhythm";
 import { moneyPersona } from "../lib/money/persona";
 import { nextChapter } from "../lib/money/narrative";
 import { todayVerdict } from "../lib/reading/todayVerdict";
+import { seed } from "../lib/astro/timeBelief";
+import type { LifeEvent } from "../lib/astro/rectify";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 动态内容契约 (FRESHNESS CONTRACT) — see CLAUDE.md & design/DESIGN-SYSTEM.md.
@@ -274,5 +276,53 @@ describe("freshness contract · today verdict (per-day rotation + personalized l
     const cell = (v: ReturnType<typeof todayVerdict>) =>
       text([v.state, v.lean, v.line, v.quote, v.action, v.prep, v.askDidYouAct]);
     expect(cell(todayVerdict(A, day)), "A and B share the whole cell").not.toBe(cell(todayVerdict(B, day)));
+  });
+});
+
+// #T3 时辰侦探 (TimeBelief.topRange / mode) — the calibration detective band is a
+// DYNAMIC surface keyed on BELIEF: as she feeds real life-events, the inferred
+// hour band (topRange) narrows and the mode flips planet→house. The presentation
+// the user sees ("已锁到 X 小时内") therefore MUST move along the belief axis —
+// not merely have its underlying number change. Registry entry, strong form:
+//   • belief axis: a wide belief (few/no events) vs a sharp one (more events) must
+//     produce a DIFFERENT topRange AND a different mode (not Set(...).size>1).
+//   • the narrowing is monotonic (a sharper belief is a strict subset band), so we
+//     assert the SPAN shrinks — the detective only ever locks in, never re-blurs.
+// (This is the per-belief sibling of the per-day / per-chart contracts above:
+//  todayVerdict's STATE is deliberately belief-INVARIANT — that wall is held by
+//  __guards__/edge-preservation.test.ts; what varies by belief is the hour band.)
+describe("freshness contract · time detective band varies by BELIEF (topRange + mode)", () => {
+  const birth = { year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 };
+  const e1: LifeEvent = { kind: "move", year: 2019, month: 3 };
+  const e2: LifeEvent = { kind: "career", year: 2021, month: 9 };
+  const e3: LifeEvent = { kind: "relationship", year: 2023, month: 6 };
+
+  const span = ([lo, hi]: [number, number]) => (hi - lo + 24) % 24;
+
+  it("a wide belief and a sharp belief render a DIFFERENT detective band (presentation moves on the belief axis)", () => {
+    const wide = seed(birth, []); // nothing known → whole-clock band, planet mode
+    const sharp = seed(birth, [e1, e2, e3]); // corroborated → narrowed band, may flip house
+    expect(sharp.topRange, "sharp belief did not move the detective band").not.toEqual(wide.topRange);
+    expect(sharp.confidence).toBeGreaterThan(wide.confidence);
+  });
+
+  it("the band narrows MONOTONICALLY as events accrue (locks in, never re-blurs)", () => {
+    const b0 = seed(birth, []);
+    const b1 = seed(birth, [e1]);
+    const b2 = seed(birth, [e1, e2]);
+    const b3 = seed(birth, [e1, e2, e3]);
+    // span is non-increasing across the chain, and strictly tighter end-to-end
+    expect(span(b1.topRange)).toBeLessThanOrEqual(span(b0.topRange));
+    expect(span(b2.topRange)).toBeLessThanOrEqual(span(b1.topRange));
+    expect(span(b3.topRange)).toBeLessThanOrEqual(span(b2.topRange));
+    expect(span(b3.topRange), "three events did not tighten the band vs zero").toBeLessThan(span(b0.topRange));
+  });
+
+  it("mode is a pure function of confidence (planet when wide, house once it crosses) — the belief, nothing else, drives it", () => {
+    const wide = seed(birth, []);
+    expect(wide.mode).toBe("planet");
+    const sharp = seed(birth, [e1, e2, e3]);
+    // mode strictly follows confidence vs the house threshold — no other input.
+    expect(sharp.mode).toBe(sharp.confidence >= 0.5 ? "house" : "planet");
   });
 });
