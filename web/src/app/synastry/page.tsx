@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
+import { BackButton } from "@/components/BackButton";
 import { computeChart, type Chart } from "@/lib/astro/chart";
 import { isFullChart } from "@/lib/astro/chart-validate";
 import { synastry, type RelType, type SynResult } from "@/lib/astro/synastry";
@@ -121,7 +122,7 @@ export default function SynastryPage() {
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 8px" }}>
-        <button type="button" aria-label="返回" onClick={() => (type ? setType(null) : router.back())} style={{ fontSize: 20, color: "var(--mute)", cursor: "pointer" }}>←</button>
+        <BackButton onClick={() => (type ? setType(null) : router.back())} />
         <span style={{ fontWeight: 500, letterSpacing: ".32em", fontSize: 13, color: "var(--cream)" }}>合盘</span>
       </div>
 
