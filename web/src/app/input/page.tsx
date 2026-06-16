@@ -22,8 +22,10 @@ export default function InputPage() {
   const setChart = useFunnel((s) => s.setChart);
   const setGender = useFunnel((s) => s.setGender);
   const [date, setDate] = useState("1998-06-13");
-  const [time, setTime] = useState("08:40");
-  const [knownTime, setKnownTime] = useState(false);
+  const [time, setTime] = useState("");
+  // 默认「不知道准确时间」→ 正午盘（诚实默认，不预填假精确值）。用户主动勾
+  // 「我知道准确的出生时间」才启用填写。注：knownTime===true 表示"未知"（见 birth.ts）。
+  const [knownTime, setKnownTime] = useState(true);
   const [country, setCountry] = useState("澳大利亚");
   const [city, setCity] = useState("墨尔本");
   const [gender, setG] = useState<"female" | "male">("female");
@@ -36,7 +38,7 @@ export default function InputPage() {
     // Field-specific validation (M1: don't blame "city" for a bad date; M6/L1:
     // no future / pre-1900 dates).
     if (!date) { setErr("请先选出生日期"); return; }
-    if (!knownTime && !time) { setErr("请填出生时间，或勾选「不知道准确时间」"); return; }
+    if (!knownTime && !time) { setErr("请填准确出生时间，或取消勾选「我知道准确的出生时间」"); return; }
     if (!validBirthDateTime(date, knownTime ? undefined : time)) {
       setErr("出生日期看起来不对——要 1900 年以后、且不能晚于今天");
       return;
@@ -96,10 +98,11 @@ export default function InputPage() {
           <div className="reveal" style={{ animationDelay: ".7s" }}>
             <label style={lbl} htmlFor="birth-time">出生时间</label>
             <input id="birth-time" className="field-inp" type="time" value={time} disabled={knownTime} onChange={(e) => setTime(e.target.value)} style={{ opacity: knownTime ? 0.5 : 1 }} />
-            <button type="button" role="checkbox" aria-checked={knownTime} onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer", padding: "4px 0", textAlign: "left" }}>
-              <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", position: "relative", background: knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{knownTime ? "✓" : ""}</span>
-              <span style={{ fontSize: 13, color: "var(--cream-dim)" }}>我不知道准确时间 —— <b style={{ color: "var(--irisc)", fontWeight: 400 }}>没关系，待会几个问题帮你校准</b></span>
+            <button type="button" role="checkbox" aria-checked={!knownTime} onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer", padding: "10px 0", textAlign: "left" }}>
+              <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", position: "relative", background: !knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{!knownTime ? "✓" : ""}</span>
+              <span style={{ fontSize: 13, color: "var(--cream-dim)" }}>我知道准确的出生时间</span>
             </button>
+            {knownTime && <p style={{ fontSize: 12.5, color: "var(--mute)", lineHeight: 1.6, marginTop: 8 }}>不知道也没关系——先按<b style={{ color: "var(--cream-dim)", fontWeight: 400 }}>正午</b>给你排盘。等你哪天问到准确时间再回来补，盘会更准。</p>}
           </div>
           <div style={{ display: "flex", gap: 12 }}>
             <div className="reveal" style={{ flex: 1, animationDelay: ".85s" }}>
