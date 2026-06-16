@@ -15,10 +15,14 @@ async function walkToToday(page: Page) {
   await page.getByRole("button", { name: /看你的盘/ }).click();
   const opt = page.locator('[data-testid="cal-opt"]').first();
   await opt.waitFor({ state: "visible", timeout: 8000 });
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     await page.locator('[data-testid="cal-opt"]').first().click();
     await page.waitForTimeout(400);
   }
+  await page.locator('[data-testid="cal-event"]').first().waitFor({ state: "visible", timeout: 8000 });
+  await page.locator('[data-testid="cal-event"]').nth(0).click();
+  await page.locator('[data-testid="cal-event"]').nth(1).click();
+  await page.locator('[data-testid="cal-finish"]').click();
   await page.locator('[data-testid="firstread"]').waitFor({ state: "visible", timeout: 8000 });
   await page.locator('[data-testid="chip"]').first().click();
   await page.locator('[data-testid="login"]').first().waitFor({ state: "visible", timeout: 8000 });
