@@ -2,9 +2,15 @@
 
 **日期**：2026-06-14
 **项目**：astro-master（Molly / vapeincity.com）
-**状态**：strategy 定稿（经 5 视角专业碰撞收敛）· 各传感器各自 spec → plan → build
+**状态**：strategy 定稿（经 5 视角专业碰撞收敛）+ 2026-06-15 重审 · 各传感器各自 spec → plan → build
 **作者**：Claude（与 Kevin 头脑风暴 + 专业批判收敛）
-**关联**：执行器 = `2026-06-14-feedback-loop-self-iteration-design.md`（已设计，暂缓；其硬前置「上线护栏」已 ✅ 完成）
+**关联**：执行器 = `2026-06-14-feedback-loop-self-iteration-design.md`（已设计，暂缓）；地基 = `2026-06-14-eval-harness-design.md`
+
+### 2026-06-15 重审更新（对齐现实，核心不变）
+1. **基建已建好**：仓库已上 GitHub（Retu 组织）+ PR 流水化 + **CI 已存在**（`ci.yml`：tsc/vitest/build/e2e）+ pre-push 护栏 + PARALLEL-COLLAB（worktree 隔离、只 PR 不改写）。执行器(feedback-loop)假设要建的轨道**基本已成**，解冻成本大降。
+2. **手动传感器已在活跃运行**：sim-test、QA 多 agent 报告、bug 审计、UIUX 审计×3——本 strategy 当成「未来传感器」的假人(#3)/自评(#6)，**现实已是手动实践**。→ 任务从「从零建传感器」改为「**系统化这些已在产出价值的手动审计 + 补它们都跳过的那一维：解读质量**」（sim-test 明写"AI 文案质量不在此轮"）。
+3. **eval harness 上调为紧急**：快速并行迭代 + CI 只挡功能回归 → 解读质量回归无人挡。eval 是当下缺的质量棘轮，接进现有 CI（见 eval spec §8）。
+4. **「越用越准必须做真」的承重风险正被主动处理**：`understanding.ts` 把硬编 62% 换成真实状态驱动的「懂你度」（注释明写 no unbacked 越用越准 promise）。方向对，继续。
 
 ---
 

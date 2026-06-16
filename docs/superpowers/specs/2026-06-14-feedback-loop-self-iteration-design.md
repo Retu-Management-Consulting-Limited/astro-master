@@ -2,8 +2,10 @@
 
 **日期**：2026-06-14
 **项目**：astro-master（Molly / vapeincity.com）
-**状态**：✅ 设计定稿 + 三轮完整性复核已过 · ⏸️ **已 Kevin 决定：暂缓实现，留作下一步**（见 §13 实现待办）
+**状态**：✅ 设计定稿 + 三轮完整性复核已过 · ⏸️ **暂缓实现**（见 §13）· 🔄 2026-06-15 重审：轨道已铺好，解冻成本大降
 **作者**：Claude（经与 Kevin 头脑风暴定稿）
+
+> **2026-06-15 重审**：当初 §5 假设「要建 GitHub repo + PR + CI + branch protection」——**现已全部存在**（repo 在 Retu 组织、PR 流水化、`ci.yml` 已跑 tsc/vitest/build/e2e、pre-push 护栏、`docs/PARALLEL-COLLAB.md` 规约）。§12-O 的硬前置「上线护栏」也已 ✅ landed。所以解冻时不再是「建轨道」，而是「把 loop 插进现有轨道」，且**必须遵守 PARALLEL-COLLAB**（worktree 隔离、只 PR 不改写、过 CI 绿灯）。仍暂缓，但工作量已大减。
 
 ---
 
