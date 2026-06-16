@@ -10,6 +10,8 @@ import { useUnderstanding } from "@/lib/understanding";
 import { safeReply } from "@/lib/ai/safety";
 import { routeUserMessage } from "@/lib/ai/chatFlow";
 import { trustTier, DIR_LABEL, type Followup, type FollowupDir } from "@/lib/ai/followups";
+import { collectMoodHistory } from "@/lib/moodHistory";
+import { moodTrend, lowStreak } from "@/lib/model/userModel";
 import { track } from "@/lib/track";
 
 interface Msg { from: "me" | "molly"; text: string }
@@ -77,7 +79,19 @@ export default function ChatPage() {
     if (!chart || booted.current) return;
     booted.current = true;
     const moon = chart.placements.find((p) => p.body === "Moon");
-    const opener = `${nickname ? `${nickname}，` : ""}我在。你的月亮在${moon?.sign ?? "—"}——情绪比你表现出来的更深。今天想跟我说点什么？开心的、烦的，都行。`;
+    // keystone 回喂：Molly opens by REMEMBERING your recent mood pattern (your own
+    // check-ins). Warm + ally + lands on care (R18 ②⑥), never pressure.
+    let moodDays: ReturnType<typeof collectMoodHistory> = [];
+    try { moodDays = collectMoodHistory(localStorage); } catch {}
+    const nick = nickname ? `${nickname}，` : "";
+    const low = lowStreak(moodDays);
+    const trend = moodTrend(moodDays);
+    const opener =
+      low >= 2
+        ? `${nick}我在。这几天你的心情，好像一直往下沉——我都看在眼里。不用急着好起来，先跟我说说，今天是哪一种沉？`
+        : trend === "up"
+        ? `${nick}我在。这几天你像是慢慢缓过来了，我替你高兴。今天想聊点什么？`
+        : `${nick}我在。你的月亮在${moon?.sign ?? "—"}——情绪比你表现出来的更深。今天想跟我说点什么？开心的、烦的，都行。`;
     const base: Msg[] = [{ from: "molly", text: opener }];
     setMsgs(base);
     let ask: string | null = null;
