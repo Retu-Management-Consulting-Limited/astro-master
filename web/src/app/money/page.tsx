@@ -29,7 +29,7 @@ export default function MoneyRevealPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-[400px] px-5 pt-6">
+      <div className="mx-auto max-w-[400px] px-5" style={{ paddingTop: "max(24px, env(safe-area-inset-top))" }}>
         <BackButton />
       </div>
       <Reveal persona={persona} onContinue={() => router.push("/money/today")} onCorrect={onCorrect} />

@@ -31,6 +31,10 @@ body{background:#04050a;font-family:var(--sans);-webkit-font-smoothing:antialias
 
 /* ===== phone / atmosphere ===== */
 .phone{position:relative;width:100%;max-width:428px;min-height:100dvh;overflow:hidden;
+  /* viewportFit:cover 下避让刘海/挖孔(顶)+ 手势导航条(底)。box-sizing:border-box
+     使 padding 含在 100dvh 内——内容避让回安全区，总高不超屏。背景(starfield/grain
+     是 absolute inset:0 子元素)仍覆盖含 padding 的整个 .phone，全屏不留白。 */
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
   background:radial-gradient(125% 78% at 50% -8%, #1b2238 0%, var(--void2) 38%, var(--void) 66%, var(--ink) 100%);
   display:flex;flex-direction:column;margin:0 auto}
 .starfield{position:absolute;inset:0;pointer-events:none;z-index:0;
