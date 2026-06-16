@@ -12,6 +12,7 @@ import { routeUserMessage } from "@/lib/ai/chatFlow";
 import { trustTier, DIR_LABEL, type Followup, type FollowupDir } from "@/lib/ai/followups";
 import { collectMoodHistory } from "@/lib/moodHistory";
 import { moodTrend, lowStreak } from "@/lib/model/userModel";
+import { chatOpeners } from "@/lib/reading/openers";
 import { track } from "@/lib/track";
 
 interface Msg { from: "me" | "molly"; text: string }
@@ -26,11 +27,11 @@ const DIR_STYLE: Record<FollowupDir, { bd: string; bg: string; c: string }> = {
 const CHAT_THINKING = ["Molly 在想…", "她把这句话，放进你的盘里看…", "在你的月亮里，找一个只对你说的答案…", "在斟酌——怎么说，才对你…"];
 
 const FALLBACK_REPLY = "我听见了。给我一点时间，把这个跟你的盘对上——你这种问法，本身就说明你已经知道答案了。";
-const OPENERS = ["我最近有点焦虑", "聊聊我的感情", "我该怎么决定一件事"];
 
 export default function ChatPage() {
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
+  const firstRead = useFunnel((s) => s.firstRead);
   const understand = useUnderstanding();
 
   // Real first-time opener derived from the user's own chart — not a fabricated
@@ -165,8 +166,8 @@ export default function ChatPage() {
         {typing && <MollyThinking variant="bubble" phrases={CHAT_THINKING} />}
         {!typing && msgs.length <= 1 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, margin: "6px 2px 4px" }}>
-            {OPENERS.map((c) => (
-              <button key={c} onClick={() => send(c)} style={{ textAlign: "left", background: "rgba(124,150,170,.08)", border: "1px solid #2b3a4e", borderRadius: 12, padding: "11px 13px", color: "#a9c4dd", fontSize: 13.5, cursor: "pointer" }}>{c}</button>
+            {chatOpeners(chart, firstRead?.chips).map((c) => (
+              <button key={c} data-testid="opener" onClick={() => send(c)} style={{ textAlign: "left", background: "rgba(124,150,170,.08)", border: "1px solid #2b3a4e", borderRadius: 12, padding: "11px 13px", color: "#a9c4dd", fontSize: 13.5, cursor: "pointer" }}>{c}</button>
             ))}
           </div>
         )}
