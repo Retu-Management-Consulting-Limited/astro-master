@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molly · T3 校准环 选项</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--void:#07090f;--void2:#0c111d;--ink:#05070c;--gold:#c9a861;--gold-soft:#e0c98a;--gold-deep:#9a7d44;
+    --cream:#efe7d4;--cream-dim:#c2baa6;--mute:#7a8194;--iris:#b58fb0;--blue:#8fb6d8;--green:#7fc99a;--red:#e0786a;
+    --field:#0f1320;--field-bd:#262d3d;--serif:'Cormorant Garamond','Noto Serif SC',serif;--sans:'Hanken Grotesk','Noto Sans SC',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);padding:24px 14px 50px;color:var(--cream);-webkit-font-smoothing:antialiased}
+  h1{font-family:var(--serif);font-weight:600;font-size:22px;color:var(--gold-soft);text-align:center;margin-bottom:4px}
+  .top{text-align:center;color:var(--mute);font-size:12px;margin-bottom:24px}
+  .qsec{margin-bottom:42px}
+  .qh{font-family:var(--serif);font-size:19px;color:var(--cream);text-align:center;margin-bottom:3px}
+  .qd{text-align:center;color:var(--mute);font-size:12px;margin-bottom:16px}
+  .pair{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+  .col{display:flex;flex-direction:column;align-items:center;gap:9px;width:320px}
+  .cap{font-size:12px;color:var(--cream-dim);text-align:center;line-height:1.5}.cap b{color:var(--gold-soft)}
+
+  .phone{position:relative;width:320px;height:520px;border-radius:28px;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% -4%,#18203a 0%,var(--void2) 42%,var(--void) 70%,var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 14% 9%,rgba(255,255,255,.6),transparent),radial-gradient(1px 1px at 82% 6%,rgba(201,168,97,.7),transparent);}
+  .bar{position:relative;z-index:3;display:flex;align-items:center;gap:9px;padding:16px 18px 6px}
+  .eye{width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:0 0 0 1px var(--gold),0 0 9px rgba(201,138,70,.4)}
+  .nm{font-weight:500;letter-spacing:.4em;font-size:10px;color:var(--gold)}
+  .prog{margin-left:auto;display:flex;gap:5px}.prog i{width:6px;height:6px;border-radius:50%;background:#2a3142}.prog i.on{background:var(--gold)}
+  .body{position:relative;z-index:2;flex:1;padding:14px 22px;display:flex;flex-direction:column}
+  .step{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+  .q{font-family:var(--serif);font-size:23px;color:var(--cream);line-height:1.35;margin:14px 0 6px}
+  .hint{font-size:12px;color:var(--mute);margin-bottom:18px}
+  .opt{background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:13px 14px;font-size:14px;color:var(--cream-dim);margin-bottom:9px;display:flex;align-items:center;gap:11px}
+  .opt .r{width:17px;height:17px;border-radius:50%;border:1.5px solid #3a4252;flex:0 0 auto}
+  .foot{margin-top:auto;text-align:center;font-size:11px;color:#5a6173}.foot i{font-style:normal;color:var(--iris)}
+
+  /* 年份 stepper */
+  .ystep{display:flex;align-items:center;justify-content:center;gap:18px;background:var(--field);border:1px solid var(--field-bd);border-radius:14px;padding:18px;margin-bottom:10px}
+  .ystep .y{font-family:var(--serif);font-size:34px;color:var(--gold-soft)}
+  .ystep .a{font-size:24px;color:var(--mute);cursor:pointer}
+  .rough{text-align:center;font-size:12px;color:var(--mute)}
+
+  /* 事件 chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .chip{font-size:13px;padding:9px 13px;border-radius:20px;border:1px solid var(--field-bd);background:var(--field);color:var(--cream-dim)}
+  .chip.on{border-color:var(--gold);background:rgba(201,168,97,.1);color:var(--gold-soft)}
+  .slider{height:5px;background:#1d2333;border-radius:3px;position:relative;margin:18px 4px 6px}
+  .slider i{position:absolute;left:42%;top:50%;width:18px;height:18px;border-radius:50%;background:var(--gold);transform:translate(-50%,-50%);box-shadow:0 0 10px rgba(201,168,97,.5)}
+  .slabel{display:flex;justify-content:space-between;font-size:10px;color:var(--mute)}
+
+  /* 时间轴 */
+  .tl{position:relative;height:60px;background:var(--field);border:1px solid var(--field-bd);border-radius:14px;margin-bottom:12px;display:flex;align-items:center;padding:0 14px}
+  .tl .line{position:absolute;left:14px;right:14px;height:2px;background:#2a3142}
+  .tl .mk{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold)}
+  .tl .yr{position:absolute;bottom:6px;font-size:9px;color:var(--mute)}
+
+  /* 进度反馈 widgets (T-Q2) */
+  .wcard{width:300px;background:var(--field);border:1px solid var(--field-bd);border-radius:16px;padding:16px}
+  .kbar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--cream-dim)}
+  .kbar .pg{flex:1;height:5px;background:#1d2333;border-radius:3px;overflow:hidden}.kbar .pg i{display:block;height:100%;width:64%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft))}
+  .toast{margin-top:12px;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--green);background:rgba(127,201,154,.1);border:1px solid rgba(127,201,154,.3);padding:6px 11px;border-radius:20px}
+  .zod{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:6px 0 10px}
+  .zod span{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;background:rgba(255,255,255,.03);color:#3d4555}
+  .zod span.lv{background:rgba(201,168,97,.14);color:var(--gold-soft);box-shadow:0 0 0 1px rgba(201,168,97,.4)}
+  .clock{height:34px;border-radius:8px;background:linear-gradient(90deg,#141a28 0%,#141a28 38%,rgba(201,168,97,.3) 38%,rgba(201,168,97,.3) 50%,#141a28 50%,#141a28 100%);position:relative;margin:8px 0 6px;border:1px solid var(--field-bd)}
+  .clock .lab{position:absolute;left:39%;top:-18px;font-size:10px;color:var(--gold-soft)}
+  .clock .sc{position:absolute;bottom:-15px;width:100%;display:flex;justify-content:space-between;font-size:9px;color:var(--mute);padding:0 4px}
+  .wt{font-size:13px;color:var(--cream);margin-bottom:4px}.ws{font-size:11.5px;color:var(--mute);line-height:1.5}
+
+  /* 潜伏 prompt (T-Q3) */
+  .pcard{width:300px;border-radius:14px;padding:13px 14px}
+  .prep{background:rgba(201,168,97,.07);border:1px solid rgba(201,168,97,.25);color:#dccfa6;font-size:13px;line-height:1.55}.prep b{color:var(--gold-soft)}.prep .arr{color:var(--gold);float:right}
+  .confirm{background:var(--field);border:1px solid var(--field-bd)}
+  .confirm .q{font-family:inherit;font-size:13px;color:var(--cream-dim);margin:0 0 10px}
+  .confirm .fb{display:flex;gap:8px}.confirm .fb span{flex:1;text-align:center;border-radius:9px;padding:7px;font-size:12px;border:1px solid #2b3a4e;color:#a9c4dd}.confirm .fb span.y{background:rgba(127,201,154,.12);border-color:rgba(127,201,154,.4);color:var(--green)}
+  .chiptoast{margin-top:9px;font-size:11px;color:var(--gold-soft);background:rgba(201,168,97,.08);border:1px solid rgba(201,168,97,.25);padding:6px 10px;border-radius:18px;display:inline-block}
+  .entry{background:var(--field);border:1px solid var(--field-bd);display:flex;align-items:center;gap:11px;font-size:13px;color:var(--cream-dim)}
+  .entry .ic{width:30px;height:30px;border-radius:50%;background:rgba(201,168,97,.1);display:flex;align-items:center;justify-content:center;color:var(--gold)}.entry .arr{margin-left:auto;color:var(--gold)}
+</style>
+</head>
+<body>
+<h1>T3 · 校准环 UI/UX 选项</h1>
+<p class="top">校时辰 · 混合(onboarding起手+日常潜伏) · rectification · 真via对天象+保留棱角。三个面各选一个。</p>
+
+<!-- ════ T-Q1 onboarding 人生大事题怎么问 ════ -->
+<div class="qsec">
+  <div class="qh">T-Q1 · onboarding 怎么问"人生大事"？</div>
+  <div class="qd">起手要拿一两件带日期的大事去对四角、粗收时辰。三种问法：</div>
+  <div class="pair">
+    <div class="col">
+      <div class="phone"><div class="bar"><div class="eye"></div><span class="nm">MOLLY</span><div class="prog"><i class="on"></i><i class="on"></i><i></i></div></div>
+        <div class="body"><span class="step">第 3 题 / 共 3 题 · 这题让我校准你的时辰</span>
+          <div class="q">你人生最大的一次<br>"地方变动"，大概哪年？</div>
+          <div class="hint">搬家 / 换城市 / 出国都算。记不清，给个大概就行。</div>
+          <div class="ystep"><span class="a">‹</span><span class="y">2016</span><span class="a">›</span></div>
+          <div class="rough">○ 实在想不起 · 跳过</div>
+          <div class="foot"><i>大事会在你盘的"四角"上留印——我用它反推你的出生时刻</i></div>
+        </div></div>
+      <div class="cap">A｜<b>粗年份 stepper</b><br>最低门槛、一秒答；但单点事件信息少、收得粗</div>
+    </div>
+    <div class="col">
+      <div class="phone"><div class="bar"><div class="eye"></div><span class="nm">MOLLY</span><div class="prog"><i class="on"></i><i class="on"></i><i></i></div></div>
+        <div class="body"><span class="step">第 3 题 / 共 3 题</span>
+          <div class="q">你身上发生过哪几件<br>"大事"？挑你记得的。</div>
+          <div class="hint">多挑几件，我能把你的时辰收得更准。</div>
+          <div class="chips"><span class="chip on">搬到新城市</span><span class="chip">换了行业</span><span class="chip on">一段重要感情</span><span class="chip">大病/手术</span><span class="chip">结婚/生子</span></div>
+          <div class="q" style="font-size:16px;margin:4px 0 0">"搬到新城市"那年，你几岁？</div>
+          <div class="slider"><i></i></div><div class="slabel"><span>18</span><span>~26 岁</span><span>40</span></div>
+          <div class="foot"><i>多件事交叉，比单点准得多</i></div>
+        </div></div>
+      <div class="cap">B｜<b>事件清单 + 年龄</b><br>多件交叉=收得更准、门槛仍低；但多两步</div>
+    </div>
+    <div class="col">
+      <div class="phone"><div class="bar"><div class="eye"></div><span class="nm">MOLLY</span><div class="prog"><i class="on"></i><i class="on"></i><i></i></div></div>
+        <div class="body"><span class="step">第 3 题 / 共 3 题</span>
+          <div class="q">把你人生的<br>几个转折点放上去</div>
+          <div class="hint">长按时间轴，标一个大事发生的位置。</div>
+          <div class="tl"><div class="line"></div><div class="mk" style="left:30%;top:18px"></div><div class="yr" style="left:27%">2014</div><div class="mk" style="left:62%;top:18px"></div><div class="yr" style="left:59%">2020</div></div>
+          <div class="rough" style="text-align:left;color:var(--cream-dim)">已标 2 个 · 越多越准</div>
+          <div class="foot"><i>视觉化、可玩；但操作最重、移动端易误触</i></div>
+        </div></div>
+      <div class="cap">C｜<b>人生时间轴</b><br>最沉浸可玩、信息最丰；但操作最重、最难做对</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ T-Q2 越用越准 反馈 ════ -->
+<div class="qsec">
+  <div class="qh">T-Q2 · "越用越准"怎么让她感到？</div>
+  <div class="qd">校准在收窄——但怎么把"盘在变准"做成可感的爽？三种：</div>
+  <div class="pair">
+    <div class="col">
+      <div class="wcard"><div class="kbar">懂你 <span class="pg"><i></i></span> <b style="color:var(--gold)">64%</b> ↑</div>
+        <div class="toast">✦ +1% 校准 · 又看清你一点</div>
+      </div>
+      <div class="cap" style="width:300px">A｜<b>懂你% + 微反馈</b><br>复用现有"懂你%"条 + 每次确认弹"+1%"。<br>最轻、已有基建；但抽象，"准在哪"看不见</div>
+    </div>
+    <div class="col">
+      <div class="wcard"><div class="wt">正在锁定你的上升</div><div class="ws" style="margin-bottom:8px">从 12 种 → 缩到 3 种了</div>
+        <div class="zod"><span>♈</span><span>♉</span><span class="lv">♊</span><span>♋</span><span class="lv">♌</span><span>♍</span><span>♎</span><span class="lv">♏</span><span>♐</span><span>♑</span><span>♒</span><span>♓</span></div>
+        <div class="ws">再补一件大事，可能就锁死一个。</div>
+      </div>
+      <div class="cap" style="width:300px">B｜<b>上升候选收窄</b><br>12→3 可视化，"它在找我的盘"很实在<br>具体可感、勾人补料；但要解释"上升"是啥</div>
+    </div>
+    <div class="col">
+      <div class="wcard"><div class="wt">我在帮你找回出生时刻</div>
+        <div class="clock"><div class="lab">▼ 上午 9–11 点</div><div class="sc"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div></div>
+        <div class="ws" style="margin-top:18px">已经锁到 2 小时内。你妈记得是早上吧？再确认一下就更准。</div>
+      </div>
+      <div class="cap" style="width:300px">C｜<b>时辰侦探</b><br>"帮你找回出生时刻"叙事最强、最被看穿<br>24h→2h 一眼懂；但若她真不知时间会落空</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ T-Q3 潜伏 rectification 怎么出现 ════ -->
+<div class="qsec">
+  <div class="qh">T-Q3 · 日常潜伏 校准怎么出现？</div>
+  <div class="qd">注册后还要持续收窄——日常里用什么形式请她补料/确认？三种：</div>
+  <div class="pair">
+    <div class="col">
+      <div class="pcard prep">▸ 想起来了吗——你说那次<b>搬家</b>，具体哪个月？补一下，我能把你的盘再校准一点。<span class="arr">补 →</span></div>
+      <div class="cap" style="width:300px">A｜<b>平淡日备战糖卡</b><br>复用 T1 备战糖位、不打断、有上下文<br>顺手收料；但她可能略过</div>
+    </div>
+    <div class="col">
+      <div class="pcard confirm"><p class="q">我说你昨天会<b style="color:var(--cream)">特别想抓住一个答案</b>——对吗？</p><div class="fb"><span class="y">嗯，是 ✓</span><span>没有</span></div>
+        <div class="chiptoast">✦ 这条跟你的时辰有关 · +1% 校准</div></div>
+      <div class="cap" style="width:300px">B｜<b>确认后 chip</b><br>她点"准"时，时辰相关的判词额外+校准<br>零摩擦、纯被动；但收料慢、信息弱</div>
+    </div>
+    <div class="col">
+      <div class="pcard entry"><span class="ic">⏱</span><div><div style="color:var(--cream)">校准你的出生时辰</div><div style="font-size:11px;color:var(--mute)">补几件大事，让整张盘更准</div></div><span class="arr">→</span></div>
+      <div class="cap" style="width:300px">C｜<b>"我的"里显式入口</b><br>她想要更准时主动进、可一次补多件<br>主动权在她；但被动用户永远不点</div>
+    </div>
+  </div>
+</div>
+
+<p class="top" style="margin-top:10px">三面各给我一个字母（如 <b style="color:var(--gold-soft)">T-Q1:B / T-Q2:C / T-Q3:A</b>）。多数情况"主+辅"可叠（如 T-Q3 A 做主、B 兜底），要叠也告诉我。</p>
+</body>
+</html>
