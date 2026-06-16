@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createInvite, getInvite, setPartner } from "./synastry-invite";
+import type { RelType } from "../astro/synastry";
 
 describe("synastry invite", () => {
   it("creates an invite with no partner yet", async () => {
@@ -41,5 +42,24 @@ describe("synastry invite", () => {
 
   it("tokens are unique", async () => {
     expect(await createInvite()).not.toBe(await createInvite());
+  });
+});
+
+describe("invite stores inviter chart + type (PR1.5)", () => {
+  it("createInvite persists inviterChart and type, getInvite returns them", async () => {
+    const fakeChart = { placements: [], ascSign: "Aries" }; // 本测试只验存取，不验盘有效性
+    const token = await createInvite("Kevin", fakeChart, "lover" as RelType);
+    const inv = await getInvite(token);
+    expect(inv?.inviterName).toBe("Kevin");
+    expect(inv?.inviterChart).toEqual(fakeChart);
+    expect(inv?.type).toBe("lover");
+  });
+
+  it("createInvite still works with no chart/type (backward compatible)", async () => {
+    const token = await createInvite("Solo");
+    const inv = await getInvite(token);
+    expect(inv?.inviterName).toBe("Solo");
+    expect(inv?.inviterChart ?? null).toBeNull();
+    expect(inv?.type ?? null).toBeNull();
   });
 });
