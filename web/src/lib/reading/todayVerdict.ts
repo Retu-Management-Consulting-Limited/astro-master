@@ -1,6 +1,7 @@
 import type { Chart, BodyName } from "../astro/chart";
 import { dayWealth, type WealthLevel } from "../astro/wealth";
 import { dailyAspect } from "./daily";
+import type { TimeBelief } from "../astro/rectify";
 
 // 今日财运 → 一句"该怎么过今天"的笃定判词。纯逻辑、确定性、无 AI。
 //
@@ -38,6 +39,7 @@ export interface TodayVerdict {
   lean: MoneyLean;
   line: string;       // 笃定带温度的主判词（每一态都非空）
   quote: string;      // 一句收尾的暖话
+  natalHit: string;   // 今天月亮点到「你盘里哪个点」的个性化点名——belief 收窄→点名到宫位，宽→只点行星
   // —— 仅当前态对应的槽位被填充 ——
   doorDate?: string;  // red：yyyy-mm-dd，指向 /wealth?selDay= 当天
   action?: string;    // green：今天去做的事
@@ -187,13 +189,58 @@ const SIGN_FLAVOR = [
   "顺着感觉走。",      // 双鱼
 ] as const;
 
-export function todayVerdict(chart: Chart, date: Date): TodayVerdict {
+// ── B×D 闭环 · belief.mode 决定「今天月亮点到你盘里哪个点」点名的精度（不动 state）──
+//
+// 月亮今天结相位的那个本命点(moon.target)，就是今天给这张盘的个性化落点。怎么"点名"
+// 它，取决于 timeBelief 收窄到什么程度——这正是 D(校准) 喂回 B(解读) 的那条线：
+//   • mode='planet'（belief 宽，头 2 周典型 / 缺省）：只敢按「行星」点名（你的金星…）。
+//     宫位由上升决定，而上升随出生时辰摆 ~1°/4min——时辰没锁住时，谈宫位就是编精度。
+//     被点到的是四角(ASC/MC)时更要降级：四角本身就是时辰敏感点，宽 belief 下只说一句
+//     通用的"你这张盘"，绝不点宫。planet 必须独立扛、完整不崩（诚实注脚①）。
+//   • mode='house'（belief 收窄过阈值，confidence≥0.5）：时辰够准了，才升格按「宫位」
+//     点名（你的财帛宫 / 事业宫…）——更具体、更"被看见"。
+//
+// belief 只换 natalHit 的「具体性」，state(红/绿/平淡) 仍只来自 wealth、与 belief 无关
+// （棱角守护 §8 真vs编：校准只收窄时辰精度，不软化情感诚实、不增减红日）。
+const PLANET_ZH: Record<string, string> = {
+  Sun: "太阳", Moon: "月亮", Mercury: "水星", Venus: "金星", Mars: "火星", Saturn: "土星",
+};
+// 财运语境下各宫的"点名"——只在 house-mode（时辰已锁）时使用。
+const HOUSE_NAME_ZH: Record<number, string> = {
+  1: "命宫", 2: "财帛宫", 3: "兄弟宫", 4: "田宅宫", 5: "子女宫", 6: "奴仆宫",
+  7: "夫妻宫", 8: "疾厄宫", 9: "迁移宫", 10: "事业宫", 11: "福德宫", 12: "玄秘宫",
+};
+function natalPointHouse(chart: Chart, name: string): number | null {
+  if (name === "ASC" || name === "MC") return null; // 四角无"落宫"可言
+  return chart.placements.find((p) => p.body === name)?.house ?? null;
+}
+// 默认 belief：宽·planet 模式——缺省调用（现有 today/page、guard 测）走这条，向后兼容。
+const PLANET_DEFAULT: Pick<TimeBelief, "mode"> = { mode: "planet" };
+function buildNatalHit(chart: Chart, target: string, mode: "planet" | "house"): string {
+  if (mode === "house") {
+    const h = natalPointHouse(chart, target);
+    if (h != null) return `今天月亮照到你的${HOUSE_NAME_ZH[h] ?? `第${h}宫`}`;
+    // 四角(ASC/MC)：house 模式下时辰够准，可直说上升/天顶
+    if (target === "ASC") return "今天月亮照到你的上升";
+    if (target === "MC") return "今天月亮照到你的天顶";
+  }
+  // planet 模式（含四角降级）：只按行星点名，不碰宫位/上升
+  const planet = PLANET_ZH[target];
+  if (planet) return `今天月亮照到你的${planet}`;
+  return "今天月亮照到你这张盘"; // 四角在 planet 模式下的通用降级，绝不点宫
+}
+
+export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief): TodayVerdict {
   const w = dayWealth(chart, date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
   const state = levelToState(w.level);
   const lean = moneyLean(chart);
+  // belief 缺省 → planet 模式（头 2 周典型 + 现有调用）；只取 mode，别的字段不影响 verdict。
+  const mode = (belief ?? PLANET_DEFAULT).mode;
 
   // 真实月亮态：行运月亮对这张盘的本命点结的相位（依盘 + 依日而变）。
   const moon = dailyAspect(chart, date);
+  // belief 喂回来的个性化点名：house 模式点到宫位，planet 模式只到行星（不动 state）。
+  const natalHit = buildNatalHit(chart, moon.target, mode);
   // 被点到的本命点落在哪个星座，再续一缕底色——让同 target×quality 的两盘也分开。
   const targetSign = signIndexOf(natalPointLon(chart, moon.target));
   const moonTail = `${MOON_TAIL[moon.target as MoodTarget][moon.quality]}${SIGN_FLAVOR[targetSign]}`;
@@ -201,8 +248,10 @@ export function todayVerdict(chart: Chart, date: Date): TodayVerdict {
   // 轮换序号：日序（相邻日 +1，保证相邻日错开）+ 本命月亮 salt（同 lean 不同盘错开）。
   const dord = dayOrdinal(date);
   const sord = dord + natalSalt(chart);
-  // line 与 quote 取词用 salted 序号——同 lean 不同盘也会取到不同基句。
-  const line = (base: string) => `${base}${moonTail}`;
+  // line 取词用 salted 序号——同 lean 不同盘也会取到不同基句。月亮态(moonTail) + belief
+  // 喂回的个性化点名(natalHit) 一起续在主句后：natalHit 随 belief.mode 在 house/planet
+  // 间换具体性，所以 belief 收窄时这条 line 会更"点到你身上"——但 state 始终不动。
+  const line = (base: string) => `${base}${moonTail}${natalHit}。`;
 
   if (state === "red") {
     return {
@@ -211,6 +260,7 @@ export function todayVerdict(chart: Chart, date: Date): TodayVerdict {
       lean,
       line: line(pick(RED_LINE[lean], sord)),
       quote: pick(RED_QUOTE, sord),
+      natalHit,
       doorDate: ymd(date), // 红日必有门，指向当天的 /wealth
     };
   }
@@ -221,6 +271,7 @@ export function todayVerdict(chart: Chart, date: Date): TodayVerdict {
       lean,
       line: line(pick(GREEN_LINE[lean], sord)),
       quote: pick(GREEN_QUOTE, sord),
+      natalHit,
       action: pick(GREEN_ACTION, sord),
       askDidYouAct: pick(GREEN_ASK, sord),
     };
@@ -231,6 +282,7 @@ export function todayVerdict(chart: Chart, date: Date): TodayVerdict {
     lean,
     line: line(pick(PLAIN_LINE[lean], sord)),
     quote: pick(PLAIN_QUOTE, sord),
+    natalHit,
     prep: pick(PLAIN_PREP, sord),
   };
 }
