@@ -16,7 +16,7 @@ export default function InvitePage() {
   const [name, setName] = useState("");
   const [date, setDate] = useState(""); // no fake default — must be the partner's real date (B4)
   const [time, setTime] = useState("");
-  const [knownTime, setKnownTime] = useState(false);
+  const [knownTime, setKnownTime] = useState(true); // 默认未知→正午（诚实默认，不诱导填假精确时间）
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -90,7 +90,7 @@ export default function InvitePage() {
             <div className="reveal" style={{ marginTop: 36, fontFamily: "var(--serif)", fontSize: 28, color: "var(--cream)", fontWeight: 500, lineHeight: 1.36 }}>
               <span style={{ color: "var(--gold-soft)" }}>{inviter ?? "有人"}</span> 想和你，<br /><span style={{ fontStyle: "italic", color: "var(--gold-soft)" }}>测一测你俩合不合。</span>
             </div>
-            <p style={{ marginTop: 12, fontSize: 14, color: "var(--cream-dim)", lineHeight: 1.7 }}>留下你真实的出生时间和地点——只用来排你俩的合盘，不会公开。</p>
+            <p style={{ marginTop: 12, fontSize: 14, color: "var(--cream-dim)", lineHeight: 1.7 }}>留下你真实的出生时间和地点——会安全保存、只用来排你俩的合盘；对方只看到合盘结果，<b style={{ color: "var(--cream)", fontWeight: 400 }}>看不到你的出生信息</b>。</p>
 
             <div style={{ marginTop: 26, display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
@@ -104,10 +104,11 @@ export default function InvitePage() {
               <div>
                 <label style={lbl} htmlFor="inv-time">出生时间</label>
                 <input id="inv-time" className="field-inp" type="time" value={time} disabled={knownTime} onChange={(e) => setTime(e.target.value)} style={{ opacity: knownTime ? 0.5 : 1 }} />
-                <button type="button" role="checkbox" aria-checked={knownTime} onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer", padding: "4px 0" }}>
-                  <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", background: knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{knownTime ? "✓" : ""}</span>
-                  <span style={{ fontSize: 13, color: "var(--cream-dim)" }}>不知道准确时间（按正午估算）</span>
+                <button type="button" role="checkbox" aria-checked={!knownTime} onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer", padding: "10px 0" }}>
+                  <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", background: !knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{!knownTime ? "✓" : ""}</span>
+                  <span style={{ fontSize: 13, color: "var(--cream-dim)" }}>我知道准确的出生时间</span>
                 </button>
+                {knownTime && <p style={{ fontSize: 12.5, color: "var(--mute)", lineHeight: 1.6, marginTop: 8 }}>不知道也没关系——按<b style={{ color: "var(--cream-dim)", fontWeight: 400 }}>正午</b>排。</p>}
               </div>
               <div style={{ display: "flex", gap: 12 }}>
                 <div style={{ flex: 1 }}>
