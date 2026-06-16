@@ -53,15 +53,26 @@ test("activation funnel: landing → input → calibration → first-read → re
   await page.locator('a[href="/me"]').click();
   await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 5000 });
 
-  // 财运日历
+  // 财运日历 — reached via the persistent 财运 tab (2nd of 5)
   await page.locator('a[href="/today"]').click();
   await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 5000 });
-  await page.locator('[data-testid="fortune-chip"]').click();
+  await page.locator('a[href="/wealth"]').click();
   await expect(page.locator('[data-testid="wealth"]')).toBeVisible({ timeout: 5000 });
-  await expect(page.locator('[data-testid="wealth-day"]').first()).toBeVisible();
+  // 财运 tab is marked current on the wealth page (no dead end — TabBar root)
+  await expect(page.locator('nav a[aria-current="page"]')).toHaveText("财运");
+  // 月历: tap a future day → its money verdict preview renders in the detail card
+  const days = page.locator('[data-testid="wealth-day"]');
+  await expect(days.first()).toBeVisible();
+  await days.last().click();
+  await expect(page.locator('[data-testid="wealth-detail"]')).toBeVisible();
+  // "看更深" hands off to the money mirror funnel (not a dead end)
+  await page.locator('[data-testid="wealth-deeper"]').click();
+  await expect(page).toHaveURL(/\/money$/, { timeout: 5000 });
+  // /money is reached by push → its BackButton returns to the wealth calendar
+  await page.getByRole("button", { name: "返回" }).first().click();
+  await expect(page.locator('[data-testid="wealth"]')).toBeVisible({ timeout: 5000 });
 
-  // 合盘
-  await page.goBack();
+  // 合盘 — leave the wealth tab via 我的
   await page.locator('a[href="/me"]').click();
   await page.locator('[data-testid="row-synastry"]').click();
   await expect(page.locator('[data-testid="synastry"]')).toBeVisible({ timeout: 5000 });

@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { monthWealth, wealthMark, type DayWealth } from "@/lib/astro/wealth";
 import { useNow } from "@/lib/useNow";
-import { BackButton } from "@/components/BackButton";
+import { TabBar } from "@/components/TabBar";
 const RETRO_ZH: Record<string, string> = { Mercury: "水逆", Venus: "金逆" };
 function retroText(retro: DayWealth["retro"]): string {
   return retro.map((b) => RETRO_ZH[b] ?? b).join("·");
@@ -63,7 +63,6 @@ function WealthView() {
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 6px" }}>
-        <BackButton />
         <div className="eye-mini" style={{ width: 30, height: 30 }} />
         <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
       </div>
@@ -165,9 +164,17 @@ function WealthView() {
           </div>
         )}
 
-        <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "18px 0 4px" }}>财运仅供参考 · 投资有风险，最终决定还是你做</div>
+        {/* "看更深" — the calendar tells you WHEN; the money mirror tells you what
+            money MEANS to you. Hand off to the existing reveal→story funnel. */}
+        <button type="button" data-testid="wealth-deeper" onClick={() => router.push("/money")} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 18, padding: "11px 13px", borderRadius: 12, background: "rgba(201,168,97,.07)", border: "1px solid rgba(201,168,97,.34)", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>
+          <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} aria-hidden="true" /><span>钱对你<b style={{ color: "var(--cream)" }}>意味着什么</b></span><span style={{ marginLeft: "auto", color: "var(--gold-soft)" }}>看更深 →</span>
+        </button>
+
+        <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "16px 0 4px" }}>财运仅供参考 · 投资有风险，最终决定还是你做</div>
         <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 晒我的搞钱黄金日</button>
       </div>
+
+      <TabBar active="money" />
     </main>
   );
 }
