@@ -98,3 +98,31 @@ test("synastry: no real partner → sample shows NO score, only an invite CTA", 
   await expect(result).not.toContainText("%"); // 绝无可被当真的契合度分数
   await expect(result.getByRole("button", { name: /解锁你俩的真实合盘/ })).toBeVisible();
 });
+
+// PR6 / Unit H: when A unlocks from a chosen type, the invite carries that type +
+// A's chart, so B fills in → B ALSO sees the synastry (B-5) + a conversion CTA (B-6).
+test("synastry: B sees the result after filling in (type-carrying invite)", async ({ page, context }) => {
+  await quietPage(page);
+  await walkToToday(page);
+  await page.goto("/synastry");
+  await page.locator('[data-testid="syn-type"]').first().click(); // lover → demo
+  await page.getByRole("button", { name: /解锁你俩的真实合盘/ }).click(); // creates invite carrying type
+  const url = (await page.locator('[data-testid="syn-invite-url"]').textContent())!.trim();
+
+  const b = await context.newPage();
+  await quietPage(b);
+  await b.goto(url);
+  await expect(b.locator('[data-testid="syn-invite"]')).toContainText("恋人"); // B-3 title carries the type
+  await b.locator('[data-testid="inv-name"]').fill("小鱼");
+  await b.locator('#inv-year').selectOption("1996");
+  await b.locator('#inv-month').selectOption("1");
+  await b.locator('#inv-day').selectOption("1");
+  await b.getByRole("checkbox", { name: /我知道准确的出生时间/ }).click();
+  await b.locator('#inv-time').fill("12:00");
+  await b.locator('[data-testid="inv-city"]').fill("上海");
+  await b.locator('[data-testid="inv-submit"]').click();
+  // B-5 result + B-6 conversion
+  await expect(b.locator('[data-testid="invite-result"]')).toBeVisible({ timeout: 8000 });
+  await expect(b.locator('[data-testid="invite-result"]')).toContainText("%");
+  await expect(b.locator('[data-testid="invite-cta"]')).toBeVisible();
+});

@@ -258,7 +258,7 @@ export default function SynastryPage() {
             )}
           </>
         ) : (
-          <Result result={result} demo={!realPartner} onConnect={() => setType(null)} onRecouple={recouple} selfChart={chart} partnerChart={realPartner} partnerName={partnerName} selfName={nickname} />
+          <Result result={result} demo={!realPartner} onConnect={() => { if (!inviteUrl) createInvite(); setType(null); }} onRecouple={recouple} selfChart={chart} partnerChart={realPartner} partnerName={partnerName} selfName={nickname} />
         )}
       </div>
     </main>
