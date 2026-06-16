@@ -11,7 +11,8 @@ import { biorhythm } from "../lib/biorhythm";
 import { moneyPersona } from "../lib/money/persona";
 import { nextChapter } from "../lib/money/narrative";
 import { todayVerdict } from "../lib/reading/todayVerdict";
-import { seed } from "../lib/astro/timeBelief";
+import { seed, withConfidence } from "../lib/astro/timeBelief";
+import { detectiveBandCopy } from "../lib/reading/calibrationSignal";
 import type { LifeEvent } from "../lib/astro/rectify";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -279,50 +280,76 @@ describe("freshness contract · today verdict (per-day rotation + personalized l
   });
 });
 
-// #T3 时辰侦探 (TimeBelief.topRange / mode) — the calibration detective band is a
-// DYNAMIC surface keyed on BELIEF: as she feeds real life-events, the inferred
-// hour band (topRange) narrows and the mode flips planet→house. The presentation
-// the user sees ("已锁到 X 小时内") therefore MUST move along the belief axis —
-// not merely have its underlying number change. Registry entry, strong form:
-//   • belief axis: a wide belief (few/no events) vs a sharp one (more events) must
-//     produce a DIFFERENT topRange AND a different mode (not Set(...).size>1).
-//   • the narrowing is monotonic (a sharper belief is a strict subset band), so we
-//     assert the SPAN shrinks — the detective only ever locks in, never re-blurs.
-// (This is the per-belief sibling of the per-day / per-chart contracts above:
-//  todayVerdict's STATE is deliberately belief-INVARIANT — that wall is held by
-//  __guards__/edge-preservation.test.ts; what varies by belief is the hour band.)
-describe("freshness contract · time detective band varies by BELIEF (topRange + mode)", () => {
+// #T3 时辰侦探 (detectiveBandCopy) — the calibration detective band is a DYNAMIC
+// surface keyed on BELIEF. R14 (值会变 ≠ 呈现会变，验呈现层): the user-facing surface
+// is NOT the raw belief (topRange/mode/confidence) — it is the STRING Molly speaks,
+// detectiveBandCopy(belief). Asserting on the belief fields is asserting on the PROXY;
+// the false-green we exist to catch is "belief moved, rendered line did NOT". So every
+// assertion below pins detectiveBandCopy itself, strong-form (not.toBe), not the fields.
+//
+// Registry entry, strong form, on the PRESENTATION:
+//   • belief axis: a wide vs a sharp belief render a DIFFERENT line.
+//   • adjacency chain b0→b1→b2→b3: EACH step's rendered line differs. This is the load
+//     -bearing one — it catches the prior collapse where b2 [15,5] and b3 [21,11] are
+//     distinct beliefs (different topRange AND confidence) yet rendered BYTE-IDENTICAL
+//     copy because the old formatter keyed only on span width (both span 14). span <=
+//     hid it; the rendered string did not move. not.toBe on the chain is what exposes it.
+//   • mode flip planet→house must MOVE the line. Demonstrated at the boundary via
+//     withConfidence (real events on this seed top out below the house threshold, so a
+//     fields-only assertion would be VACUOUS — the house branch never taken). We drive
+//     confidence past the threshold explicitly and assert the copy actually changes.
+// (Per-belief sibling of the per-day / per-chart contracts above. todayVerdict's STATE
+//  is deliberately belief-INVARIANT — that wall is held by edge-preservation.test.ts;
+//  what varies by belief is this detective band string.)
+describe("freshness contract · time detective band (detectiveBandCopy) varies by BELIEF", () => {
   const birth = { year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 };
   const e1: LifeEvent = { kind: "move", year: 2019, month: 3 };
   const e2: LifeEvent = { kind: "career", year: 2021, month: 9 };
   const e3: LifeEvent = { kind: "relationship", year: 2023, month: 6 };
 
-  const span = ([lo, hi]: [number, number]) => (hi - lo + 24) % 24;
-
-  it("a wide belief and a sharp belief render a DIFFERENT detective band (presentation moves on the belief axis)", () => {
+  it("a wide belief and a sharp belief render a DIFFERENT detective LINE (presentation moves, not just the field)", () => {
     const wide = seed(birth, []); // nothing known → whole-clock band, planet mode
-    const sharp = seed(birth, [e1, e2, e3]); // corroborated → narrowed band, may flip house
-    expect(sharp.topRange, "sharp belief did not move the detective band").not.toEqual(wide.topRange);
-    expect(sharp.confidence).toBeGreaterThan(wide.confidence);
+    const sharp = seed(birth, [e1, e2, e3]); // corroborated → narrowed band
+    // strong form: the rendered string moves, not merely the underlying topRange.
+    expect(detectiveBandCopy(sharp), "sharp belief renders the same line as wide").not.toBe(
+      detectiveBandCopy(wide),
+    );
   });
 
-  it("the band narrows MONOTONICALLY as events accrue (locks in, never re-blurs)", () => {
-    const b0 = seed(birth, []);
-    const b1 = seed(birth, [e1]);
-    const b2 = seed(birth, [e1, e2]);
-    const b3 = seed(birth, [e1, e2, e3]);
-    // span is non-increasing across the chain, and strictly tighter end-to-end
-    expect(span(b1.topRange)).toBeLessThanOrEqual(span(b0.topRange));
-    expect(span(b2.topRange)).toBeLessThanOrEqual(span(b1.topRange));
-    expect(span(b3.topRange)).toBeLessThanOrEqual(span(b2.topRange));
-    expect(span(b3.topRange), "three events did not tighten the band vs zero").toBeLessThan(span(b0.topRange));
+  it("EACH step of the belief chain b0→b1→b2→b3 renders a DIFFERENT line (catches the b2/b3 byte-identical collapse)", () => {
+    const chain = [
+      seed(birth, []),
+      seed(birth, [e1]),
+      seed(birth, [e1, e2]),
+      seed(birth, [e1, e2, e3]),
+    ];
+    const lines = chain.map(detectiveBandCopy);
+    // adjacency: every neighbouring pair differs — the span<= chain alone let b2/b3
+    // collapse to identical copy; this not.toBe on the RENDERED line forbids it.
+    for (let i = 1; i < lines.length; i++) {
+      expect(lines[i], `belief step ${i - 1}→${i} rendered an identical detective line`).not.toBe(
+        lines[i - 1],
+      );
+    }
+    // and not vacuous: all four lines are mutually distinct (the surface never repeats
+    // across the whole accrual path, not just between neighbours).
+    expect(new Set(lines).size, "the four belief lines are not all distinct").toBe(lines.length);
   });
 
-  it("mode is a pure function of confidence (planet when wide, house once it crosses) — the belief, nothing else, drives it", () => {
-    const wide = seed(birth, []);
-    expect(wide.mode).toBe("planet");
+  it("the planet→house mode flip MOVES the rendered line (asserted at the boundary, not vacuously)", () => {
+    // Real events on this seed top out below 0.5, so seed() alone keeps mode='planet'
+    // for every belief — a fields-only test of the flip would be vacuous. Drive the
+    // confidence past the house threshold explicitly and assert the COPY changes.
     const sharp = seed(birth, [e1, e2, e3]);
-    // mode strictly follows confidence vs the house threshold — no other input.
-    expect(sharp.mode).toBe(sharp.confidence >= 0.5 ? "house" : "planet");
+    expect(sharp.mode, "fixture precondition: real-event belief is still planet-mode").toBe("planet");
+    const asHouse = withConfidence(sharp, 0.6); // same band, now over the house threshold
+    expect(asHouse.mode).toBe("house");
+    expect(asHouse.topRange, "withConfidence must not move the band, only the mode").toEqual(
+      sharp.topRange,
+    );
+    // same hour window, only the mode crossed — the rendered line must still differ.
+    expect(detectiveBandCopy(asHouse), "mode flip did not move the detective line").not.toBe(
+      detectiveBandCopy(sharp),
+    );
   });
 });

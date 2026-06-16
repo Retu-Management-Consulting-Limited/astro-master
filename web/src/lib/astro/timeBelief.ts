@@ -35,7 +35,10 @@ function nudge(confidence: number, gain: number): number {
   return confidence + gain * (CONFIDENCE_CEILING - confidence);
 }
 
-function withConfidence(prev: TimeBelief, confidence: number): TimeBelief {
+// Exported so tests (and any caller that needs to probe the planet→house boundary)
+// can construct a belief AT a target confidence without hand-feeding 200 confirms.
+// Pure: clamps to the ceiling and re-derives mode from the house threshold.
+export function withConfidence(prev: TimeBelief, confidence: number): TimeBelief {
   return {
     ...prev,
     confidence: Math.min(CONFIDENCE_CEILING, confidence),

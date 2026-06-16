@@ -87,8 +87,28 @@ export function completeEvent(events: LifeEvent[], target: LifeEvent, month: num
 //     it never announces a single exact birth minute as fact.
 //   • 不假装算命 / 不冒充: no 命中注定/预言/算准 framing — it's an inference that
 //     gets sharper, explicitly still uncertain ("大概/还在收窄"), never god-view.
-// The width comes straight from belief.topRange, so the string moves with the
-// belief (registered as a dynamic surface in __guards__/content-freshness.test.ts).
+// The string moves with the belief on BOTH axes it actually carries — the WINDOW
+// (topRange, where the band sits on the clock) and the MODE (planet vs house, the
+// granularity the belief currently supports). Two beliefs that happen to share a
+// span width but sit at different clock positions, or that differ only by crossing
+// the house threshold, MUST render different copy — otherwise the surface collapses
+// where the belief moved (registered, strong-form, in
+// __guards__/content-freshness.test.ts: byte-identical copy for distinct beliefs is
+// the exact 「换了一belief还一样」 false-green the registry exists to catch).
+//
+// We render the real wrap-aware window ("21 点到次日 11 点"), not just its width, so
+// b=[15,5] and b=[21,11] never read the same. It stays charter-clean: a hedged span,
+// never a pinned minute (§5.2/B2). The mode word reflects the belief's own granularity
+// — once confidence crosses the house threshold the band is precise enough to talk in
+// 宫位 (house) rather than only 行星 (planet) terms; that flip is belief-driven, real.
+function fmtHour(h: number): string {
+  return `${((h % 24) + 24) % 24} 点`;
+}
+function fmtWindow([lo, hi]: [number, number]): string {
+  // wrap-aware: if the band crosses midnight, say 次日 so the window is unambiguous.
+  const wraps = ((hi - lo + 24) % 24) !== hi - lo;
+  return wraps ? `${fmtHour(lo)}到次日 ${fmtHour(hi)}` : `${fmtHour(lo)}到 ${fmtHour(hi)}`;
+}
 export function detectiveBandCopy(belief: TimeBelief): string {
   const [lo, hi] = belief.topRange;
   const hours = ((hi - lo + 24) % 24) || 24; // wrap-aware span width in hours
@@ -96,7 +116,11 @@ export function detectiveBandCopy(belief: TimeBelief): string {
   if (belief.confidence < 0.15 || hours >= 20) {
     return "你的出生时辰还在收窄——多补一件人生大事，我就能锁得更准。";
   }
-  return `照你说的那些大事，我大概把你的出生时辰锁到了 ${hours} 小时内——再补一件，还能更窄。`;
+  // The band is precise enough to read by 宫位 (house) once confidence has crossed
+  // the threshold; below it we can only speak by 行星 (planet). This word moves the
+  // copy on the mode axis even when the span width is unchanged.
+  const grain = belief.mode === "house" ? "宫位" : "行星";
+  return `照你说的那些大事，从${grain}看，我大概把你的出生时辰锁到了 ${fmtWindow([lo, hi])} 这 ${hours} 小时内——再补一件，还能更窄。`;
 }
 
 // Re-exported for callers that want the wide/sharp cut without importing rectify.
