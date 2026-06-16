@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { TabBar } from "@/components/TabBar";
-import { dayWealth } from "@/lib/astro/wealth";
 import { dailyReading, dayKey, existedYesterday } from "@/lib/reading/daily";
+import { todayVerdict } from "@/lib/reading/todayVerdict";
+import { TodayCell } from "@/components/TodayCell";
 import { useUnderstanding } from "@/lib/understanding";
 import { useNow } from "@/lib/useNow";
 import { appendMood, parseMoodLog, moodLogKey, fmtTime, type MoodEntry } from "@/lib/mood";
@@ -69,12 +70,12 @@ export default function TodayPage() {
 
   const dk = dayKey(now);
   const daily = dailyReading(chart, now);
-  const tw = dayWealth(chart, now.getFullYear(), now.getMonth() + 1, now.getDate());
-  const fortune = tw.level === "wang"
-    ? { c: "var(--green)", b: "#a8e0bf", label: "旺", txt: "该收的款、该谈的薪今天去推" }
-    : tw.level === "shen"
-    ? { c: "var(--red)", b: "#f0a8a5", label: "慎", txt: "今天别冲动消费，想下单先睡一觉" }
-    : { c: "var(--blue)", b: "#cfe0f0", label: "平", txt: "钱上没大事，按计划走就好" };
+  const tv = todayVerdict(chart, now);
+
+  // 今日格点门 / fortune chip → 财运 tab，红日带 doorDate 那天直接选中。
+  function goWealth(selDay?: number) {
+    router.push(selDay ? `/wealth?selDay=${selDay}` : "/wealth");
+  }
 
   function pickMood(t: string) {
     const ts = Date.now();
@@ -132,26 +133,15 @@ export default function TodayPage() {
         </div>
         )}
 
-        {/* 今 hero — real transit line + quote */}
-        <div style={{ borderRadius: 17, padding: "15px 16px", marginBottom: 12, border: "1px solid rgba(201,168,97,.4)", background: "linear-gradient(180deg, rgba(201,168,97,.07), rgba(201,168,97,.02))", boxShadow: "0 0 30px -12px rgba(201,168,97,.4)" }}>
-          <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 9, color: "var(--gold)", display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} aria-hidden="true" />今天</div>
-          <div style={{ fontSize: 15.5, color: "var(--cream)", lineHeight: 1.68 }}>{daily.todayLine}</div>
-          <div style={{ marginTop: 11, fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18, color: "var(--gold-soft)", lineHeight: 1.5 }}>{daily.todayQuote}</div>
-          {daily.backdropLine && (
-            <div style={{ marginTop: 11, fontSize: 12.5, lineHeight: 1.5, color: "var(--mute)", display: "flex", gap: 6 }}>
-              <span aria-hidden="true">🌌</span><span>{daily.backdropLine}</span>
-            </div>
-          )}
-          <button type="button" onClick={() => router.push("/wealth")} data-testid="fortune-chip" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 13, padding: "9px 12px", borderRadius: 11, background: "rgba(127,201,154,.07)", border: `1px solid ${fortune.c}55`, fontSize: 12.5, color: fortune.c, cursor: "pointer" }}>
-            <span style={{ width: 9, height: 9, borderRadius: "50%", background: fortune.c, boxShadow: `0 0 8px ${fortune.c}` }} aria-hidden="true" /><span>今日财运 <b style={{ color: fortune.b }}>{fortune.label}</b> · {fortune.txt}</span><span style={{ marginLeft: "auto", color: "#5f8f73" }}>查日历 →</span>
-          </button>
-          {/* S0 金钱入口 — demoted from a standalone gold card to a chip inside 今,
-              so it stops splitting the 昨/今/明 arc and stops competing with this
-              card's gold. Same data-testid + /money target as the old EntryCard. */}
-          <button type="button" onClick={() => router.push("/money")} data-testid="money-entry" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 9, padding: "9px 12px", borderRadius: 11, background: "rgba(201,168,97,.07)", border: "1px solid rgba(201,168,97,.34)", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>
-            <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} aria-hidden="true" /><span>钱，对你<b style={{ color: "var(--cream)" }}>不只是钱</b></span><span style={{ marginLeft: "auto", color: "var(--gold-soft)" }}>让 Molly 看穿 →</span>
-          </button>
-        </div>
+        {/* 今 hero — three-state 今日格 (design/20)：旺/慎/平淡各一副面孔。
+            状态标·命令·内在why·赦免糖·动作/前门(红日 doorDate→财运当天)·备战糖·fortune chip。*/}
+        <TodayCell verdict={tv} daily={daily} onWealth={goWealth} />
+
+        {/* S0 金钱入口 — chip 紧跟今日格，承袭旧 EntryCard 的 testid + /money 目标，
+            保住 H1/H2/H3 漏斗顶的信号；放在 TodayCell 外，让三态卡专注当日判词。*/}
+        <button type="button" onClick={() => router.push("/money")} data-testid="money-entry" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: -2, marginBottom: 12, padding: "9px 12px", borderRadius: 11, background: "rgba(201,168,97,.07)", border: "1px solid rgba(201,168,97,.34)", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>
+          <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} aria-hidden="true" /><span>钱，对你<b style={{ color: "var(--cream)" }}>不只是钱</b></span><span style={{ marginLeft: "auto", color: "var(--gold-soft)" }}>让 Molly 看穿 →</span>
+        </button>
 
         {/* 明 — real hook from tomorrow's transit */}
         <div style={{ borderRadius: 17, padding: "15px 16px", marginBottom: 12, border: "1px solid rgba(181,143,176,.26)", background: "var(--field)" }}>

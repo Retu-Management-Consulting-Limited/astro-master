@@ -155,11 +155,79 @@ export function wealthLevel(score: number): WealthLevel {
   return "ping";
 }
 
+// ── 月度稀有配额 (天定 + 保底) ──────────────────────────────────────────────
+// The raw threshold (wealthLevel) lets a strong month render as a wall of green
+// or a quiet one as a wall of red — both kill the felt rarity of a 旺/慎 day.
+// The quota is a per-month RANK-CAP, not a re-score:
+//   • 天定 — the astrology score still decides WHICH days rank where; we only
+//            keep the strongest as 旺 and the weakest as 慎.
+//   • 保底 — 慎 is capped at SHEN_CAP/month, and 平淡 is floored at PING_FLOOR
+//            of the month, so EVERY chart EVERY month opens mostly-calm with a
+//            handful of charged days. The number (intensity) is untouched; only
+//            the LEVEL is reshaped.
+// Ties break on raw score then day, so the mapping is deterministic and a single
+// day's level is identical whether read alone (dayWealth) or in a month grid.
+export const SHEN_CAP = 4;        // ≤ 4 慎(red) days per month
+export const PING_FLOOR = 0.6;    // ≥ 60% of the month is 平淡(ping)
+
+// Levels for a whole month under the quota, indexed day → level. Pure: depends
+// only on the per-day raw scores for that calendar month.
+// monthLevels is a PURE function of (chart, year, month). It is MEMOIZED because
+// dayWealth calls it on every single day lookup, recomputing wealthScore for the
+// whole month each time. The rank-quota cutoff (慎≤4) is decided by SORTED scores;
+// astronomy-engine float is warm-start/order-sensitive on some platforms (Linux CI),
+// so a day sitting on the 慎/平 boundary could flip between repeated identical calls
+// — which broke the edge-preservation / belief-invariance guards (state must be a
+// pure function of (chart,date), never moved by belief). Memoizing guarantees the
+// SAME Record for the same (chart,year,month) within a run, so a day's level can
+// never disagree across repeated lookups. (Keyed by chart identity via WeakMap.)
+const _monthLevelsCache = new WeakMap<Chart, Map<number, Record<number, WealthLevel>>>();
+
+export function monthLevels(chart: Chart, year: number, month: number): Record<number, WealthLevel> {
+  let byMonth = _monthLevelsCache.get(chart);
+  if (!byMonth) { byMonth = new Map(); _monthLevelsCache.set(chart, byMonth); }
+  const cacheKey = year * 100 + month;
+  const memoized = byMonth.get(cacheKey);
+  if (memoized) return memoized;
+
+  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const scored = [];
+  for (let d = 1; d <= last; d++) {
+    scored.push({ day: d, score: wealthScore(chart, new Date(Date.UTC(year, month - 1, d, 12, 0))) });
+  }
+  const out: Record<number, WealthLevel> = {};
+  for (const s of scored) out[s.day] = "ping";
+
+  // 慎: among raw-慎 days, keep the lowest-intensity SHEN_CAP (lowest score, then
+  // earliest day for determinism); the rest fall back to 平淡.
+  const rawShen = scored
+    .filter((s) => wealthLevel(s.score) === "shen")
+    .sort((a, b) => a.score - b.score || a.day - b.day);
+  const shenKeep = rawShen.slice(0, SHEN_CAP);
+  for (const s of shenKeep) out[s.day] = "shen";
+
+  // 旺: 平淡 must stay ≥ PING_FLOOR of the month. With shenKeep fixed, the most
+  // 旺 days we can allow is (month − 慎 − pingFloor). Keep the highest-intensity
+  // raw-旺 days up to that budget; the rest fall back to 平淡.
+  const pingFloor = Math.ceil(PING_FLOOR * last);
+  const wangBudget = Math.max(0, last - shenKeep.length - pingFloor);
+  const rawWang = scored
+    .filter((s) => wealthLevel(s.score) === "wang")
+    .sort((a, b) => b.score - a.score || a.day - b.day);
+  for (const s of rawWang.slice(0, wangBudget)) out[s.day] = "wang";
+
+  byMonth.set(cacheKey, out);
+  return out;
+}
+
 export function dayWealth(chart: Chart, year: number, month: number, day: number): DayWealth {
   const date = new Date(Date.UTC(year, month - 1, day, 12, 0));
   const score = wealthScore(chart, date);
   const retro = MONEY_RETRO_BODIES.filter((b) => isRetrograde(b, date));
-  return { day, level: wealthLevel(score), intensity: score, retro, driver: dayDriver(chart, date) };
+  // LEVEL comes from the month-wide quota so a single day never disagrees with
+  // the grid; INTENSITY stays the raw score.
+  const level = monthLevels(chart, year, month)[day];
+  return { day, level, intensity: score, retro, driver: dayDriver(chart, date) };
 }
 
 // Group a sorted ascending day list into [start,end] runs, merging when the gap
@@ -226,8 +294,14 @@ export interface MonthWealth {
 
 export function monthWealth(chart: Chart, year: number, month: number): MonthWealth {
   const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const levels = monthLevels(chart, year, month); // one quota pass for the month
   const days: DayWealth[] = [];
-  for (let d = 1; d <= last; d++) days.push(dayWealth(chart, year, month, d));
+  for (let d = 1; d <= last; d++) {
+    const date = new Date(Date.UTC(year, month - 1, d, 12, 0));
+    const score = wealthScore(chart, date);
+    const retro = MONEY_RETRO_BODIES.filter((b) => isRetrograde(b, date));
+    days.push({ day: d, level: levels[d], intensity: score, retro, driver: dayDriver(chart, date) });
+  }
   const goldenDays = [...days]
     .filter((d) => d.level === "wang")
     .sort((a, b) => b.intensity - a.intensity)

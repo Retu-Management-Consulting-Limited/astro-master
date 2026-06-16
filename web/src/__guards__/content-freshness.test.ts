@@ -10,6 +10,10 @@ import { detectHighlights } from "../lib/astro/highlights";
 import { biorhythm } from "../lib/biorhythm";
 import { moneyPersona } from "../lib/money/persona";
 import { nextChapter } from "../lib/money/narrative";
+import { todayVerdict } from "../lib/reading/todayVerdict";
+import { seed, withConfidence } from "../lib/astro/timeBelief";
+import { detectiveBandCopy } from "../lib/reading/calibrationSignal";
+import type { LifeEvent } from "../lib/astro/rectify";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 动态内容契约 (FRESHNESS CONTRACT) — see CLAUDE.md & design/DESIGN-SYSTEM.md.
@@ -68,15 +72,21 @@ describe("freshness contract · per-day surfaces differ on ADJACENT days", () =>
     expect(changes, `intensity changed only ${changes}/29 days`).toBeGreaterThan(20);
   });
 
-  it("wealth: the month is decisive — not a wall of 平 (felt-signal L1)", () => {
-    // The event layer must keep charts out of the all-平 mush. Per-chart-per-month
-    // varies (a quiet money-month can be ~7/30); the strong guard is on the mean
-    // across charts ≥ 9 + every chart clearly above the all-平 floor. The full
-    // population target (平≈52%) is verified by the pre-deploy 192-chart shadow run.
-    const counts = [A, B, C].map((ch) => monthWealth(ch, 2026, 6).days.filter((d) => d.level !== "ping").length);
-    const mean = counts.reduce((a, b) => a + b, 0) / counts.length;
-    expect(mean, `mean decisive ${mean}/30`).toBeGreaterThanOrEqual(9);
-    for (const c of counts) expect(c, `a chart had only ${c}/30 decisive days`).toBeGreaterThanOrEqual(5);
+  it("wealth: the month rotates LEVELS across days — presentation varies (not chargedness)", () => {
+    // R14: freshness asserts the PRESENTATION moves, not how 'charged' a month is.
+    // The old ≥9-decisive-days floor was a chargedness assertion; it collided with
+    // the deliberate rare quota (天定+保底: 慎≤4, 平淡≥60% — see wealth.ts), which
+    // MAKES charged days rare on purpose. Rarity is a feature, not a freshness bug.
+    // So here we assert only what a per-day surface owes: the level grid is not a
+    // single frozen value, and the rare quota actually holds (rarity is shaped).
+    for (const ch of [A, B, C]) {
+      const days = monthWealth(ch, 2026, 6).days;
+      expect(new Set(days.map((d) => d.level)).size, "a month rendered one frozen level").toBeGreaterThan(1);
+      const shen = days.filter((d) => d.level === "shen").length;
+      const ping = days.filter((d) => d.level === "ping").length;
+      expect(shen, `慎 quota: ${shen}/30`).toBeLessThanOrEqual(4);
+      expect(ping, `平淡 floor: ${ping}/30`).toBeGreaterThanOrEqual(Math.ceil(0.6 * days.length));
+    }
   });
 });
 
@@ -170,5 +180,176 @@ describe("freshness contract · biorhythm varies by day and by birthday", () => 
     const a = biorhythm(birth1, d);
     const b = biorhythm(birth2, d);
     expect(text([a.physical, a.emotional, a.intellectual])).not.toBe(text([b.physical, b.emotional, b.intellectual]));
+  });
+});
+
+// #T1 今日财运判词 (todayVerdict) — per-day rotating line/quote/action/prep/ask
+// + per-chart, Moon-driven personalization. Registry entry — strong form on BOTH axes.
+//   • per-day: ADJACENT SAME-STATE days must rotate their copy. This is the exact
+//     2026-06-15「换了一天还一样」failure (same content, different day, same state),
+//     so the strong invariant is asserted on same-state pairs — NOT only on the
+//     easy state-change days where the line trivially differs.
+//   • personalized AT THE CELL: the STRONGEST form is two charts that SHARE a lean
+//     yet still render a different cell. The earlier registry only checked A vs B,
+//     and A='even'/B='guard' differ in lean by construction — so that pair could
+//     pass with the cell personalized only to the 3-bucket lean (a coarse proxy),
+//     hiding a collapse. A and C BOTH lean 'even', so a same-lean A/C pair is the
+//     adversarial case: if the cell were lean-only, A and C would render byte-
+//     identical on every homomorphic (same-state) day (this was true before the
+//     fix: 186/186 identical). The cell now wires in the chart's real Moon aspect
+//     (daily.ts dailyAspect, Moon-driven → chart-dependent) so same-lean charts
+//     diverge at the cell. Asserted directly (not.toBe), not Set(...).size>1.
+describe("freshness contract · today verdict (per-day rotation + personalized lean)", () => {
+  it("ADJACENT SAME-STATE days rotate line AND quote (not just state-change days)", () => {
+    for (const chart of [A, B, C]) {
+      let sameStatePairs = 0;
+      let prev: ReturnType<typeof todayVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = todayVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+        if (prev && prev.state === v.state) {
+          sameStatePairs++;
+          expect(prev.line, `frozen line, same-state adjacent days (doy ${i})`).not.toBe(v.line);
+          expect(prev.quote, `frozen quote, same-state adjacent days (doy ${i})`).not.toBe(v.quote);
+        }
+        prev = v;
+      }
+      // not-vacuous: a full year always carries many same-state runs
+      expect(sameStatePairs, "too few same-state pairs to test rotation").toBeGreaterThan(50);
+    }
+  });
+
+  it("two charts of different Mars/Saturn dominance get different leans (personalized)", () => {
+    const leanA = todayVerdict(A, new Date(Date.UTC(2026, 5, 10, 12))).lean; // 'even'
+    const leanB = todayVerdict(B, new Date(Date.UTC(2026, 5, 10, 12))).lean; // 'guard'
+    expect(leanA, `A and B share lean ${leanA}`).not.toBe(leanB);
+  });
+
+  it("ADJACENT 平淡(plain) days rotate the PRESENTATION line/quote/prep (the calm cell is not a frozen void)", () => {
+    // The rare quota (天定+保底) makes 平淡 the dominant state — so the calm cell
+    // is what a user sees MOST days. Freshness here is presentation-layer: even
+    // when the state is the same boring 平 two days running, the rendered copy
+    // (line/quote/prep) must change. Asserted specifically on plain→plain pairs.
+    for (const chart of [A, B, C]) {
+      let plainPairs = 0;
+      let prev: ReturnType<typeof todayVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = todayVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+        if (prev && prev.state === "plain" && v.state === "plain") {
+          plainPairs++;
+          expect(text([prev.line, prev.quote, prev.prep]), `frozen plain cell (doy ${i})`).not.toBe(
+            text([v.line, v.quote, v.prep])
+          );
+        }
+        prev = v;
+      }
+      // plain is the majority state under the quota, so there are plenty of pairs
+      expect(plainPairs, "too few plain→plain pairs — quota not making plain dominant?").toBeGreaterThan(40);
+    }
+  });
+
+  it("SAME-LEAN charts (A & C, both 'even') still render a different cell on EVERY homomorphic day", () => {
+    // The strongest, adversarial form. A and C share a lean, so if the cell were
+    // personalized ONLY to the 3-bucket lean, they would collapse to byte-identical
+    // copy on every same-state day (was 186/186 before the Moon wiring). Here we
+    // assert the cell differs on EVERY homomorphic (same-state) day across a full
+    // year — not "some day differs", and explicitly NOT only on the lean-different
+    // A/B pair that could hide a same-lean collapse.
+    expect(todayVerdict(A, new Date(Date.UTC(2026, 5, 14, 12))).lean).toBe("even");
+    expect(todayVerdict(C, new Date(Date.UTC(2026, 5, 14, 12))).lean).toBe("even");
+    const cell = (v: ReturnType<typeof todayVerdict>) =>
+      text([v.state, v.lean, v.line, v.quote, v.action, v.prep, v.askDidYouAct]);
+    let homomorphic = 0;
+    for (let i = 0; i < 365; i++) {
+      const day = new Date(Date.UTC(2026, 0, 1 + i, 12));
+      const a = todayVerdict(A, day);
+      const c = todayVerdict(C, day);
+      if (a.state !== c.state) continue;
+      homomorphic++;
+      expect(cell(a), `same-lean A/C share the whole cell (doy ${i}, state ${a.state})`).not.toBe(cell(c));
+    }
+    // not vacuous: A and C share a state on a large fraction of the year
+    expect(homomorphic, "too few homomorphic A/C days to test cell personalization").toBeGreaterThan(120);
+  });
+
+  it("different charts, SAME day, render a different presentation (lean-different pair too)", () => {
+    // kept as a second witness on the lean-different A/B pair.
+    const day = new Date(Date.UTC(2026, 5, 14, 12));
+    const cell = (v: ReturnType<typeof todayVerdict>) =>
+      text([v.state, v.lean, v.line, v.quote, v.action, v.prep, v.askDidYouAct]);
+    expect(cell(todayVerdict(A, day)), "A and B share the whole cell").not.toBe(cell(todayVerdict(B, day)));
+  });
+});
+
+// #T3 时辰侦探 (detectiveBandCopy) — the calibration detective band is a DYNAMIC
+// surface keyed on BELIEF. R14 (值会变 ≠ 呈现会变，验呈现层): the user-facing surface
+// is NOT the raw belief (topRange/mode/confidence) — it is the STRING Molly speaks,
+// detectiveBandCopy(belief). Asserting on the belief fields is asserting on the PROXY;
+// the false-green we exist to catch is "belief moved, rendered line did NOT". So every
+// assertion below pins detectiveBandCopy itself, strong-form (not.toBe), not the fields.
+//
+// Registry entry, strong form, on the PRESENTATION:
+//   • belief axis: a wide vs a sharp belief render a DIFFERENT line.
+//   • adjacency chain b0→b1→b2→b3: EACH step's rendered line differs. This is the load
+//     -bearing one — it catches the prior collapse where b2 [15,5] and b3 [21,11] are
+//     distinct beliefs (different topRange AND confidence) yet rendered BYTE-IDENTICAL
+//     copy because the old formatter keyed only on span width (both span 14). span <=
+//     hid it; the rendered string did not move. not.toBe on the chain is what exposes it.
+//   • mode flip planet→house must MOVE the line. Demonstrated at the boundary via
+//     withConfidence (real events on this seed top out below the house threshold, so a
+//     fields-only assertion would be VACUOUS — the house branch never taken). We drive
+//     confidence past the threshold explicitly and assert the copy actually changes.
+// (Per-belief sibling of the per-day / per-chart contracts above. todayVerdict's STATE
+//  is deliberately belief-INVARIANT — that wall is held by edge-preservation.test.ts;
+//  what varies by belief is this detective band string.)
+describe("freshness contract · time detective band (detectiveBandCopy) varies by BELIEF", () => {
+  const birth = { year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 };
+  const e1: LifeEvent = { kind: "move", year: 2019, month: 3 };
+  const e2: LifeEvent = { kind: "career", year: 2021, month: 9 };
+  const e3: LifeEvent = { kind: "relationship", year: 2023, month: 6 };
+
+  it("a wide belief and a sharp belief render a DIFFERENT detective LINE (presentation moves, not just the field)", () => {
+    const wide = seed(birth, []); // nothing known → whole-clock band, planet mode
+    const sharp = seed(birth, [e1, e2, e3]); // corroborated → narrowed band
+    // strong form: the rendered string moves, not merely the underlying topRange.
+    expect(detectiveBandCopy(sharp), "sharp belief renders the same line as wide").not.toBe(
+      detectiveBandCopy(wide),
+    );
+  });
+
+  it("EACH step of the belief chain b0→b1→b2→b3 renders a DIFFERENT line (catches the b2/b3 byte-identical collapse)", () => {
+    const chain = [
+      seed(birth, []),
+      seed(birth, [e1]),
+      seed(birth, [e1, e2]),
+      seed(birth, [e1, e2, e3]),
+    ];
+    const lines = chain.map(detectiveBandCopy);
+    // adjacency: every neighbouring pair differs — the span<= chain alone let b2/b3
+    // collapse to identical copy; this not.toBe on the RENDERED line forbids it.
+    for (let i = 1; i < lines.length; i++) {
+      expect(lines[i], `belief step ${i - 1}→${i} rendered an identical detective line`).not.toBe(
+        lines[i - 1],
+      );
+    }
+    // and not vacuous: all four lines are mutually distinct (the surface never repeats
+    // across the whole accrual path, not just between neighbours).
+    expect(new Set(lines).size, "the four belief lines are not all distinct").toBe(lines.length);
+  });
+
+  it("the planet→house mode flip MOVES the rendered line (asserted at the boundary, not vacuously)", () => {
+    // Real events on this seed top out below 0.5, so seed() alone keeps mode='planet'
+    // for every belief — a fields-only test of the flip would be vacuous. Drive the
+    // confidence past the house threshold explicitly and assert the COPY changes.
+    const sharp = seed(birth, [e1, e2, e3]);
+    expect(sharp.mode, "fixture precondition: real-event belief is still planet-mode").toBe("planet");
+    const asHouse = withConfidence(sharp, 0.6); // same band, now over the house threshold
+    expect(asHouse.mode).toBe("house");
+    expect(asHouse.topRange, "withConfidence must not move the band, only the mode").toEqual(
+      sharp.topRange,
+    );
+    // same hour window, only the mode crossed — the rendered line must still differ.
+    expect(detectiveBandCopy(asHouse), "mode flip did not move the detective line").not.toBe(
+      detectiveBandCopy(sharp),
+    );
   });
 });

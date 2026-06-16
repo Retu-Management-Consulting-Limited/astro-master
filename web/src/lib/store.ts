@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import type { Chart, BirthInput } from "./astro/chart";
 import type { FirstRead } from "./reading/generate";
 import type { Gender } from "./ai/molly";
+import type { TimeBelief } from "./astro/timeBelief";
 
 export interface BirthForm {
   date: string;       // yyyy-mm-dd
@@ -18,6 +19,10 @@ interface FunnelState {
   chart?: Chart;
   firstRead?: FirstRead;
   ascCandidate?: string;
+  // The onboarding "人生大事" question seeds this from real LifeEvents → rectify;
+  // the daily loop later refines it (越用越准). It's the calibration funnel's
+  // primary product — ascCandidate is kept only as a crude back-compat label.
+  timeBelief?: TimeBelief;
   nickname?: string;
   gender?: Gender;
   joinedAt?: number;  // epoch ms of first chart — honest "认识 N 天"
@@ -30,6 +35,7 @@ interface FunnelState {
   setChart: (b: BirthInput, bf: BirthForm, c: Chart) => void;
   setFirstRead: (r: FirstRead | undefined) => void;
   setAsc: (s: string) => void;
+  setTimeBelief: (b: TimeBelief) => void;
   setNickname: (n: string) => void;
   setGender: (g: Gender) => void;
   recordVerdict: (hit: boolean, dayKey: string) => void;
@@ -61,6 +67,7 @@ export const useFunnel = create<FunnelState>()(
         set((s) => ({ birth, birthForm, chart, joinedAt: s.joinedAt ?? Date.now() })),
       setFirstRead: (firstRead) => set({ firstRead }),
       setAsc: (ascCandidate) => set({ ascCandidate }),
+      setTimeBelief: (timeBelief) => set({ timeBelief }),
       setNickname: (nickname) => set({ nickname }),
       setGender: (gender) => set({ gender }),
       recordVerdict: (hit, dayKey) =>
@@ -77,7 +84,7 @@ export const useFunnel = create<FunnelState>()(
       // Load a snapshot pulled from the user's server account (cross-device).
       loadServer: (p) =>
         set({ birth: p.birth, birthForm: p.birthForm, chart: p.chart, firstRead: p.firstRead, nickname: p.nickname, gender: p.gender, joinedAt: p.joinedAt }),
-      reset: () => set({ birth: undefined, birthForm: undefined, chart: undefined, firstRead: undefined, ascCandidate: undefined, nickname: undefined, gender: undefined, joinedAt: undefined, dailyHits: undefined, dailyMisses: undefined, checkinDays: undefined }),
+      reset: () => set({ birth: undefined, birthForm: undefined, chart: undefined, firstRead: undefined, ascCandidate: undefined, timeBelief: undefined, nickname: undefined, gender: undefined, joinedAt: undefined, dailyHits: undefined, dailyMisses: undefined, checkinDays: undefined }),
     }),
     {
       name: "molly-funnel",
@@ -97,6 +104,7 @@ export const useFunnel = create<FunnelState>()(
         chart: s.chart,
         firstRead: s.firstRead,
         ascCandidate: s.ascCandidate,
+        timeBelief: s.timeBelief,
         nickname: s.nickname,
         gender: s.gender,
         joinedAt: s.joinedAt,

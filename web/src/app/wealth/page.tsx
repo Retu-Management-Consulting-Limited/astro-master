@@ -1,10 +1,10 @@
 "use client";
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { monthWealth, wealthMark, type DayWealth } from "@/lib/astro/wealth";
 import { useNow } from "@/lib/useNow";
-import { BackButton } from "@/components/BackButton";
+import { TabBar } from "@/components/TabBar";
 const RETRO_ZH: Record<string, string> = { Mercury: "水逆", Venus: "金逆" };
 function retroText(retro: DayWealth["retro"]): string {
   return retro.map((b) => RETRO_ZH[b] ?? b).join("·");
@@ -25,11 +25,29 @@ function color(d: DayWealth): { bg: string; fg: string } {
   return { bg: "#d9dee7", fg: "#39414c" };
 }
 
+// useSearchParams() opts the subtree out of static prerender, so it must sit
+// under a Suspense boundary (Next app-router requirement).
 export default function WealthPage() {
+  return (
+    <Suspense fallback={null}>
+      <WealthView />
+    </Suspense>
+  );
+}
+
+function WealthView() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const now = useNow(); // local time, refreshes on app resume (rolls over days)
-  const [selDay, setSelDay] = useState<number | null>(null); // P2-3: tap a day to read it
+  // ?selDay=N — deep-link from the 今日格 red-day door / fortune chip lands here
+  // pre-selected on that day. Falls back to today (selDay stays null) when absent.
+  const sp = useSearchParams();
+  const spDay = (() => {
+    const raw = sp.get("selDay");
+    const n = raw ? Number(raw) : NaN;
+    return Number.isInteger(n) && n >= 1 && n <= 31 ? n : null;
+  })();
+  const [selDay, setSelDay] = useState<number | null>(spDay); // P2-3: tap a day to read it
   const year = now?.getFullYear() ?? 2026;
   const month = (now?.getMonth() ?? 5) + 1; // 1-based
   const TODAY = now?.getDate() ?? 1;
@@ -45,7 +63,6 @@ export default function WealthPage() {
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 6px" }}>
-        <BackButton />
         <div className="eye-mini" style={{ width: 30, height: 30 }} />
         <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
       </div>
@@ -147,9 +164,17 @@ export default function WealthPage() {
           </div>
         )}
 
-        <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "18px 0 4px" }}>财运仅供参考 · 投资有风险，最终决定还是你做</div>
+        {/* "看更深" — the calendar tells you WHEN; the money mirror tells you what
+            money MEANS to you. Hand off to the existing reveal→story funnel. */}
+        <button type="button" data-testid="wealth-deeper" onClick={() => router.push("/money")} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 18, padding: "11px 13px", borderRadius: 12, background: "rgba(201,168,97,.07)", border: "1px solid rgba(201,168,97,.34)", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>
+          <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} aria-hidden="true" /><span>钱对你<b style={{ color: "var(--cream)" }}>意味着什么</b></span><span style={{ marginLeft: "auto", color: "var(--gold-soft)" }}>看更深 →</span>
+        </button>
+
+        <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "16px 0 4px" }}>财运仅供参考 · 投资有风险，最终决定还是你做</div>
         <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 晒我的搞钱黄金日</button>
       </div>
+
+      <TabBar active="money" />
     </main>
   );
 }
