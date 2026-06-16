@@ -7,6 +7,7 @@ import { generateFirstRead, type FirstRead } from "@/lib/reading/generate";
 import { fetchFirstRead, AI_ON } from "@/lib/reading/remote";
 import { LoadingRitual } from "@/components/LoadingRitual";
 import { MollyThinking } from "@/components/MollyThinking";
+import { TimeDetective } from "@/components/TimeDetective";
 import { sanitizeRichText } from "@/lib/sanitize";
 import { track } from "@/lib/track";
 
@@ -14,6 +15,7 @@ export default function ReadingPage() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const ascCandidate = useFunnel((s) => s.ascCandidate);
+  const timeBelief = useFunnel((s) => s.timeBelief); // seeded by /calibration 人生大事 → 时辰侦探 揭晓处
   const timeUnknown = useFunnel((s) => s.birthForm?.knownTime ?? false); // knownTime === true means time is UNKNOWN
   const nickname = useFunnel((s) => s.nickname);
   const setFirstRead = useFunnel((s) => s.setFirstRead);
@@ -101,6 +103,13 @@ export default function ReadingPage() {
           <div style={{ width: 30, height: 1, background: "var(--gold)", margin: "0 auto 18px" }} />
           <div style={{ fontFamily: "var(--serif)", fontWeight: 600, fontSize: 27, lineHeight: 1.45, color: "var(--gold-soft)", textShadow: "0 0 26px rgba(201,168,97,.28)" }}>{read.quote}</div>
         </div>
+
+        {timeBelief && (
+          <div className="reveal" style={{ marginTop: 30, animationDelay: "3.7s" }}>
+            <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 12 }}>✦ <span style={{ color: "var(--gold)" }}>你的时辰</span></div>
+            <TimeDetective belief={timeBelief} />
+          </div>
+        )}
 
         <div className="reveal" style={{ marginTop: 30, animationDelay: "3.9s" }}>
           <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 12 }}>✦ <span style={{ color: "var(--gold)" }}>为你挑的</span></div>

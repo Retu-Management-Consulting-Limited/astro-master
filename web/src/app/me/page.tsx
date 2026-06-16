@@ -5,6 +5,7 @@ import { useChartGuard } from "@/lib/guard";
 import { metLabel } from "@/lib/relationship";
 import { birthSummary } from "@/lib/birth";
 import { TabBar } from "@/components/TabBar";
+import { TimeDetective } from "@/components/TimeDetective";
 import { useUnderstanding } from "@/lib/understanding";
 
 export default function MePage() {
@@ -14,6 +15,7 @@ export default function MePage() {
   const joinedAt = useFunnel((s) => s.joinedAt);
   const birthForm = useFunnel((s) => s.birthForm);
   const firstRead = useFunnel((s) => s.firstRead);
+  const timeBelief = useFunnel((s) => s.timeBelief); // 时辰侦探 回看
   const understand = useUnderstanding();
   if (!ready || !chart) return null;
 
@@ -57,6 +59,12 @@ export default function MePage() {
             懂你 <span style={{ flex: 1, maxWidth: 120, height: 5, background: "#1d2333", borderRadius: 3, overflow: "hidden" }}><i style={{ display: "block", height: "100%", width: `${understand}%`, background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} /></span> {understand}% <span style={{ marginLeft: "auto", color: "var(--gold)", fontSize: 12 }}>看完整 →</span>
           </div>
         </button>
+
+        {timeBelief && (
+          <div data-testid="me-time-detective" style={{ marginBottom: 18 }}>
+            <TimeDetective belief={timeBelief} />
+          </div>
+        )}
 
         <div>
           {rows.map((r) => (
