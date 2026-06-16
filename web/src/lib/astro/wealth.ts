@@ -172,7 +172,24 @@ export const PING_FLOOR = 0.6;    // ≥ 60% of the month is 平淡(ping)
 
 // Levels for a whole month under the quota, indexed day → level. Pure: depends
 // only on the per-day raw scores for that calendar month.
+// monthLevels is a PURE function of (chart, year, month). It is MEMOIZED because
+// dayWealth calls it on every single day lookup, recomputing wealthScore for the
+// whole month each time. The rank-quota cutoff (慎≤4) is decided by SORTED scores;
+// astronomy-engine float is warm-start/order-sensitive on some platforms (Linux CI),
+// so a day sitting on the 慎/平 boundary could flip between repeated identical calls
+// — which broke the edge-preservation / belief-invariance guards (state must be a
+// pure function of (chart,date), never moved by belief). Memoizing guarantees the
+// SAME Record for the same (chart,year,month) within a run, so a day's level can
+// never disagree across repeated lookups. (Keyed by chart identity via WeakMap.)
+const _monthLevelsCache = new WeakMap<Chart, Map<number, Record<number, WealthLevel>>>();
+
 export function monthLevels(chart: Chart, year: number, month: number): Record<number, WealthLevel> {
+  let byMonth = _monthLevelsCache.get(chart);
+  if (!byMonth) { byMonth = new Map(); _monthLevelsCache.set(chart, byMonth); }
+  const cacheKey = year * 100 + month;
+  const memoized = byMonth.get(cacheKey);
+  if (memoized) return memoized;
+
   const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const scored = [];
   for (let d = 1; d <= last; d++) {
@@ -199,6 +216,7 @@ export function monthLevels(chart: Chart, year: number, month: number): Record<n
     .sort((a, b) => b.score - a.score || a.day - b.day);
   for (const s of rawWang.slice(0, wangBudget)) out[s.day] = "wang";
 
+  byMonth.set(cacheKey, out);
   return out;
 }
 
