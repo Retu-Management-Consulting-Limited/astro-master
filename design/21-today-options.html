@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molly · 今日格 三组选项</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--void:#07090f;--void2:#0c111d;--ink:#05070c;--gold:#c9a861;--gold-soft:#e0c98a;--gold-deep:#9a7d44;
+    --cream:#efe7d4;--cream-dim:#c2baa6;--mute:#7a8194;--iris:#b58fb0;--blue:#8fb6d8;--green:#7fc99a;--red:#e0786a;
+    --field:#0f1320;--field-bd:#262d3d;--serif:'Cormorant Garamond','Noto Serif SC',serif;--sans:'Hanken Grotesk','Noto Sans SC',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);padding:24px 14px 50px;color:var(--cream);-webkit-font-smoothing:antialiased}
+  h1{font-family:var(--serif);font-weight:600;font-size:22px;color:var(--gold-soft);text-align:center;margin-bottom:22px}
+  .qsec{margin-bottom:40px}
+  .qh{font-family:var(--serif);font-size:19px;color:var(--cream);text-align:center;margin-bottom:3px}
+  .qd{text-align:center;color:var(--mute);font-size:12px;margin-bottom:16px}
+  .pair{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+  .col{display:flex;flex-direction:column;align-items:center;gap:9px;width:322px}
+  .cap{font-size:12px;color:var(--cream-dim);text-align:center;line-height:1.5}.cap b{color:var(--gold-soft)}
+
+  .phone{position:relative;width:322px;height:560px;border-radius:28px;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% -4%,#18203a 0%,var(--void2) 42%,var(--void) 70%,var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px #1a2030}
+  .phone.tall{height:600px}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(1px 1px at 14% 9%,rgba(255,255,255,.6),transparent),radial-gradient(1px 1px at 82% 6%,rgba(201,168,97,.7),transparent);}
+  .bar{position:relative;z-index:3;display:flex;align-items:center;gap:9px;padding:16px 18px 6px}
+  .eye{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:0 0 0 1px var(--gold),0 0 10px rgba(201,138,70,.4)}
+  .nm{font-weight:500;letter-spacing:.4em;font-size:10px;color:var(--gold)}
+  .kn{margin-left:auto;font-size:10px;color:var(--cream-dim)}.kn b{color:var(--gold)}
+  .scroll{position:relative;z-index:2;flex:1;overflow:hidden;padding:4px 16px 8px}
+  .greet{font-family:var(--serif);font-size:18px;color:var(--cream);margin:2px 2px 9px}.greet i{color:var(--gold-soft);font-style:italic}
+  .wx{display:flex;gap:7px;background:rgba(143,182,216,.07);border:1px solid rgba(143,182,216,.18);border-radius:10px;padding:7px 10px;font-size:11px;color:var(--blue);margin-bottom:11px}.wx b{color:#cfe0f0}
+  .card{border-radius:14px;padding:12px 13px;margin-bottom:9px;border:1px solid var(--field-bd);background:var(--field)}
+  .ctag{font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:6px}.ctag .dot{width:5px;height:5px;border-radius:50%}
+  .ctxt{font-size:13px;line-height:1.55;color:var(--cream-dim)}.ctxt b{color:var(--cream)}
+  .thin{font-size:11.5px;color:var(--mute);padding:7px 2px;line-height:1.5}.thin b{color:var(--cream-dim)}
+  .thin.y{border-bottom:1px solid rgba(255,255,255,.06)}.thin .ok{color:var(--green)}
+
+  .shen{border:1px solid rgba(224,120,106,.45);background:linear-gradient(180deg,rgba(224,120,106,.09),rgba(224,120,106,.02))}
+  .shen .ctag{color:var(--red)}.shen .ctag .dot{background:var(--red)}
+  .cmd{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.25;margin-bottom:7px;color:#f0b6ab}
+  .why{font-size:12px;color:var(--mute);margin-bottom:5px}
+  .sugar{font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.45;color:var(--cream-dim)}
+  .door{margin-top:10px;background:rgba(143,182,216,.09);border-left:3px solid var(--gold);border-radius:8px;padding:8px 11px;font-size:12px;color:#dbe6f2;line-height:1.5}
+  .green-cmd .cmd{color:#b6e8c8} .green-c{border-color:rgba(127,201,154,.42);background:linear-gradient(180deg,rgba(127,201,154,.09),rgba(127,201,154,.02))}.green-c .ctag{color:var(--green)}.green-c .ctag .dot{background:var(--green)}
+
+  .fchip{display:flex;align-items:center;gap:7px;margin-top:10px;padding:7px 10px;border-radius:9px;font-size:11.5px;background:rgba(127,201,154,.08);border:1px solid rgba(127,201,154,.25);color:var(--green)}
+  .fchip .b{width:7px;height:7px;border-radius:50%;background:currentColor}.fchip .arr{margin-left:auto;opacity:.7}
+
+  /* 财运入口块 (Q1-B) */
+  .fblock{border:1px solid rgba(201,168,97,.3);background:linear-gradient(180deg,rgba(201,168,97,.08),rgba(201,168,97,.02));border-radius:14px;padding:12px 13px;margin-bottom:9px}
+  .fblock .ft{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .fbstrip{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:8px}
+  .fbstrip i{aspect-ratio:1;border-radius:3px;background:rgba(255,255,255,.04)}
+  .fbstrip i.g{background:var(--gold)}.fbstrip i.y{background:var(--green)}.fbstrip i.s{background:var(--red)}.fbstrip i.t{outline:1.5px solid var(--gold)}
+  .fbline{font-size:12px;color:var(--gold-soft);display:flex;align-items:center}.fbline .arr{margin-left:auto;color:var(--gold)}
+
+  .tabbar{position:relative;z-index:4;display:flex;justify-content:space-around;padding:8px 4px 12px;border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,#080a12,rgba(8,10,18,.6))}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;color:#5a6173;flex:1}.tab.on{color:var(--gold)}.tab .ic{font-size:15px}
+</style>
+</head>
+<body>
+<h1>今日格 · 三组选项（看效果选）</h1>
+
+<!-- ════ Q1 财运放哪 ════ -->
+<div class="qsec">
+  <div class="qh">Q1 · 财运放哪？</div>
+  <div class="qd">底部第 5 个 tab　vs　今日格里一个显眼入口块（tab 回 4 个）</div>
+  <div class="pair">
+    <div class="col">
+      <div class="phone">
+        <div class="bar"><div class="eye"></div><span class="nm">MOLLY</span><span class="kn">懂你 <b>64%</b></span></div>
+        <div class="scroll">
+          <div class="greet">周二好，<i>今天是你的日子</i>。</div>
+          <div class="wx">🌙 <span>木星拱你二宫 · <b>谈钱窗口开着</b></span></div>
+          <div class="card green-c green-cmd"><div class="ctag"><span class="dot"></span>今天 · 宜</div><div class="cmd">宜 · 今天去开口谈</div><div class="ctxt">今天你说得出口、压得住场。报价往上抬一档。</div><div class="fchip"><span class="b"></span>本月黄金日之一<span class="arr">查日历 →</span></div></div>
+          <div class="card"><div class="ctag" style="color:var(--iris)"><span class="dot" style="background:var(--iris)"></span>明天</div><div class="ctxt">趁今天的劲，明天把谈成的落纸。</div></div>
+        </div>
+        <div class="tabbar"><div class="tab on"><span class="ic">☾</span>今日</div><div class="tab"><span class="ic">✦</span>财运</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+      </div>
+      <div class="cap">A｜<b>底部第 5 个 tab</b><br>财运常驻可达；但 tab 从 4 变 5、略挤<br>今日屏只有 fortune chip 这一处财运</div>
+    </div>
+    <div class="col">
+      <div class="phone">
+        <div class="bar"><div class="eye"></div><span class="nm">MOLLY</span><span class="kn">懂你 <b>64%</b></span></div>
+        <div class="scroll">
+          <div class="greet">周二好，<i>今天是你的日子</i>。</div>
+          <div class="wx">🌙 <span>木星拱你二宫 · <b>谈钱窗口开着</b></span></div>
+          <div class="card green-c green-cmd"><div class="ctag"><span class="dot"></span>今天 · 宜</div><div class="cmd">宜 · 今天去开口谈</div><div class="ctxt">今天你说得出口、压得住场。报价往上抬一档。</div></div>
+          <div class="fblock"><div class="ft">✦ 财运 · 本月</div><div class="fbstrip"><i></i><i class="s"></i><i></i><i></i><i class="g"></i><i></i><i class="t"></i><i></i><i class="y"></i><i></i></div><div class="fbline">下一个黄金日 <b style="color:var(--gold)">6/19</b> · 还有 3 天<span class="arr">看日历 →</span></div></div>
+          <div class="card"><div class="ctag" style="color:var(--iris)"><span class="dot" style="background:var(--iris)"></span>明天</div><div class="ctxt">趁今天的劲，明天把谈成的落纸。</div></div>
+        </div>
+        <div class="tabbar"><div class="tab on"><span class="ic">☾</span>今日</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+      </div>
+      <div class="cap">B｜<b>今日格内入口块</b>（tab 回 4 个）<br>财运在今日屏直接看见月历缩略+黄金日<br>更显眼、不挤 tab；但占今日屏一块地</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ Q2 今日骨架 ════ -->
+<div class="qsec">
+  <div class="qh">Q2 · 今日骨架？</div>
+  <div class="qd">保留 昨/今/明 三卡仪式　vs　今日格 hero 单屏（昨/明缩成一行）</div>
+  <div class="pair">
+    <div class="col">
+      <div class="phone tall">
+        <div class="bar"><div class="eye"></div><span class="nm">MOLLY</span><span class="kn">懂你 <b>63%</b></span></div>
+        <div class="scroll">
+          <div class="greet">周五好，<i>今天我拦你一下</i>。</div>
+          <div class="card" style="border-color:rgba(143,182,216,.28)"><div class="ctag" style="color:var(--blue)"><span class="dot" style="background:var(--blue)"></span>昨天 · 你说中了吗</div><div class="ctxt">我说你昨天会<b>特别想抓住一个答案</b>——对吗？</div></div>
+          <div class="card shen"><div class="ctag"><span class="dot"></span>今天 · 慎</div><div class="cmd">慎 · 今天别要答案</div><div class="why">你现在判断在情绪上头。</div><div class="sugar">不是他真有问题，是今天的天气。</div><div class="door">▸ 真想说的，留到<u>周四</u>。</div></div>
+          <div class="card" style="border-color:rgba(181,143,176,.26)"><div class="ctag" style="color:var(--iris)"><span class="dot" style="background:var(--iris)"></span>明天</div><div class="ctxt">明天相位散开，<b>你会坐回中心</b>。</div></div>
+        </div>
+        <div class="tabbar"><div class="tab on"><span class="ic">☾</span>今日</div><div class="tab"><span class="ic">✦</span>财运</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+      </div>
+      <div class="cap">A｜<b>昨/今/明 全仪式</b><br>有"被验证+前瞻"的仪式感、内容更厚<br>但「今」的主位被另两卡分掉</div>
+    </div>
+    <div class="col">
+      <div class="phone tall">
+        <div class="bar"><div class="eye"></div><span class="nm">MOLLY</span><span class="kn">懂你 <b>63%</b></span></div>
+        <div class="scroll">
+          <div class="thin y">↑ 昨天那个慎，<b>你忍住了吗？</b> <span class="ok">忍住了 ✓</span></div>
+          <div class="card shen" style="margin-top:14px;padding:18px 16px"><div class="ctag"><span class="dot"></span>今天 · 慎</div><div class="cmd" style="font-size:27px">慎 · 今天<br>别要答案</div><div class="why" style="font-size:13px">你现在判断在情绪上头。</div><div class="sugar" style="font-size:17px;margin-top:4px">不是他真有问题，是今天的天气。</div><div class="door" style="font-size:12.5px;margin-top:13px">▸ 真想说的，留到 <u>周四</u>——那天话是你的，不是情绪的。</div></div>
+          <div class="thin">明天 · <b>相位散开，你会坐回自己的中心。</b> 🔮</div>
+        </div>
+        <div class="tabbar"><div class="tab on"><span class="ic">☾</span>今日</div><div class="tab"><span class="ic">✦</span>财运</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+      </div>
+      <div class="cap">B｜<b>今日格 hero 单屏</b><br>「今」放大成绝对主角、一击更重<br>昨缩成顶一行验证、明缩成底一行钩子</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ Q3 语气声音 ════ -->
+<div class="qsec">
+  <div class="qh">Q3 · 语气声音？（都是"直白命令 + 赦免糖"，差在声音）</div>
+  <div class="qd">毒舌通透·锋利　vs　笃定带温度·暖 —— 同一个红慎日</div>
+  <div class="pair">
+    <div class="col" style="width:340px">
+      <div class="card shen" style="width:340px;padding:18px 18px"><div class="ctag"><span class="dot"></span>今天 · 慎</div>
+        <div class="cmd" style="font-size:25px">慎 · 今天别要答案</div>
+        <div class="why" style="font-size:13px">你现在判断在情绪上头。</div>
+        <div class="sugar" style="font-size:16.5px;margin-top:3px">不是他有问题，是<b style="color:var(--cream);font-style:normal;font-weight:500">你</b>今天的天气。</div>
+        <div class="door" style="font-size:12.5px">▸ 真想说的，留到周四——那天你说得出口、也听得进。</div>
+      </div>
+      <div class="cap">A｜<b>毒舌通透·锋利</b><br>一针见血、略冷、像一眼看穿你的朋友<br>冲击最强；风险=对秦姐型偏硬</div>
+    </div>
+    <div class="col" style="width:340px">
+      <div class="card shen" style="width:340px;padding:18px 18px"><div class="ctag"><span class="dot"></span>今天 · 慎</div>
+        <div class="cmd" style="font-size:25px">今天，我拦你一下</div>
+        <div class="why" style="font-size:13px">别急着要答案——你现在在上头。</div>
+        <div class="sugar" style="font-size:16.5px;margin-top:3px">不是他的事，是月亮刑你金星，过两天就散。</div>
+        <div class="door" style="font-size:12.5px">▸ 真想说的，留到周四——那天你说得出口、也听得进。</div>
+      </div>
+      <div class="cap">B｜<b>笃定带温度·暖</b><br>先共情再拦、把"在场陪你"放前面<br>更接得住脆弱；冲击略柔</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
