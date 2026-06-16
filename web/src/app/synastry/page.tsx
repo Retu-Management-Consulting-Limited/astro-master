@@ -11,6 +11,7 @@ import { fetchSynastryRead } from "@/lib/reading/remote";
 import { buildSynastryCardSVG, svgToPngBlob, type Template } from "@/lib/share/card";
 import { useFunnel } from "@/lib/store";
 import { readTokens, addStoredToken } from "@/lib/synastryTokens";
+import { readPartners, upsertPartner, removePartner, type SavedPartner } from "@/lib/synastryPartners";
 import { track } from "@/lib/track";
 
 const TYPES: { id: RelType; ic: string; t: string; sub: string }[] = [
@@ -39,27 +40,36 @@ export default function SynastryPage() {
 
   const [realPartner, setRealPartner] = useState<Chart | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [connectedToken, setConnectedToken] = useState<string | null>(null);
   const [tokens, setTokens] = useState<string[]>([]);
+  const [partners, setPartners] = useState<SavedPartner[]>([]);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  // Restore every previously-created invite token on mount (newest is active).
+  // Restore every previously-created invite token + saved partners on mount.
   useEffect(() => {
     const list = readTokens();
     if (list.length) {
       setTokens(list);
       setInviteUrl(`${window.location.origin}/synastry/invite/${list[list.length - 1]}`);
     }
+    setPartners(readPartners());
   }, []);
 
   // Poll all pending invites until any partner fills theirs in. Re-runs whenever
   // a new token is added. Revisiting the screen re-polls (B2 catch-up).
   useEffect(() => {
     if (!tokens.length || realPartner) return;
+    // Skip invites whose partner is already saved (已合的人) — otherwise 再合一个人
+    // would immediately auto-reconnect the person you just left. Re-open them
+    // explicitly from the saved list instead.
+    const saved = new Set(partners.map((p) => p.token));
+    const pending = tokens.filter((t) => !saved.has(t));
+    if (!pending.length) return;
     let stop = false;
     const poll = async () => {
-      for (const tk of tokens) {
+      for (const tk of pending) {
         try {
           const r = await fetch(`/api/synastry/invite?token=${tk}`);
           if (!r.ok) continue;
@@ -67,8 +77,12 @@ export default function SynastryPage() {
           // Defense-in-depth: only accept a structurally valid partner chart, so
           // a legacy/corrupt KV entry never crashes synastry() on .placements.
           if (j.ready && isFullChart(j.partner?.chart)) {
+            const nm = j.partner.name ?? "对方";
             setRealPartner(j.partner.chart as Chart);
-            setPartnerName(j.partner.name ?? "对方");
+            setPartnerName(nm);
+            setConnectedToken(tk);
+            // remember this connection in 已合的人 (Unit G); type/total added on view
+            setPartners(upsertPartner({ token: tk, name: nm, chart: j.partner.chart }));
             stop = true;
             return;
           }
@@ -83,7 +97,7 @@ export default function SynastryPage() {
       else poll();
     }, 4000);
     return () => clearInterval(iv);
-  }, [tokens, realPartner]);
+  }, [tokens, realPartner, partners]);
 
   async function createInvite() {
     if (creating) return;
@@ -137,6 +151,34 @@ export default function SynastryPage() {
 
   const partner = realPartner ?? DEMO_PARTNER;
   const result = useMemo(() => (chart && type ? synastry(chart, partner, type) : null), [chart, type, partner]);
+
+  // Record the last relationship type + score A viewed for this partner, so the
+  // 已合的人 list can show it (Unit G / D7). Real pairings only.
+  useEffect(() => {
+    if (!result || !realPartner || !connectedToken) return;
+    setPartners(upsertPartner({ token: connectedToken, name: partnerName ?? "对方", chart: realPartner, type: result.type, total: result.total }));
+  }, [result, realPartner, connectedToken, partnerName]);
+
+  // 再合一个人: drop the current partner, return to the invite/entry screen to
+  // bring in someone new. Saved partners stay in 已合的人.
+  function recouple() {
+    setType(null);
+    setRealPartner(null);
+    setPartnerName(null);
+    setConnectedToken(null);
+  }
+  // Re-open a saved partner: load their derived chart, go pick a type.
+  function openSaved(p: SavedPartner) {
+    if (!isFullChart(p.chart)) return;
+    setRealPartner(p.chart as Chart);
+    setPartnerName(p.name);
+    setConnectedToken(p.token);
+    setType(null);
+  }
+  function deleteSaved(token: string) {
+    setPartners(removePartner(token));
+  }
+
   if (!ready || !chart) return null;
 
   return (
@@ -194,16 +236,36 @@ export default function SynastryPage() {
                 <span style={{ color: "#4f5666" }}>›</span>
               </button>
             ))}
+
+            {/* 已合的人 (Unit G): re-open or remove past pairings. Score shown (D7). */}
+            {partners.length > 0 && (
+              <div data-testid="syn-saved" style={{ marginTop: 18 }}>
+                <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--mute)", margin: "0 2px 10px" }}>已合的人</div>
+                {[...partners].reverse().map((p) => (
+                  <div key={p.token} style={{ display: "flex", alignItems: "center", gap: 11, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 13, padding: "10px 13px", marginBottom: 9 }}>
+                    <button type="button" data-testid="syn-saved-open" onClick={() => openSaved(p)} style={{ display: "flex", alignItems: "center", gap: 11, flex: 1, textAlign: "left", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}>
+                      <span style={{ width: 34, height: 34, borderRadius: "50%", background: "radial-gradient(circle at 50% 40%,#2a2160,#0a0e1a)", boxShadow: "0 0 0 1px var(--gold-deep)", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "var(--gold-soft)" }}>{p.name.slice(0, 1)}</span>
+                      <span style={{ flex: 1 }}>
+                        <span style={{ display: "block", fontSize: 14, color: "var(--cream)" }}>{p.name}</span>
+                        <span style={{ display: "block", fontSize: 11, color: "var(--mute)" }}>{p.type && typeof p.total === "number" ? `${SHORT_REL[p.type]}盘 · ${p.total}%` : "点开测你俩"}</span>
+                      </span>
+                    </button>
+                    <button type="button" aria-label={`删除 ${p.name}`} onClick={() => deleteSaved(p.token)} style={{ background: "none", border: "none", fontSize: 11, color: "#5a6275", cursor: "pointer", padding: "4px 6px" }}>删除</button>
+                  </div>
+                ))}
+                <div style={{ textAlign: "center", fontSize: 10, color: "#566073", marginTop: 2 }}>删除只清你本地的记录 · 不影响对方</div>
+              </div>
+            )}
           </>
         ) : (
-          <Result result={result} demo={!realPartner} onConnect={() => setType(null)} selfChart={chart} partnerChart={realPartner} partnerName={partnerName} selfName={nickname} />
+          <Result result={result} demo={!realPartner} onConnect={() => setType(null)} onRecouple={recouple} selfChart={chart} partnerChart={realPartner} partnerName={partnerName} selfName={nickname} />
         )}
       </div>
     </main>
   );
 }
 
-function Result({ result, demo, onConnect, selfChart, partnerChart, partnerName, selfName }: { result: SynResult; demo: boolean; onConnect: () => void; selfChart: Chart; partnerChart: Chart | null; partnerName: string | null; selfName?: string }) {
+function Result({ result, demo, onConnect, onRecouple, selfChart, partnerChart, partnerName, selfName }: { result: SynResult; demo: boolean; onConnect: () => void; onRecouple: () => void; selfChart: Chart; partnerChart: Chart | null; partnerName: string | null; selfName?: string }) {
   const typeLabel = TYPES.find((t) => t.id === result.type)!.t;
   const [read, setRead] = useState<SynRead>(() => synScaffold(result, selfName ?? undefined, partnerName ?? undefined));
   const [openDim, setOpenDim] = useState<string | null>(null);
@@ -295,6 +357,7 @@ function Result({ result, demo, onConnect, selfChart, partnerChart, partnerName,
       </div>
 
       <button type="button" data-testid="syn-card-open" onClick={() => setShowCard(true)} style={{ display: "block", width: "100%", margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</button>
+      <button type="button" data-testid="syn-recouple" onClick={onRecouple} style={{ display: "block", width: "100%", margin: "2px 0 8px", textAlign: "center", fontSize: 12.5, color: "var(--cream-dim)", cursor: "pointer", background: "none", border: "none" }}>＋ 再合一个人</button>
       <div style={{ marginTop: 0, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
 
       {showCard && (

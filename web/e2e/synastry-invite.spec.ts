@@ -67,6 +67,16 @@ test("synastry invite: A invites → B submits real birth → A sees real partne
   await expect(result).toContainText("%"); // real score present
   await page.locator('[data-testid="syn-dim"]').first().click(); // 维度下钻
   await expect(page.locator('[data-testid="syn-drill"]').first()).toBeVisible({ timeout: 3000 });
+
+  // 再合一个人 (PR5): viewing saved the partner; recouple returns to entry WITHOUT
+  // auto-reconnecting them, and they appear in 已合的人 with a score.
+  await page.locator('[data-testid="syn-recouple"]').click();
+  await expect(page.locator('[data-testid="syn-partner-real"]')).toHaveCount(0);
+  await expect(page.locator('[data-testid="syn-saved"]')).toContainText("小鱼");
+  await expect(page.locator('[data-testid="syn-saved"]')).toContainText("%");
+  // re-open the saved partner → reconnected
+  await page.locator('[data-testid="syn-saved-open"]').first().click();
+  await expect(page.locator('[data-testid="syn-partner-real"]')).toBeVisible({ timeout: 4000 });
 });
 
 test("synastry invite: invalid token shows a friendly message", async ({ page }) => {
