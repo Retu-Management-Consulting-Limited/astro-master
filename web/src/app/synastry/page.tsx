@@ -21,6 +21,8 @@ const TYPES: { id: RelType; ic: string; t: string; sub: string }[] = [
   { id: "family", ic: "👩‍👧", t: "家人", sub: "懂不懂彼此、能不能和解" },
 ];
 const DIM_COLOR = ["#e69ec8", "#f0a868", "#8fb6d8", "#e0c98a", "#7fc99a"];
+// 合盘卡用的短关系名（结果页用全名「恋人 / 暧昧」，卡片要简洁「恋人盘」）。
+const SHORT_REL: Record<RelType, string> = { lover: "恋人", partner: "合伙", colleague: "共事", friend: "朋友", family: "家人" };
 
 // 下钻用：星体中文 + 相位角中文。来自引擎 Unit A 暴露的真实跨盘相位（不编造）。
 const ZH: Record<string, string> = { Sun: "太阳", Moon: "月亮", Mercury: "水星", Venus: "金星", Mars: "火星", Jupiter: "木星", Saturn: "土星" };
@@ -296,7 +298,7 @@ function Result({ result, demo, onConnect, selfChart, partnerChart, partnerName,
       <div style={{ marginTop: 0, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
 
       {showCard && (
-        <SynCard pair={`你 ↔ ${who}`} relLabel={`${typeLabel}盘`} total={result.total} quote={read.catchLine} onClose={() => setShowCard(false)} />
+        <SynCard pair={`你 ↔ ${who}`} relLabel={`${SHORT_REL[result.type]}盘`} total={result.total} quote={read.catchLine} onClose={() => setShowCard(false)} />
       )}
     </div>
   );
