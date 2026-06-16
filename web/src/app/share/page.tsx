@@ -87,7 +87,7 @@ export default function SharePage() {
           {TPLS.map((t) => {
             const thumb = buildCardSVG(data, t);
             return (
-              <button type="button" key={t} data-testid="tpl" aria-label={`样式 ${t.toUpperCase()}`} aria-pressed={tpl === t} onClick={() => setTpl(t)} style={{ width: 36, height: 48, borderRadius: 7, overflow: "hidden", cursor: "pointer", padding: 0, outline: tpl === t ? "2px solid var(--gold)" : "1px solid #2a3344", outlineOffset: tpl === t ? 1 : 0 }} dangerouslySetInnerHTML={{ __html: thumb }} />
+              <button type="button" key={t} data-testid="tpl" aria-label={`样式 ${t.toUpperCase()}`} aria-pressed={tpl === t} onClick={() => setTpl(t)} style={{ width: 44, height: 58, borderRadius: 7, overflow: "hidden", cursor: "pointer", padding: 0, outline: tpl === t ? "2px solid var(--gold)" : "1px solid #2a3344", outlineOffset: tpl === t ? 1 : 0 }} dangerouslySetInnerHTML={{ __html: thumb }} />
             );
           })}
         </div>

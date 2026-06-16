@@ -65,7 +65,7 @@ export default function MoneyTodayPage() {
   if (!ready || !chart) return null;
 
   return (
-    <div className="mx-auto max-w-[400px] px-5 py-8 text-[#efe7d4]">
+    <div className="mx-auto max-w-[400px] px-5 text-[#efe7d4]" style={{ paddingTop: "max(32px, env(safe-area-inset-top))", paddingBottom: "max(32px, env(safe-area-inset-bottom))" }}>
       <div className="mb-4">
         <BackButton />
       </div>

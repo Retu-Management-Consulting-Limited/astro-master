@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8">
+<style>
+:root{
+  --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7b3f; --blue:#8fc2e6;
+  --cream:#f0ece4; --cream-dim:#c8c4bc; --mute:#8b92a6; --green:#7fc99a; --red:#e88b86; --amber:#f0b07a;
+  --field:rgba(255,255,255,.045); --field-bd:rgba(255,255,255,.09); --serif:Georgia,'Songti SC',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#06080f;font-family:-apple-system,'PingFang SC',sans-serif;color:var(--cream);padding:40px 36px 60px}
+.bt{font-size:26px;font-weight:600;margin-bottom:6px}.bt b{color:var(--gold-soft)}
+.bs{color:var(--mute);font-size:14px;margin-bottom:30px;line-height:1.7;max-width:1000px}.bs b{color:var(--gold-soft)}
+.grid{display:flex;flex-wrap:wrap;gap:30px 26px;align-items:flex-start}
+.col{width:340px}
+.cap{margin-top:13px;font-size:12px;color:var(--mute);line-height:1.65}.cap b{color:var(--gold-soft);font-weight:500}
+.card{position:relative;border-radius:18px;padding:18px 18px;background:radial-gradient(120% 100% at 50% 0%,#16203c,#0b1024 70%);border:1px solid #1b2336;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0;background-image:radial-gradient(1px 1px at 20% 18%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 75% 30%,rgba(255,255,255,.3),transparent),radial-gradient(1px 1px at 45% 70%,rgba(255,255,255,.25),transparent);pointer-events:none}
+.tag{display:inline-block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:11px}
+
+/* streak elements */
+.flame{font-size:34px;line-height:1}
+.big{font-family:var(--serif);font-size:34px;color:var(--gold-soft);font-weight:600;line-height:1}
+.big .u{font-size:17px;color:var(--cream-dim)}
+.sub{font-size:13px;color:var(--cream-dim);margin-top:7px;line-height:1.55}
+.fine{font-size:11px;color:var(--mute);margin-top:6px;line-height:1.5}
+.row{display:flex;align-items:center;gap:13px}
+.dots{display:flex;gap:6px;margin-top:13px}
+.dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;background:#161b29;border:1px solid #2b3242;color:#566073}
+.dot.on{background:rgba(232,150,90,.16);border-color:rgba(232,150,90,.5);color:var(--amber)}
+.dot.today{box-shadow:0 0 0 2px rgba(201,168,97,.4)}
+.warm{background:linear-gradient(180deg,rgba(232,150,90,.12),rgba(232,150,90,.03));border-color:rgba(232,150,90,.34)}
+.amber{background:linear-gradient(180deg,rgba(240,176,122,.13),rgba(240,176,122,.03));border-color:rgba(240,176,122,.4)}
+.mile{background:linear-gradient(180deg,rgba(201,168,97,.16),rgba(201,168,97,.03));border-color:rgba(201,168,97,.5);box-shadow:0 0 40px -16px rgba(201,168,97,.7)}
+.cta{margin-top:13px;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#1a1408;background:linear-gradient(180deg,var(--gold-soft),var(--gold));border-radius:11px;padding:8px 14px;font-weight:600}
+
+/* phone */
+.phone{width:340px;height:660px;border-radius:38px;position:relative;overflow:hidden;background:radial-gradient(120% 80% at 50% -8%,#16203c,#0b1024 46%,#070a16 100%);border:1px solid #1b2336}
+.phone::before{content:"";position:absolute;inset:0;background-image:radial-gradient(1px 1px at 18% 12%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 72% 22%,rgba(255,255,255,.3),transparent),radial-gradient(1px 1px at 42% 50%,rgba(255,255,255,.25),transparent);pointer-events:none}
+.scr{position:relative;height:100%;padding:22px 18px;display:flex;flex-direction:column}
+.ph-top{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.eye{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 50% 42%,#f0e7c8,#c9a861 38%,#1a2547 72%,#0c1124)}
+.ph-name{font-weight:500;letter-spacing:.34em;font-size:11px;color:var(--gold)}
+.kd{margin-left:auto;font-size:10.5px;color:var(--cream-dim)}.kd b{color:var(--gold)}
+.serif{font-family:var(--serif)}
+
+/* red-line panel */
+.redbox{width:100%;background:rgba(232,139,134,.05);border:1px solid rgba(232,139,134,.3);border-radius:16px;padding:20px 22px;margin-top:6px}
+.redbox h3{font-size:16px;color:var(--red);margin-bottom:4px}
+.redcols{display:flex;gap:24px;flex-wrap:wrap;margin-top:14px}
+.redcol{flex:1;min-width:300px}
+.redcol .h{font-size:12px;letter-spacing:.1em;margin-bottom:10px}
+.line{font-size:13px;line-height:1.5;padding:8px 12px;border-radius:9px;margin-bottom:8px}
+.ok{background:rgba(127,201,154,.08);border:1px solid rgba(127,201,154,.25);color:#bfe9d0}
+.no{background:rgba(232,139,134,.07);border:1px solid rgba(232,139,134,.28);color:#f0c0bd;text-decoration:line-through;text-decoration-color:rgba(232,139,134,.5)}
+</style></head>
+<body>
+<div class="bt">留存三件套 · ① <b>真 streak（连续打卡）</b> — UI/UX mockup</div>
+<div class="bs">宪法判据「真 vs 编」：streak 数字、断签归零都是<b>真事实</b>（🟢 §8.2 放开拉满）。措辞走「<b>你给自己的纪录</b>」，绝不碰「Molly 好担心你 / 前功尽弃」那种<b>编造愧疚</b>（🔴 §8.2）。断签重启走<b>无羞辱</b>（§9.2 脆弱人群）。下面是 6 个状态 + 红线对照。</div>
+
+<div class="grid">
+
+<!-- A. day 1 -->
+<div class="col">
+  <div class="card warm">
+    <div class="tag">状态 A · 起点</div>
+    <div class="row"><span class="flame">🔥</span><div><div class="big">第 1 天</div></div></div>
+    <div class="sub">你来了。每天来这一下，是<b style="color:var(--cream)">你给自己的</b>。</div>
+    <div class="dots"><span class="dot on today">1</span><span class="dot">2</span><span class="dot">3</span><span class="dot">4</span><span class="dot">5</span><span class="dot">6</span><span class="dot">7</span></div>
+  </div>
+  <div class="cap"><b>A 起点</b> · 温暖、零压力。不一上来就 streak 焦虑（§9.2）。</div>
+</div>
+
+<!-- B. building 7 -->
+<div class="col">
+  <div class="card warm">
+    <div class="tag">状态 B · 建立中（主态）</div>
+    <div class="row"><span class="flame">🔥</span><div><div class="big">连续 7 <span class="u">天</span></div></div></div>
+    <div class="sub">你给自己，<b style="color:var(--cream)">整整一个星期</b>了。</div>
+    <div class="dots"><span class="dot on">1</span><span class="dot on">2</span><span class="dot on">3</span><span class="dot on">4</span><span class="dot on">5</span><span class="dot on">6</span><span class="dot on today">7</span></div>
+    <div class="fine">断一天，从第 1 天数起 —— 这是真规则，不是吓你。</div>
+  </div>
+  <div class="cap"><b>B 主态</b> · 真损失厌恶：陈述真规则（断了归零）🟢，不施加愧疚 🔴。复利钩子。</div>
+</div>
+
+<!-- C. milestone 30 -->
+<div class="col">
+  <div class="card mile">
+    <div class="tag" style="color:var(--gold-soft)">状态 C · 里程碑</div>
+    <div class="row"><span class="flame">🔥✨</span><div><div class="big">30 <span class="u">天</span></div></div></div>
+    <div class="sub serif" style="font-style:italic;font-size:16px;color:var(--gold-soft);margin-top:10px">一个月。你一天没断。</div>
+    <div class="fine" style="color:var(--cream-dim)">这是你坚持给自己的 30 次。我都看在眼里。</div>
+    <div class="cta">领取这枚 30 天徽章 ✦</div>
+  </div>
+  <div class="cap"><b>C 里程碑</b>（7/30/100）· 真成就庆祝。把"坚持"还给用户，不是"你为我坚持"。</div>
+</div>
+
+<!-- D. at-risk -->
+<div class="col">
+  <div class="card amber">
+    <div class="tag" style="color:var(--amber)">状态 D · 今天还没续</div>
+    <div class="row"><span class="flame" style="opacity:.6">🔥</span><div><div class="big" style="color:var(--amber)">连续 7 <span class="u">天</span></div></div></div>
+    <div class="sub">你<b style="color:var(--cream)">昨天的纪录还在</b> —— 今天来打个卡就接上了。</div>
+    <div class="dots"><span class="dot on">…</span><span class="dot on">5</span><span class="dot on">6</span><span class="dot on">7</span><span class="dot today" style="border-style:dashed">今</span></div>
+    <div class="cta" style="background:linear-gradient(180deg,#f3c79a,var(--amber))">今天打个卡 →</div>
+  </div>
+  <div class="cap"><b>D 提醒</b> · 陈述真事实(昨天纪录还在) + 给动作 🟢。不写"前功尽弃/Molly 好担心"🔴。</div>
+</div>
+
+<!-- E. broken / restart -->
+<div class="col">
+  <div class="card">
+    <div class="tag" style="color:var(--mute)">状态 E · 断了 · 重启</div>
+    <div class="row"><span class="flame" style="opacity:.45">🔥</span><div><div class="big" style="color:var(--cream-dim);font-size:26px">从第 1 天，<br>重新开始</div></div></div>
+    <div class="sub">上次你连了 <b style="color:var(--gold-soft)">12 天</b>，很猛。</div>
+    <div class="fine">纪录是用来刷新的 —— 没什么大不了，今天又是第 1 天。</div>
+  </div>
+  <div class="cap"><b>E 重启</b> · 无羞辱（§9.2 脆弱人群）。记住上次峰值给正反馈，不指责。</div>
+</div>
+
+<!-- F. today page integration -->
+<div class="col">
+  <div class="phone"><div class="scr">
+    <div class="ph-top"><div class="eye"></div><div class="ph-name">MOLLY</div><div class="kd">懂你 <b>62%</b></div></div>
+    <div class="serif" style="font-size:21px;color:var(--cream);font-weight:500;margin:4px 2px 12px">Kevin，<i style="color:var(--gold-soft)">我有三句话</i>给你。</div>
+    <!-- streak ribbon -->
+    <div style="display:flex;align-items:center;gap:11px;background:linear-gradient(180deg,rgba(232,150,90,.12),rgba(232,150,90,.03));border:1px solid rgba(232,150,90,.34);border-radius:14px;padding:11px 14px">
+      <span style="font-size:22px">🔥</span>
+      <div style="flex:1"><div style="font-size:15px;color:var(--amber);font-weight:600">连续 7 天</div><div style="font-size:11px;color:var(--cream-dim);margin-top:1px">你给自己整整一周了 · 断了从头数</div></div>
+      <div style="display:flex;gap:3px">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--amber)"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--amber)"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--amber)"></span>
+      </div>
+    </div>
+    <div style="background:rgba(143,182,216,.07);border:1px solid rgba(143,182,216,.18);border-radius:11px;padding:9px 12px;font-size:12px;color:var(--blue);margin-top:11px">🌙 月亮入双子 · 你今天话会变多</div>
+    <div style="background:var(--field);border:1px solid var(--field-bd);border-radius:14px;padding:12px;margin-top:11px;font-size:12.5px;color:var(--mute)">体力/情绪/智力 节律…</div>
+    <div style="margin-top:auto;font-size:10px;color:#3a4150;text-align:center">streak 条挂在今日页顶（每次回来即时 +1）</div>
+  </div></div>
+  <div class="cap"><b>F 集成</b> · streak 条挂今日页顶部，回访即沉淀成习惯。和懂你度/月亮/节律并列。</div>
+</div>
+
+</div>
+
+<!-- red-line panel -->
+<div class="redbox">
+  <h3>🚦 红线对照（宪法 §8.2 · 同样的 streak，真说法 vs 编说法）</h3>
+  <div style="font-size:12.5px;color:var(--mute)">判据：钩子背后是真的 → 🟢 拉满；编造愧疚/坏后果去施压 → 🔴 不做。</div>
+  <div class="redcols">
+    <div class="redcol">
+      <div class="h" style="color:var(--green)">🟢 我们这样写（靠真）</div>
+      <div class="line ok">连续 7 天 · 你给自己整整一周了</div>
+      <div class="line ok">断一天，从第 1 天数起（真规则）</div>
+      <div class="line ok">你昨天的纪录还在，今天来就接上</div>
+      <div class="line ok">上次连了 12 天，很猛 · 今天又是第 1 天</div>
+    </div>
+    <div class="redcol">
+      <div class="h" style="color:var(--red)">🔴 绝不这样写（靠编）</div>
+      <div class="line no">再不回来，7 天就前功尽弃了！</div>
+      <div class="line no">Molly 好担心你，怎么不见你了…</div>
+      <div class="line no">断签会让你的运势失准哦</div>
+      <div class="line no">最后 2 小时！错过今天纪录就没了</div>
+    </div>
+  </div>
+</div>
+
+</body></html>

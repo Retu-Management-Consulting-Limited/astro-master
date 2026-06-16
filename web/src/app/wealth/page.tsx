@@ -73,10 +73,10 @@ export default function WealthPage() {
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6, marginBottom: 7 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 7 }}>
           {["一", "二", "三", "四", "五", "六", "日"].map((w) => <span key={w} style={{ textAlign: "center", fontSize: 10, color: "#5a6173" }}>{w}</span>)}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
           {Array.from({ length: (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7 }).map((_, i) => <div key={`e${i}`} />)}
           {m.days.map((d) => {
             const c = color(d);

@@ -131,6 +131,70 @@ export function buildCardSVG(
 </svg>`;
 }
 
+// ── 合盘卡 (synastry share card) ──────────────────────────────────────────────
+// Same frame/themes as the natal card, but the centre is the pair + 契合度 score
+// instead of the moon-figure. Only generated for a REAL pairing (§8.3: no card on
+// the demo, so a fake score can never be screenshot-shared).
+export interface SynastryCardData {
+  pair: string;     // 你 ↔ 小鱼
+  relLabel: string; // 恋人盘
+  total: number;    // 0..100
+  quote: string;    // the 金句 (catchLine)
+  handle?: string;
+}
+
+export function buildSynastryCardSVG(
+  data: SynastryCardData,
+  template: Template = "a",
+  opts: { forExport?: boolean; scale?: number } = {},
+): string {
+  const t = THEMES[template];
+  const [c0, c1, c2, c3] = t.bg.split("|");
+  const serif = opts.forExport ? "Georgia,'Songti SC',serif" : "'Cormorant Garamond','Noto Serif SC',Georgia,serif";
+  const sans = opts.forExport ? "Helvetica,Arial,sans-serif" : "'Hanken Grotesk','Noto Sans SC',sans-serif";
+
+  const lines = wrapQuote(data.quote, 12, 3);
+  const lineH = 28;
+  const qTop = 300;
+  const quoteTspans = lines
+    .map((ln, i) => {
+      const fill = i === lines.length - 1 ? t.gold : t.quote;
+      return `<text x="159" y="${qTop + i * lineH}" text-anchor="middle" font-family="${serif}" font-style="italic" font-weight="600" font-size="19" fill="${fill}">${esc(ln)}</text>`;
+    })
+    .join("");
+
+  const W = 318;
+  const H = 424;
+  const px = opts.scale ?? 1;
+  const stars = [
+    [57, 51, 1, 0.7, "#fff"], [254, 59, 1, 0.8, t.gold], [95, 120, 1, 0.5, "#fff"],
+    [222, 102, 1.4, 0.6, "#b58fb0"], [38, 200, 1, 0.5, "#fff"], [280, 190, 1, 0.45, "#fff"],
+  ]
+    .map(([x, y, r, o, c]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity="${o}"/>`)
+    .join("");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W * px}" height="${H * px}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="26%" r="92%">
+      <stop offset="0%" stop-color="${c0}"/><stop offset="40%" stop-color="${c1}"/><stop offset="70%" stop-color="${c2}"/><stop offset="100%" stop-color="${c3}"/>
+    </radialGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e6cf94" stop-opacity=".45"/><stop offset="60%" stop-color="#c9a861" stop-opacity=".12"/><stop offset="100%" stop-color="#c9a861" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="${W}" height="${H}" rx="20" fill="url(#bg)"/>
+  ${stars}
+  <text x="159" y="44" text-anchor="middle" font-family="${sans}" font-size="11" fill="${t.ded}" letter-spacing="2">${esc("M O L L Y · 合盘")}</text>
+  <text x="159" y="132" text-anchor="middle" font-family="${serif}" font-weight="600" font-size="25" fill="${t.quote}">${esc(data.pair)}</text>
+  <text x="159" y="160" text-anchor="middle" font-family="${sans}" font-size="11" fill="${t.sub}" letter-spacing="1.5">${esc(data.relLabel + " · 契合度")}</text>
+  <circle cx="159" cy="228" r="78" fill="url(#halo)"/>
+  <text x="159" y="252" text-anchor="middle" font-family="${serif}" font-weight="600" font-size="68" fill="${t.gold}">${Math.round(data.total)}<tspan font-size="28">%</tspan></text>
+  ${quoteTspans}
+  <text x="22" y="408" font-family="${sans}" font-size="10" fill="${t.sub}">👁 Molly · 看穿你的本命</text>
+  <text x="296" y="408" text-anchor="end" font-family="${sans}" font-size="10" fill="${t.gold}">${esc(data.handle ?? "@Molly占星")}</text>
+</svg>`;
+}
+
 // Rasterize an SVG string to a PNG Blob via canvas. forExport SVG must avoid
 // external font URLs (canvas-taint), which buildCardSVG(forExport:true) ensures.
 export function svgToPngBlob(svg: string, w: number, h: number): Promise<Blob> {

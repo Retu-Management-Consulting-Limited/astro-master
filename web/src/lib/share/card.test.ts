@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { wrapQuote, buildCardSVG } from "./card";
+import { wrapQuote, buildCardSVG, buildSynastryCardSVG } from "./card";
 
 describe("wrapQuote", () => {
   it("wraps a long CJK quote into ≤4 lines", () => {
@@ -45,6 +45,36 @@ describe("buildCardSVG", () => {
   it("each template renders", () => {
     for (const t of ["a", "b", "c", "d"] as const) {
       expect(buildCardSVG(data, t).startsWith("<svg")).toBe(true);
+    }
+  });
+});
+
+describe("buildSynastryCardSVG (合盘卡)", () => {
+  const data = { pair: "你 ↔ 小鱼", relLabel: "恋人盘", total: 73, quote: "你俩都太硬，谁都不肯先软。" };
+
+  it("renders pair, relationship, score% and the quote", () => {
+    const svg = buildSynastryCardSVG(data, "a");
+    expect(svg.startsWith("<svg")).toBe(true);
+    expect(svg).toContain("小鱼");
+    expect(svg).toContain("恋人盘");
+    expect(svg).toContain("73");
+    expect(svg).toContain("%");
+    expect(svg).toContain("都太硬");
+  });
+
+  it("export path uses no external font URL (avoids canvas taint)", () => {
+    const svg = buildSynastryCardSVG(data, "a", { forExport: true });
+    expect(svg).not.toContain("Cormorant");
+    expect(svg).not.toContain("googleapis");
+  });
+
+  it("escapes angle brackets in the quote", () => {
+    expect(buildSynastryCardSVG({ ...data, quote: "a<b>c" }, "a")).toContain("a&lt;b&gt;c");
+  });
+
+  it("each template renders", () => {
+    for (const t of ["a", "b", "c", "d"] as const) {
+      expect(buildSynastryCardSVG(data, t).startsWith("<svg")).toBe(true);
     }
   });
 });

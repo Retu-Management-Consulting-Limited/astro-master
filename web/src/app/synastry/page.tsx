@@ -6,8 +6,13 @@ import { BackButton } from "@/components/BackButton";
 import { computeChart, type Chart } from "@/lib/astro/chart";
 import { isFullChart } from "@/lib/astro/chart-validate";
 import { synastry, type RelType, type SynResult } from "@/lib/astro/synastry";
+import { synScaffold, type SynRead } from "@/lib/reading/synastry";
+import { fetchSynastryRead } from "@/lib/reading/remote";
+import { buildSynastryCardSVG, svgToPngBlob, type Template } from "@/lib/share/card";
 import { useFunnel } from "@/lib/store";
 import { readTokens, addStoredToken } from "@/lib/synastryTokens";
+import { readPartners, upsertPartner, removePartner, type SavedPartner } from "@/lib/synastryPartners";
+import { track } from "@/lib/track";
 
 const TYPES: { id: RelType; ic: string; t: string; sub: string }[] = [
   { id: "lover", ic: "💞", t: "恋人 / 暧昧", sub: "合不合、爱不爱、走不走得下去" },
@@ -17,21 +22,15 @@ const TYPES: { id: RelType; ic: string; t: string; sub: string }[] = [
   { id: "family", ic: "👩‍👧", t: "家人", sub: "懂不懂彼此、能不能和解" },
 ];
 const DIM_COLOR = ["#e69ec8", "#f0a868", "#8fb6d8", "#e0c98a", "#7fc99a"];
+// 合盘卡用的短关系名（结果页用全名「恋人 / 暧昧」，卡片要简洁「恋人盘」）。
+const SHORT_REL: Record<RelType, string> = { lover: "恋人", partner: "合伙", colleague: "共事", friend: "朋友", family: "家人" };
+
+// 下钻用：星体中文 + 相位角中文。来自引擎 Unit A 暴露的真实跨盘相位（不编造）。
+const ZH: Record<string, string> = { Sun: "太阳", Moon: "月亮", Mercury: "水星", Venus: "金星", Mars: "火星", Jupiter: "木星", Saturn: "土星" };
+const ANGLE_ZH: Record<number, string> = { 0: "合", 60: "六合", 90: "刑", 120: "拱", 180: "冲" };
 
 // Sample partner — shown (labeled) until a real partner fills in the invite.
 const DEMO_PARTNER = computeChart({ year: 1995, month: 11, day: 2, hour: 21, minute: 15, lat: 31.2304, lng: 121.4737, tz: 8 });
-
-function reading(r: SynResult): { vibe: string; body: string; catchLine: string } {
-  const hi = [...r.dims].sort((a, b) => b.value - a.value)[0];
-  const lo = [...r.dims].sort((a, b) => a.value - b.value)[0];
-  const hn = hi.label.replace(/^[^一-龥]+/, "");
-  const ln = lo.label.replace(/^[^一-龥]+/, "");
-  return {
-    vibe: `${hn}够强，但${ln}是你们的短板`,
-    body: `你俩最稳的是「${hn}」——${hi.value} 分，这是你们的底气。可「${ln}」只有 ${lo.value}：${ln}不补上，时间久了会磨。`,
-    catchLine: `不是不合适，是你们得有一个人，先在「${ln}」上松口。`,
-  };
-}
 
 export default function SynastryPage() {
   const router = useRouter();
@@ -41,27 +40,36 @@ export default function SynastryPage() {
 
   const [realPartner, setRealPartner] = useState<Chart | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [connectedToken, setConnectedToken] = useState<string | null>(null);
   const [tokens, setTokens] = useState<string[]>([]);
+  const [partners, setPartners] = useState<SavedPartner[]>([]);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  // Restore every previously-created invite token on mount (newest is active).
+  // Restore every previously-created invite token + saved partners on mount.
   useEffect(() => {
     const list = readTokens();
     if (list.length) {
       setTokens(list);
       setInviteUrl(`${window.location.origin}/synastry/invite/${list[list.length - 1]}`);
     }
+    setPartners(readPartners());
   }, []);
 
   // Poll all pending invites until any partner fills theirs in. Re-runs whenever
   // a new token is added. Revisiting the screen re-polls (B2 catch-up).
   useEffect(() => {
     if (!tokens.length || realPartner) return;
+    // Skip invites whose partner is already saved (已合的人) — otherwise 再合一个人
+    // would immediately auto-reconnect the person you just left. Re-open them
+    // explicitly from the saved list instead.
+    const saved = new Set(partners.map((p) => p.token));
+    const pending = tokens.filter((t) => !saved.has(t));
+    if (!pending.length) return;
     let stop = false;
     const poll = async () => {
-      for (const tk of tokens) {
+      for (const tk of pending) {
         try {
           const r = await fetch(`/api/synastry/invite?token=${tk}`);
           if (!r.ok) continue;
@@ -69,8 +77,12 @@ export default function SynastryPage() {
           // Defense-in-depth: only accept a structurally valid partner chart, so
           // a legacy/corrupt KV entry never crashes synastry() on .placements.
           if (j.ready && isFullChart(j.partner?.chart)) {
+            const nm = j.partner.name ?? "对方";
             setRealPartner(j.partner.chart as Chart);
-            setPartnerName(j.partner.name ?? "对方");
+            setPartnerName(nm);
+            setConnectedToken(tk);
+            // remember this connection in 已合的人 (Unit G); type/total added on view
+            setPartners(upsertPartner({ token: tk, name: nm, chart: j.partner.chart }));
             stop = true;
             return;
           }
@@ -85,16 +97,18 @@ export default function SynastryPage() {
       else poll();
     }, 4000);
     return () => clearInterval(iv);
-  }, [tokens, realPartner]);
+  }, [tokens, realPartner, partners]);
 
   async function createInvite() {
     if (creating) return;
     setCreating(true);
     try {
+      // Carry A's derived chart + the chosen relationship type so person B can
+      // see the synastry and the landing page can name the relationship (PR1.5/D3).
       const r = await fetch("/api/synastry/invite", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ inviterName: nickname }),
+        body: JSON.stringify({ inviterName: nickname, inviterChart: chart, type: type ?? undefined }),
       });
       const { token: t } = await r.json();
       setTokens(addStoredToken(t)); // kicks off polling, keeps prior invites
@@ -112,8 +126,59 @@ export default function SynastryPage() {
     }
   }
 
+  // 显眼发链接 (Unit F): native share sheet on mobile (the real viral action),
+  // graceful copy fallback on desktop / where Web Share is unavailable.
+  async function shareLink() {
+    if (!inviteUrl) return;
+    track("syn_invite_share");
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (nav.share) {
+      try {
+        await nav.share({ title: "Molly 合盘", text: "来和我测测我俩合不合 · Molly", url: inviteUrl });
+        return;
+      } catch {
+        /* user cancelled or share failed → fall through to copy */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* link is shown for manual copy */
+    }
+  }
+
   const partner = realPartner ?? DEMO_PARTNER;
   const result = useMemo(() => (chart && type ? synastry(chart, partner, type) : null), [chart, type, partner]);
+
+  // Record the last relationship type + score A viewed for this partner, so the
+  // 已合的人 list can show it (Unit G / D7). Real pairings only.
+  useEffect(() => {
+    if (!result || !realPartner || !connectedToken) return;
+    setPartners(upsertPartner({ token: connectedToken, name: partnerName ?? "对方", chart: realPartner, type: result.type, total: result.total }));
+  }, [result, realPartner, connectedToken, partnerName]);
+
+  // 再合一个人: drop the current partner, return to the invite/entry screen to
+  // bring in someone new. Saved partners stay in 已合的人.
+  function recouple() {
+    setType(null);
+    setRealPartner(null);
+    setPartnerName(null);
+    setConnectedToken(null);
+  }
+  // Re-open a saved partner: load their derived chart, go pick a type.
+  function openSaved(p: SavedPartner) {
+    if (!isFullChart(p.chart)) return;
+    setRealPartner(p.chart as Chart);
+    setPartnerName(p.name);
+    setConnectedToken(p.token);
+    setType(null);
+  }
+  function deleteSaved(token: string) {
+    setPartners(removePartner(token));
+  }
+
   if (!ready || !chart) return null;
 
   return (
@@ -143,10 +208,17 @@ export default function SynastryPage() {
                 <div style={{ fontSize: 11.5, color: "var(--mute)", lineHeight: 1.6, marginBottom: 10 }}>下面的分数只是<b style={{ color: "var(--cream-dim)" }}>示例</b>。发个链接给 TA，填好出生信息就自动变成你俩的真盘。{inviteUrl ? "发出去后可以先去别处逛逛，TA 一填好这里就会自动更新。" : ""}</div>
                 {inviteUrl ? (
                   <div>
+                    {/* Waiting state (Unit E): the link is out, no partner yet — show a live pulse so it doesn't feel like a dead silent poll. */}
+                    <div data-testid="syn-waiting" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: "var(--gold-soft)", marginBottom: 8 }}>
+                      <span className="think-dot" /><span className="think-dot" style={{ animationDelay: ".18s" }} /><span className="think-dot" style={{ animationDelay: ".36s" }} />
+                      <span style={{ color: "var(--cream-dim)" }}>等 TA 填好，这里就自动出你俩的真盘</span>
+                    </div>
                     <div data-testid="syn-invite-url" style={{ fontSize: 11, color: "var(--gold-soft)", wordBreak: "break-all", background: "#0d1018", borderRadius: 8, padding: "8px 10px", marginBottom: 8 }}>{inviteUrl}</div>
+                    {/* 显眼发链接 (Unit F): share is the primary viral action; copy/regenerate are secondary. */}
+                    <button data-testid="syn-share" onClick={shareLink} style={{ width: "100%", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", border: "none", color: "#1a1408", fontWeight: 600, borderRadius: 9, padding: "10px 0", fontSize: 13.5, cursor: "pointer", marginBottom: 8 }}>📤 发给 TA</button>
                     <div style={{ display: "flex", gap: 8, fontSize: 12 }}>
-                      <button onClick={createInvite} style={{ flex: "0 0 auto", background: "transparent", border: "1px solid var(--field-bd)", color: "var(--cream-dim)", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>重新生成</button>
-                      <button data-testid="syn-copy" onClick={() => { navigator.clipboard?.writeText(inviteUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {}); }} style={{ flex: 1, background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", border: "none", color: "#1a1408", fontWeight: 600, borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>{copied ? "已复制 ✓" : "复制链接"}</button>
+                      <button onClick={createInvite} style={{ flex: 1, background: "transparent", border: "1px solid var(--field-bd)", color: "var(--cream-dim)", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>重新生成</button>
+                      <button data-testid="syn-copy" onClick={() => { navigator.clipboard?.writeText(inviteUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {}); }} style={{ flex: 1, background: "transparent", border: "1px solid var(--field-bd)", color: "var(--cream-dim)", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>{copied ? "已复制 ✓" : "复制链接"}</button>
                     </div>
                   </div>
                 ) : (
@@ -164,18 +236,60 @@ export default function SynastryPage() {
                 <span style={{ color: "#4f5666" }}>›</span>
               </button>
             ))}
+
+            {/* 已合的人 (Unit G): re-open or remove past pairings. Score shown (D7). */}
+            {partners.length > 0 && (
+              <div data-testid="syn-saved" style={{ marginTop: 18 }}>
+                <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--mute)", margin: "0 2px 10px" }}>已合的人</div>
+                {[...partners].reverse().map((p) => (
+                  <div key={p.token} style={{ display: "flex", alignItems: "center", gap: 11, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 13, padding: "10px 13px", marginBottom: 9 }}>
+                    <button type="button" data-testid="syn-saved-open" onClick={() => openSaved(p)} style={{ display: "flex", alignItems: "center", gap: 11, flex: 1, textAlign: "left", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}>
+                      <span style={{ width: 34, height: 34, borderRadius: "50%", background: "radial-gradient(circle at 50% 40%,#2a2160,#0a0e1a)", boxShadow: "0 0 0 1px var(--gold-deep)", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "var(--gold-soft)" }}>{p.name.slice(0, 1)}</span>
+                      <span style={{ flex: 1 }}>
+                        <span style={{ display: "block", fontSize: 14, color: "var(--cream)" }}>{p.name}</span>
+                        <span style={{ display: "block", fontSize: 11, color: "var(--mute)" }}>{p.type && typeof p.total === "number" ? `${SHORT_REL[p.type]}盘 · ${p.total}%` : "点开测你俩"}</span>
+                      </span>
+                    </button>
+                    <button type="button" aria-label={`删除 ${p.name}`} onClick={() => deleteSaved(p.token)} style={{ background: "none", border: "none", fontSize: 11, color: "#5a6275", cursor: "pointer", padding: "4px 6px" }}>删除</button>
+                  </div>
+                ))}
+                <div style={{ textAlign: "center", fontSize: 10, color: "#566073", marginTop: 2 }}>删除只清你本地的记录 · 不影响对方</div>
+              </div>
+            )}
           </>
         ) : (
-          <Result result={result} demo={!realPartner} onConnect={() => setType(null)} />
+          <Result result={result} demo={!realPartner} onConnect={() => { if (!inviteUrl) createInvite(); setType(null); }} onRecouple={recouple} selfChart={chart} partnerChart={realPartner} partnerName={partnerName} selfName={nickname} />
         )}
       </div>
     </main>
   );
 }
 
-function Result({ result, demo, onConnect }: { result: SynResult; demo: boolean; onConnect: () => void }) {
-  const router = useRouter();
+function Result({ result, demo, onConnect, onRecouple, selfChart, partnerChart, partnerName, selfName }: { result: SynResult; demo: boolean; onConnect: () => void; onRecouple: () => void; selfChart: Chart; partnerChart: Chart | null; partnerName: string | null; selfName?: string }) {
   const typeLabel = TYPES.find((t) => t.id === result.type)!.t;
+  const [read, setRead] = useState<SynRead>(() => synScaffold(result, selfName ?? undefined, partnerName ?? undefined));
+  const [openDim, setOpenDim] = useState<string | null>(null);
+  const [showCard, setShowCard] = useState(false);
+
+  // Re-seed the deterministic scaffold whenever the pairing/type changes.
+  useEffect(() => {
+    setRead(synScaffold(result, selfName ?? undefined, partnerName ?? undefined));
+    setOpenDim(null);
+  }, [result, selfName, partnerName]);
+
+  // Progressive upgrade (real partner only): render the instant scaffold, then
+  // swap in the LLM prose when it lands. Null → keep the per-type scaffold.
+  useEffect(() => {
+    if (demo || !partnerChart) return;
+    let alive = true;
+    fetchSynastryRead(selfChart, partnerChart, result.type, selfName ?? undefined, partnerName ?? undefined).then((r) => {
+      if (alive && r) setRead(r);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [demo, selfChart, partnerChart, result.type, selfName, partnerName]);
+
   // 强卡口（R4 / 宪法 §8.3 不误导）：没有真实 partner 时，绝不给任何契合度分数
   // 或解读——连模糊的假分都不给，杜绝被当真实结果截图分享。只展示「这个关系会
   // 测哪些面」(维度名、不带分值) 当裂变钩子，并引导去邀请对方。
@@ -196,30 +310,115 @@ function Result({ result, demo, onConnect }: { result: SynResult; demo: boolean;
       </div>
     );
   }
-  const r = reading(result);
+  const who = partnerName ?? "对方";
   return (
     <div data-testid="syn-result">
-      <div>
-        <div style={{ textAlign: "center", margin: "6px 0 4px" }}>
-          <div style={{ fontSize: 10.5, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 3 }}>{typeLabel} · 契合度</div>
-          <div style={{ fontFamily: "var(--serif)", fontSize: 58, fontWeight: 600, color: "var(--gold)", lineHeight: 1, textShadow: "0 0 30px rgba(201,168,97,.3)" }}>{result.total}<small style={{ fontSize: 22 }}>%</small></div>
-          <div style={{ marginTop: 7, fontSize: 12.5, color: "var(--green)" }}>{r.vibe}</div>
-        </div>
-        <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-          {result.dims.map((d, i) => (
-            <div key={d.key}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 5 }}><span>{d.label}</span><b style={{ color: DIM_COLOR[i % DIM_COLOR.length] }}>{d.value}</b></div>
-              <div style={{ height: 7, background: "#1b2130", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, width: `${d.value}%`, background: DIM_COLOR[i % DIM_COLOR.length] }} /></div>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 24 }}>
-          <p style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 18.5, lineHeight: 1.6, color: "var(--cream-dim)", marginBottom: 13 }}>{r.body}</p>
-          <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{r.catchLine}</p>
-        </div>
+      {/* 总分（点名两人）→ 维度条（可下钻）→ 解读  (D4 顺序) */}
+      <div style={{ textAlign: "center", margin: "6px 0 4px" }}>
+        <div data-testid="syn-names" style={{ fontFamily: "var(--serif)", fontSize: 21, color: "var(--cream)", fontWeight: 500 }}>你 <span style={{ color: "var(--gold-deep)" }}>↔</span> <b style={{ color: "var(--gold-soft)" }}>{who}</b></div>
+        <div style={{ fontSize: 10.5, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--mute)", margin: "6px 0 2px" }}>{typeLabel} · 契合度</div>
+        <div style={{ fontFamily: "var(--serif)", fontSize: 56, fontWeight: 600, color: "var(--gold)", lineHeight: 1, textShadow: "0 0 30px rgba(201,168,97,.3)" }}>{result.total}<small style={{ fontSize: 22 }}>%</small></div>
+        <div style={{ marginTop: 7, fontSize: 12.5, color: "var(--green)" }}>{read.vibe}</div>
       </div>
-      <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</button>
+
+      <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+        {result.dims.map((d, i) => {
+          const open = openDim === d.key;
+          const color = DIM_COLOR[i % DIM_COLOR.length];
+          return (
+            <div key={d.key}>
+              <button type="button" data-testid="syn-dim" onClick={() => setOpenDim(open ? null : d.key)} aria-expanded={open} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", textAlign: "left", background: "transparent", border: "none", padding: 0, marginBottom: 5, cursor: "pointer" }}>
+                <span style={{ fontSize: 12.5, color: "var(--cream-dim)" }}>{d.label} <span style={{ fontSize: 10, color: "var(--mute)" }}>{open ? "收起 ⌃" : "看星位 ⌄"}</span></span>
+                <b style={{ fontSize: 12.5, color }}>{d.value}</b>
+              </button>
+              <div style={{ height: 7, background: "#1b2130", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, width: `${d.value}%`, background: color }} /></div>
+              {open && (
+                <div data-testid="syn-drill" style={{ marginTop: 9, background: "#0d1119", border: "1px solid #20283a", borderRadius: 11, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 7 }}>
+                  {d.aspects.length ? (
+                    d.aspects.map((x, j) => (
+                      <div key={j} style={{ display: "flex", gap: 9, alignItems: "center", fontSize: 12, color: "var(--cream-dim)" }}>
+                        <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 6, flex: "0 0 auto", color: x.kind === "harmony" ? "var(--green)" : "var(--orange)", background: x.kind === "harmony" ? "rgba(127,201,154,.12)" : "rgba(240,168,104,.12)" }}>{ANGLE_ZH[x.angle] ?? `${x.angle}°`}</span>
+                        <span>你的<b style={{ color: "var(--cream)" }}>{ZH[x.a] ?? x.a}</b> — {who}的<b style={{ color: "var(--cream)" }}>{ZH[x.b] ?? x.b}</b></span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ fontSize: 12, color: "var(--mute)" }}>这个维度你俩没有显著相位——不强也不冲，平平。</div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <p style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 18.5, lineHeight: 1.6, color: "var(--cream-dim)", marginBottom: 13 }}>{read.body}</p>
+        <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{read.catchLine}</p>
+      </div>
+
+      <button type="button" data-testid="syn-card-open" onClick={() => setShowCard(true)} style={{ display: "block", width: "100%", margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</button>
+      <button type="button" data-testid="syn-recouple" onClick={onRecouple} style={{ display: "block", width: "100%", margin: "2px 0 8px", textAlign: "center", fontSize: 12.5, color: "var(--cream-dim)", cursor: "pointer", background: "none", border: "none" }}>＋ 再合一个人</button>
       <div style={{ marginTop: 0, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
+
+      {showCard && (
+        <SynCard pair={`你 ↔ ${who}`} relLabel={`${SHORT_REL[result.type]}盘`} total={result.total} quote={read.catchLine} onClose={() => setShowCard(false)} />
+      )}
+    </div>
+  );
+}
+
+const TPLS: Template[] = ["a", "b", "c", "d"];
+
+// 合盘卡 overlay (Unit F): real pairing only (rendered inside the non-demo Result,
+// so §8.3 holds — no card for a fake score). Mirrors /share export: SVG on screen,
+// rasterized to PNG for native share / download.
+function SynCard({ pair, relLabel, total, quote, onClose }: { pair: string; relLabel: string; total: number; quote: string; onClose: () => void }) {
+  const [tpl, setTpl] = useState<Template>("a");
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const data = { pair, relLabel, total, quote };
+  const svg = buildSynastryCardSVG(data, tpl);
+
+  async function exportPng() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const scale = 3;
+      const out = buildSynastryCardSVG(data, tpl, { forExport: true, scale });
+      const blob = await svgToPngBlob(out, 318 * scale, 424 * scale);
+      const file = new File([blob], "molly-synastry.png", { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean; share?: (d: ShareData) => Promise<void> };
+      track("syn_card_share", { tpl });
+      if (nav.canShare?.({ files: [file] }) && nav.share) {
+        await nav.share({ files: [file], text: "我俩的合盘 · Molly" });
+        setToast("已唤起分享");
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "molly-synastry.png";
+        a.click();
+        URL.revokeObjectURL(url);
+        setToast("已保存图片 ✓");
+      }
+    } catch {
+      setToast("生成失败，再试一次");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div data-testid="syn-card" role="dialog" aria-modal="true" aria-label="合盘卡" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(4,5,10,.82)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 24 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 265, maxWidth: "100%" }} dangerouslySetInnerHTML={{ __html: svg }} />
+      <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", gap: 8 }}>
+        {TPLS.map((t) => (
+          <button key={t} type="button" aria-label={`模板 ${t.toUpperCase()}`} onClick={() => setTpl(t)} style={{ width: 26, height: 26, borderRadius: 999, border: t === tpl ? "1px solid var(--gold)" : "1px solid var(--field-bd)", background: "transparent", color: t === tpl ? "var(--gold-soft)" : "var(--cream-dim)", fontSize: 11, cursor: "pointer" }}>{t.toUpperCase()}</button>
+        ))}
+      </div>
+      <button type="button" data-testid="syn-card-export" onClick={(e) => { e.stopPropagation(); exportPng(); }} disabled={busy} className="gold-btn" style={{ maxWidth: 265, opacity: busy ? 0.7 : 1 }}>{busy ? "生成中…" : "📤 分享 / 保存图片"}</button>
+      <button type="button" onClick={onClose} style={{ background: "none", border: "none", color: "var(--cream-dim)", fontSize: 13, cursor: "pointer" }}>关闭</button>
+      {toast && <div style={{ fontSize: 12, color: "var(--gold-soft)" }}>{toast}</div>}
     </div>
   );
 }
