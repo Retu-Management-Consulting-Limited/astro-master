@@ -99,8 +99,8 @@ describe("freshness contract · personalized surfaces differ between charts", ()
     for (const id of THEME_IDS) {
       const a = generateThemeRead(A, id);
       const b = generateThemeRead(B, id);
-      expect(text([a.planetLabel, a.paragraphs, a.quote]), `theme ${id} not personalized`).not.toBe(
-        text([b.planetLabel, b.paragraphs, b.quote])
+      expect(text([a.planetLabel, a.paragraphs, a.quote, a.deepRead]), `theme ${id} not personalized`).not.toBe(
+        text([b.planetLabel, b.paragraphs, b.quote, b.deepRead])
       );
     }
   });

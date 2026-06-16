@@ -14,6 +14,8 @@ export interface ThemeRead {
   paragraphs: { text: string; accent?: boolean; catch?: boolean }[];
   chips: string[];
   quote: string;
+  deepRead: string; // 「更深一层」— the real crux, chart-anchored. Gated (honest gating §3.6):
+                    // free at 懂你度≥72 (越用越准), or the variabl-ready paywall slot.
 }
 
 const HOUSE_ZH = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
@@ -88,6 +90,21 @@ function paragraphs(id: ThemeId, sign: string, house: number, essence: string): 
   }
 }
 
+// 「更深一层」— one level past the 3 paragraphs: the actual crux, anchored to the
+// house. Genuinely deeper (not 伪深刻 §4.3, not fabricated §4.2), so gating it is honest.
+function deepReadOf(id: ThemeId, houseZh: string): string {
+  switch (id) {
+    case "love":
+      return `再往深一层：你怕的不是孤独，是「被看清之后，还是不够」。金星落${houseZh}的人，总在对方真正走近前，先递出一道考验——把"我值不值得被爱"留给每段关系替你回答。真正卡住你的，是你从没敢自己先回答它。`;
+    case "wealth":
+      return `再往深一层：你对钱的不安，根子不在钱——是你不信"稳稳的好"会落到你头上。木星落${houseZh}，你的财气在"敢押自己"那一下；可你卡在"押了万一错，就证明我不行"。你守的从不是钱，是那个怕被否定的自己。`;
+    case "lonely":
+      return `再往深一层：你不是不需要人，是太早学会了"需要=危险"。月亮落${houseZh}，你把求助和"被嫌弃"焊在了一起。卡住你的不是没人靠近，是有人靠近时你先关上门——关门的疼你能控制，被推开的疼你不能。`;
+    case "self":
+      return `再往深一层：你迟迟不敢选，不是没方向，是怕"选了真正想要的、却没做到"。太阳落${houseZh}，你的功课是把这股能量活出来；可你卡在"万一这就是我的全部、还是不够亮"。你不是不知道要什么，是不敢承认你配得上它。`;
+  }
+}
+
 export function generateThemeRead(chart: Chart, id: ThemeId): ThemeRead {
   const cfg = CFG[id];
   const p = find(chart, cfg.planet);
@@ -102,6 +119,7 @@ export function generateThemeRead(chart: Chart, id: ThemeId): ThemeRead {
     paragraphs: paragraphs(id, sign, house, essence),
     chips: CHIPS[id],
     quote: QUOTE[id],
+    deepRead: deepReadOf(id, `第${HOUSE_ZH[house] ?? house}宫`),
   };
 }
 
