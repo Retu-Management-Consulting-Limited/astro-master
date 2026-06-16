@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molly · 今日格三态 + 财运 tab（review）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07090f; --void2:#0c111d; --ink:#05070c;
+    --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+    --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#7a8194; --iris:#b58fb0;
+    --blue:#8fb6d8; --green:#7fc99a; --red:#e0786a;
+    --field:#0f1320; --field-bd:#262d3d;
+    --serif:'Cormorant Garamond','Noto Serif SC',serif;
+    --sans:'Hanken Grotesk','Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);padding:26px 14px 60px;-webkit-font-smoothing:antialiased;color:var(--cream)}
+  h1{font-family:var(--serif);font-weight:600;font-size:23px;color:var(--gold-soft);text-align:center;margin-bottom:4px}
+  .sub{text-align:center;color:var(--mute);font-size:12.5px;margin-bottom:24px;line-height:1.6}
+  .row{display:flex;gap:26px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+  .col{display:flex;flex-direction:column;align-items:center;gap:10px;width:360px}
+  .caption{font-size:12px;color:var(--cream-dim);text-align:center;line-height:1.5}
+  .caption b{color:var(--gold-soft)}
+
+  .phone{position:relative;width:360px;height:740px;border-radius:30px;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% -4%, #18203a 0%, var(--void2) 42%, var(--void) 70%, var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.55),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(1px 1px at 14% 9%, rgba(255,255,255,.6), transparent),radial-gradient(1px 1px at 82% 6%, rgba(201,168,97,.7), transparent),radial-gradient(1px 1px at 30% 13%, rgba(255,255,255,.4), transparent);}
+
+  .bar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:20px 20px 8px;flex:0 0 auto}
+  .eye-mini{width:30px;height:30px;border-radius:50%;flex:0 0 auto;
+    background:radial-gradient(circle at 50% 50%, #2a2160 0%, #0a0e1a 70%);box-shadow:0 0 0 1px var(--gold), 0 0 12px rgba(201,138,70,.4)}
+  .bar .name{font-weight:500;letter-spacing:.4em;font-size:11px;color:var(--gold);text-indent:.4em}
+  .know{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--cream-dim)}
+  .know .pg{width:34px;height:4px;background:#1d2333;border-radius:3px;overflow:hidden}
+  .know .pg i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft))}
+  .know b{color:var(--gold)}
+
+  .scroll{position:relative;z-index:2;flex:1;overflow-y:auto;padding:6px 18px 12px}
+  .scroll::-webkit-scrollbar{width:0}
+  .greet{font-family:var(--serif);font-size:21px;color:var(--cream);font-weight:500;margin:4px 2px 11px}
+  .greet i{color:var(--gold-soft);font-style:italic}
+  .wx{display:flex;align-items:center;gap:8px;background:rgba(143,182,216,.07);border:1px solid rgba(143,182,216,.18);
+    border-radius:11px;padding:8px 11px;font-size:12px;color:var(--blue);margin-bottom:14px}
+  .wx b{color:#cfe0f0;font-weight:500}
+
+  .card{border-radius:16px;padding:14px 15px;margin-bottom:11px;border:1px solid var(--field-bd);background:var(--field)}
+  .ctag{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+  .ctag .dot{width:6px;height:6px;border-radius:50%}
+  .ctxt{font-size:14px;line-height:1.6;color:var(--cream-dim)}
+  .ctxt b{color:var(--cream)}
+
+  .yest{border-color:rgba(143,182,216,.28)}
+  .yest .ctag{color:var(--blue)} .yest .ctag .dot{background:var(--blue)}
+  .yest .ctag .pl{margin-left:auto;font-size:9.5px;letter-spacing:0;color:var(--green);text-transform:none}
+  .fb{display:flex;gap:8px;margin-top:10px}
+  .fb span{flex:1;text-align:center;border-radius:9px;padding:7px;font-size:12px;border:1px solid #2b3a4e;color:#a9c4dd}
+  .fb span.y{background:rgba(127,201,154,.12);border-color:rgba(127,201,154,.4);color:var(--green)}
+
+  /* ── 今日格：平淡/天清 ── */
+  .quiet{border-color:rgba(122,129,148,.3)}
+  .quiet .ctag{color:var(--mute)} .quiet .ctag .dot{background:var(--mute)}
+  .quiet .big{font-family:var(--serif);font-size:20px;color:var(--cream);line-height:1.4;margin-bottom:7px}
+  .prep{margin-top:12px;background:rgba(201,168,97,.07);border:1px solid rgba(201,168,97,.22);border-radius:11px;padding:10px 12px;font-size:12.5px;color:#dccfa6;line-height:1.55}
+  .prep b{color:var(--gold-soft)}
+
+  /* ── 今日格：红 · 慎（刹车）── */
+  .shen{border:1px solid rgba(224,120,106,.45);background:linear-gradient(180deg,rgba(224,120,106,.09),rgba(224,120,106,.02));box-shadow:0 0 28px -12px rgba(224,120,106,.5)}
+  .shen .ctag{color:var(--red)} .shen .ctag .dot{background:var(--red);box-shadow:0 0 8px var(--red)}
+  .cmd{font-family:var(--serif);font-size:25px;font-weight:600;line-height:1.25;margin-bottom:8px}
+  .shen .cmd{color:#f0b6ab}
+  .why{font-size:12.5px;color:var(--mute);margin-bottom:6px}
+  .sugar{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.5;color:var(--cream-dim)}
+  .door{margin-top:12px;background:rgba(143,182,216,.09);border-left:3px solid var(--gold);border-radius:9px;padding:10px 12px;font-size:12.5px;color:#dbe6f2;line-height:1.55}
+
+  /* ── 今日格：绿 · 宜/旺（勇气）── */
+  .yi{border:1px solid rgba(127,201,154,.42);background:linear-gradient(180deg,rgba(127,201,154,.09),rgba(127,201,154,.02));box-shadow:0 0 28px -12px rgba(127,201,154,.5)}
+  .yi .ctag{color:var(--green)} .yi .ctag .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .yi .cmd{color:#b6e8c8}
+  .wang{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#1a1206;background:linear-gradient(90deg,var(--gold-soft),var(--gold));padding:3px 9px;border-radius:20px;font-weight:600;margin-bottom:9px}
+  .disc{font-size:11px;color:var(--gold-deep);margin-left:8px}
+  .actyi{margin-top:12px;background:rgba(127,201,154,.1);border-left:3px solid var(--green);border-radius:9px;padding:10px 12px;font-size:12.5px;color:#def0e6;line-height:1.55}
+
+  /* fortune chip (money 入口) */
+  .fchip{display:flex;align-items:center;gap:8px;margin-top:12px;padding:8px 11px;border-radius:10px;font-size:12px;
+    background:rgba(127,201,154,.08);border:1px solid rgba(127,201,154,.25);color:var(--green)}
+  .fchip.flat{background:rgba(122,129,148,.08);border-color:rgba(122,129,148,.25);color:var(--cream-dim)}
+  .fchip .b{width:8px;height:8px;border-radius:50%;background:currentColor}
+  .fchip .arr{margin-left:auto;opacity:.7}
+
+  .tmr{border-color:rgba(181,143,176,.26)}
+  .tmr .ctag{color:var(--iris)} .tmr .ctag .dot{background:var(--iris)} .tmr .ctxt b{color:#d6b8d2}
+
+  /* ── 财运 tab ── */
+  .sech{font-family:var(--serif);font-size:21px;color:var(--cream);margin:6px 2px 4px}
+  .secsub{font-size:11.5px;color:var(--mute);margin-bottom:14px}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px}
+  .cal .wd{text-align:center;font-size:9px;color:#4d5566;padding-bottom:2px}
+  .cal .d{aspect-ratio:1;border-radius:8px;background:rgba(255,255,255,.035);display:flex;align-items:center;justify-content:center;font-size:11px;color:#6b7488}
+  .cal .d.today{outline:2px solid var(--gold);color:var(--cream);font-weight:600}
+  .cal .d.shen{background:radial-gradient(circle,var(--red),#7a2c24);color:#fff}
+  .cal .d.yi{background:radial-gradient(circle,var(--green),#1f6e45);color:#eafff3}
+  .cal .d.gold{background:linear-gradient(135deg,var(--gold-soft),var(--gold-deep));color:#1a1206;font-weight:700}
+  .legend{display:flex;gap:12px;justify-content:center;font-size:10px;color:var(--mute);margin:8px 0 16px}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
+  .golddays{background:rgba(201,168,97,.08);border:1px solid rgba(201,168,97,.25);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+  .golddays .t{font-size:11px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:7px}
+  .golddays .v{font-size:14px;color:var(--gold-soft);font-family:var(--serif)}
+  .deeplink{display:flex;align-items:center;gap:8px;padding:13px 14px;border-radius:12px;border:1px solid var(--field-bd);background:var(--field);font-size:13px;color:var(--cream-dim)}
+  .deeplink .arr{margin-left:auto;color:var(--gold)}
+
+  .tabbar{position:relative;z-index:4;flex:0 0 auto;display:flex;justify-content:space-around;padding:9px 4px 14px;
+    border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,#080a12,rgba(8,10,18,.6))}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9.5px;color:#5a6173;flex:1}
+  .tab.on{color:var(--gold)}
+  .tab .ic{font-size:16px;line-height:1}
+</style>
+</head>
+<body>
+  <h1>今日格三态 + 财运 tab</h1>
+  <p class="sub">「今」这张卡按 charter 附录A 三态变身；财运成为 tab/入口（不抢今日主位）。<b style="color:var(--gold-soft)">平淡日带备战糖、不空屏</b>；红绿稀有、命令直白、糖是赦免、红留前门、验证问内在。</p>
+
+  <div class="row">
+
+    <!-- ① 平淡 / 天清 -->
+    <div class="col">
+    <div class="phone">
+      <div class="bar"><div class="eye-mini"></div><span class="name">MOLLY</span><div class="know">懂你 <span class="pg"><i></i></span> <b>62%</b> ↑</div></div>
+      <div class="scroll">
+        <div class="greet">周三好，<i>今天天清</i>。</div>
+        <div class="wx">🌙 <span>月亮在你事业宫 · <b>一股想被看见的劲</b>，默默把事做好最响</span></div>
+        <div class="card yest"><div class="ctag"><span class="dot"></span>昨天 · 你说中了吗<span class="pl">答对 +1% 校准</span></div><div class="ctxt">我说你昨天会<b>想把一件搁着的心事处理掉</b>——对吗？</div><div class="fb"><span class="y">嗯，是这样 ✓</span><span>其实没有</span></div></div>
+        <div class="card quiet"><div class="ctag"><span class="dot"></span>今天 · 天清</div>
+          <div class="big">天上没大动静，<br>难得一天平。</div>
+          <div class="ctxt">没有谁来拨你的弦。把这阵子攒的情绪，慢慢落一落。</div>
+          <div class="prep">▸ 顺手记一笔：你最容易冲动花钱的日子，月亮都在你财帛宫——<b>周四就有一个</b>，先想好别为情绪买单。</div>
+          <div class="fchip flat"><span class="b"></span>今日财运 <b style="color:#c2baa6">平</b> · 钱上没大事<span class="arr">查日历 →</span></div>
+        </div>
+        <div class="card tmr"><div class="ctag"><span class="dot"></span>明天</div><div class="ctxt">明早月亮合你金星——<b>一道难得温柔相位</b>。回来，我有话想跟你说。🔮</div></div>
+      </div>
+      <div class="tabbar"><div class="tab on"><span class="ic">☾</span>今日</div><div class="tab"><span class="ic">✦</span>财运</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+    </div>
+    <div class="caption">① <b>平淡 · 天清</b>（多数日）<br>先歇（赦免）+ 备战糖（认信号/提前备）<br>不空屏 = 维生素天天响</div>
+    </div>
+
+    <!-- ② 红 · 慎 -->
+    <div class="col">
+    <div class="phone">
+      <div class="bar"><div class="eye-mini"></div><span class="name">MOLLY</span><div class="know">懂你 <span class="pg"><i></i></span> <b>63%</b> ↑</div></div>
+      <div class="scroll">
+        <div class="greet">周五好，<i>今天我拦你一下</i>。</div>
+        <div class="wx">🌙 <span>月亮刑你金星 · <b>情绪偏满</b>，一句话一个表情都容易过度解读</span></div>
+        <div class="card yest"><div class="ctag"><span class="dot"></span>昨天 · 你说中了吗<span class="pl">答对 +1% 校准</span></div><div class="ctxt">我说你昨天会<b>特别想抓住一个确定的答案</b>——对吗？</div><div class="fb"><span class="y">嗯，是这样 ✓</span><span>其实没有</span></div></div>
+        <div class="card shen"><div class="ctag"><span class="dot"></span>今天 · 慎</div>
+          <div class="cmd">慎 · 今天别要答案</div>
+          <div class="why">为什么：你现在判断在情绪上头。</div>
+          <div class="sugar">不是他真有问题，是今天的天气。</div>
+          <div class="door">▸ 真想说的，留到周四——那天月亮回你这边，你说得出口、也听得进。</div>
+        </div>
+        <div class="card tmr"><div class="ctag"><span class="dot"></span>明天</div><div class="ctxt">明天午后相位散开，<b>你会重新坐回自己的中心</b>。难熬的就这一天。</div></div>
+      </div>
+      <div class="tabbar"><div class="tab on"><span class="ic">☾</span>今日</div><div class="tab"><span class="ic">✦</span>财运</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+    </div>
+    <div class="caption">② <b style="color:#f0b6ab">红 · 慎</b>（稀有·刹车）<br>命令叫停 + 内在why + 赦免糖 + <b style="color:var(--gold-soft)">前门(留到周四)</b></div>
+    </div>
+
+    <!-- ③ 绿 · 宜/旺 -->
+    <div class="col">
+    <div class="phone">
+      <div class="bar"><div class="eye-mini"></div><span class="name">MOLLY</span><div class="know">懂你 <span class="pg"><i></i></span> <b>64%</b> ↑</div></div>
+      <div class="scroll">
+        <div class="greet">周二好，<i>今天是你的日子</i>。</div>
+        <div class="wx">🌙 <span>木星拱你二宫 · <b>谈钱的窗口开着</b>，底气也跟着足</span></div>
+        <div class="card yest"><div class="ctag"><span class="dot"></span>昨天 · 你做了吗<span class="pl">动了 +1% 校准</span></div><div class="ctxt">上一个"宜"日，我让你去开口——<b>你动了吗？</b></div><div class="fb"><span class="y">动了 ✓</span><span>怂了…</span></div></div>
+        <div class="card yi"><div class="ctag"><span class="dot"></span>今天 · 宜</div>
+          <span class="wang">✦ 财运旺 · 搞钱黄金日</span><span class="disc">旺的是时机，不是保证</span>
+          <div class="cmd">宜 · 今天去开口谈</div>
+          <div class="ctxt">你拖了三周那次开口——今天是好日子。不是钱会自己来，是<b>今天你说得出口、压得住场</b>。</div>
+          <div class="actyi">▸ 报价往上抬一档。今天的你，扛得住对方沉默那三秒。</div>
+          <div class="fchip"><span class="b"></span>这是你本月的黄金日之一<span class="arr">查日历 →</span></div>
+        </div>
+        <div class="card tmr"><div class="ctag"><span class="dot"></span>明天</div><div class="ctxt">趁今天的劲，明天把谈成的事落纸。<b>窗口还开一天。</b></div></div>
+      </div>
+      <div class="tabbar"><div class="tab on"><span class="ic">☾</span>今日</div><div class="tab"><span class="ic">✦</span>财运</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+    </div>
+    <div class="caption">③ <b style="color:#b6e8c8">绿 · 宜/旺</b>（稀有·勇气义肢）<br>命令出手 + 可晒"财运旺"(轻免责) + <b style="color:var(--gold-soft)">落到可控动作</b> + 验证"你动了吗"</div>
+    </div>
+
+    <!-- ④ 财运 tab -->
+    <div class="col">
+    <div class="phone">
+      <div class="bar"><div class="eye-mini"></div><span class="name">MOLLY</span><div class="know">懂你 <span class="pg"><i></i></span> <b>64%</b> ↑</div></div>
+      <div class="scroll">
+        <div class="sech">财运 · 六月</div>
+        <div class="secsub">大多数日子是平的——红绿稀有才有劲。点未来某天看那天该干嘛。</div>
+        <div class="cal">
+          <span class="wd">一</span><span class="wd">二</span><span class="wd">三</span><span class="wd">四</span><span class="wd">五</span><span class="wd">六</span><span class="wd">日</span>
+          <span class="d">1</span><span class="d">2</span><span class="d shen">3</span><span class="d">4</span><span class="d">5</span><span class="d">6</span><span class="d">7</span>
+          <span class="d">8</span><span class="d">9</span><span class="d">10</span><span class="d gold">11</span><span class="d">12</span><span class="d">13</span><span class="d">14</span>
+          <span class="d">15</span><span class="d today">16</span><span class="d">17</span><span class="d">18</span><span class="d yi">19</span><span class="d">20</span><span class="d">21</span>
+          <span class="d">22</span><span class="d">23</span><span class="d">24</span><span class="d shen">25</span><span class="d">26</span><span class="d">27</span><span class="d">28</span>
+        </div>
+        <div class="legend"><span><i style="background:var(--gold)"></i>黄金日</span><span><i style="background:var(--green)"></i>宜</span><span><i style="background:var(--red)"></i>慎</span><span><i style="background:#2a3140"></i>平</span></div>
+        <div class="golddays"><div class="t">本月你的搞钱黄金日</div><div class="v">6/11 ✦　6/19 ✦</div></div>
+        <div class="card quiet" style="margin-bottom:12px"><div class="ctag"><span class="dot"></span>今天 · 平</div><div class="ctxt">钱上没大事，按计划走就好。下一个该上心的是 <b style="color:var(--gold-soft)">6/19</b>。</div></div>
+        <div class="deeplink">钱对你意味着什么 —— 看更深一层<span class="arr">→</span></div>
+      </div>
+      <div class="tabbar"><div class="tab"><span class="ic">☾</span>今日</div><div class="tab on"><span class="ic">✦</span>财运</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+    </div>
+    <div class="caption">④ <b style="color:var(--gold-soft)">财运 tab</b>（钱轨入口）<br>月历=伪装规划器（疏密一眼扫·点未来格）<br>黄金日 + 今日财运 + "看更深"入口</div>
+    </div>
+
+  </div>
+</body>
+</html>
