@@ -1,6 +1,6 @@
 "use client";
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { monthWealth, wealthMark, type DayWealth } from "@/lib/astro/wealth";
 import { useNow } from "@/lib/useNow";
@@ -25,11 +25,29 @@ function color(d: DayWealth): { bg: string; fg: string } {
   return { bg: "#d9dee7", fg: "#39414c" };
 }
 
+// useSearchParams() opts the subtree out of static prerender, so it must sit
+// under a Suspense boundary (Next app-router requirement).
 export default function WealthPage() {
+  return (
+    <Suspense fallback={null}>
+      <WealthView />
+    </Suspense>
+  );
+}
+
+function WealthView() {
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const now = useNow(); // local time, refreshes on app resume (rolls over days)
-  const [selDay, setSelDay] = useState<number | null>(null); // P2-3: tap a day to read it
+  // ?selDay=N — deep-link from the 今日格 red-day door / fortune chip lands here
+  // pre-selected on that day. Falls back to today (selDay stays null) when absent.
+  const sp = useSearchParams();
+  const spDay = (() => {
+    const raw = sp.get("selDay");
+    const n = raw ? Number(raw) : NaN;
+    return Number.isInteger(n) && n >= 1 && n <= 31 ? n : null;
+  })();
+  const [selDay, setSelDay] = useState<number | null>(spDay); // P2-3: tap a day to read it
   const year = now?.getFullYear() ?? 2026;
   const month = (now?.getMonth() ?? 5) + 1; // 1-based
   const TODAY = now?.getDate() ?? 1;
