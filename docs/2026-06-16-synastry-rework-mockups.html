@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>合盘重做 · UI/UX Mockup · Molly</title>
+<style>
+:root{
+  --void:#07090f; --void2:#0c111d; --ink:#05070c;
+  --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
+  --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#8b92a6;
+  --pink:#e69ec8; --orange:#f0a868; --blue:#8fb6d8; --green:#7fc99a; --red:#e5736f;
+  --field:#141a29; --field-bd:#2c3447;
+  --serif:'Cormorant Garamond','Noto Serif SC',Georgia,serif;
+  --sans:'Hanken Grotesk','Noto Sans SC',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0c12;font-family:var(--sans);color:var(--cream);padding:34px 22px 80px;-webkit-font-smoothing:antialiased}
+.page-h{max-width:1180px;margin:0 auto 30px}
+.page-h h1{font-family:var(--serif);font-size:34px;color:var(--cream);font-weight:600}
+.page-h .sub{color:var(--mute);font-size:14px;margin-top:7px;line-height:1.7;max-width:760px}
+.page-h .legend{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:11.5px;color:var(--cream-dim);border:1px solid var(--field-bd);border-radius:999px;padding:4px 11px}
+.chip b{color:var(--gold-soft);font-weight:600}
+
+.section{max-width:1180px;margin:0 auto}
+.section-h{display:flex;align-items:baseline;gap:12px;margin:46px 0 16px;border-top:1px solid #1b2030;padding-top:22px}
+.section-h .n{font-family:var(--serif);font-size:13px;color:#1a1408;background:var(--gold);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto}
+.section-h h2{font-size:18px;color:var(--cream);font-weight:600}
+.section-h .tag{font-size:11px;color:var(--gold-soft);border:1px solid var(--gold-deep);border-radius:6px;padding:2px 8px}
+.section-note{color:var(--mute);font-size:13px;line-height:1.7;margin:-6px 0 18px;max-width:820px}
+.section-note b{color:var(--cream-dim)}
+.kill{color:var(--red)} .keep{color:var(--green)} .new{color:var(--gold-soft)}
+
+.gallery{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.frame{width:340px;flex:0 0 auto}
+.frame .cap{font-size:12px;color:var(--mute);margin-bottom:9px;line-height:1.5}
+.frame .cap b{color:var(--cream-dim)}
+.frame .state{display:inline-block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-soft);background:rgba(201,168,97,.1);border:1px solid var(--gold-deep);border-radius:5px;padding:2px 7px;margin-bottom:9px}
+
+/* phone */
+.phone{position:relative;width:340px;min-height:600px;border-radius:30px;overflow:hidden;display:flex;flex-direction:column;
+  background:radial-gradient(125% 78% at 50% -8%, #1b2238 0%, var(--void2) 38%, var(--void) 66%, var(--ink) 100%);
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.8),0 0 0 1px #1b2030}
+.starfield{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(1px 1px at 12% 16%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px at 78% 11%, rgba(201,168,97,.8), transparent),
+    radial-gradient(1px 1px at 34% 27%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1.5px 1.5px at 64% 22%, rgba(181,143,176,.7), transparent),
+    radial-gradient(1px 1px at 88% 40%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 20% 50%, rgba(201,168,97,.6), transparent),
+    radial-gradient(1px 1px at 50% 7%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1px 1px at 8% 68%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1px 1px at 92% 62%, rgba(255,255,255,.4), transparent);}
+.scr{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;padding:18px 20px 22px}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.back{width:30px;height:30px;border-radius:9px;border:1px solid var(--field-bd);display:flex;align-items:center;justify-content:center;color:var(--cream-dim);font-size:15px}
+.crumb{font-weight:500;letter-spacing:.32em;font-size:12px;color:var(--cream)}
+
+.h-serif{font-family:var(--serif);color:var(--cream);font-weight:500;line-height:1.32}
+.gold-i{color:var(--gold-soft);font-style:italic}
+.muted{color:var(--mute)} .dim{color:var(--cream-dim)} .green{color:var(--green)}
+
+.gbtn{width:100%;border:none;border-radius:30px;padding:13px;font-family:var(--sans);font-weight:600;font-size:14px;color:#1a1408;cursor:pointer;
+  background:linear-gradient(100deg,var(--gold-deep),var(--gold) 45%,var(--gold-soft) 60%,var(--gold) 75%);box-shadow:0 10px 30px -12px rgba(201,168,97,.7)}
+.ghost{width:100%;border:1px solid var(--field-bd);border-radius:30px;padding:11px;background:transparent;color:var(--gold-soft);font-size:13px;font-family:var(--sans);font-weight:500}
+.typecard{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--field);border:1px solid var(--field-bd);border-radius:14px;padding:13px 14px;margin-bottom:10px}
+.typecard .ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;background:#161b29;flex:0 0 auto}
+.typecard .t{font-size:14.5px;color:var(--cream)} .typecard .s{font-size:11px;color:var(--mute);margin-top:1px}
+.arrow{color:#4f5666;margin-left:auto}
+
+.panel{border-radius:13px;padding:13px 14px;margin-bottom:15px}
+.panel.invite{background:rgba(143,182,216,.06);border:1px solid rgba(143,182,216,.22)}
+.panel.connected{background:rgba(127,201,154,.1);border:1px solid rgba(127,201,154,.28)}
+.panel.waiting{background:rgba(201,168,97,.06);border:1px solid rgba(201,168,97,.22)}
+.urlbox{font-size:10.5px;color:var(--gold-soft);word-break:break-all;background:#0d1018;border-radius:8px;padding:8px 10px;margin:9px 0}
+.row{display:flex;gap:8px}
+
+/* result */
+.score{font-family:var(--serif);font-size:54px;font-weight:600;color:var(--gold);line-height:1;text-shadow:0 0 30px rgba(201,168,97,.3)}
+.score small{font-size:20px}
+.names{font-family:var(--serif);font-size:21px;color:var(--cream);text-align:center;font-weight:500}
+.names b{color:var(--gold-soft)}
+.dimrow{margin-bottom:11px}
+.dimrow .lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--cream-dim);margin-bottom:5px;align-items:center}
+.dimrow .lab .v{font-weight:700}
+.dimrow .lab .caret{font-size:10px;color:var(--mute);margin-left:6px}
+.bar{height:7px;background:#1b2130;border-radius:4px;overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:4px}
+.drill{margin-top:9px;background:#0d1119;border:1px solid #20283a;border-radius:11px;padding:11px 12px}
+.asp{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #181f2d}
+.asp:last-child{border-bottom:none}
+.asp .badge{font-size:10px;padding:2px 7px;border-radius:6px;flex:0 0 auto;margin-top:1px}
+.asp .badge.h{color:var(--green);background:rgba(127,201,154,.12)}
+.asp .badge.t{color:var(--orange);background:rgba(240,168,104,.12)}
+.asp .txt{font-size:12px;color:var(--cream-dim);line-height:1.55}
+.asp .txt b{color:var(--cream)}
+.read p{font-family:var(--serif);font-size:17px;line-height:1.6;color:var(--cream-dim);margin-bottom:11px}
+.read .catch{font-style:italic;color:var(--green);border-left:2px solid var(--green);padding-left:12px}
+.legaldim{text-align:center;font-size:10px;color:#566073;margin-top:8px}
+
+/* synastry card */
+.syncard{border-radius:18px;overflow:hidden;border:1px solid #2a2238;background:linear-gradient(160deg,#15101f,#0a0710);padding:22px 20px;text-align:center;position:relative}
+.syncard .ded{font-size:11px;letter-spacing:.1em;color:var(--gold-deep);margin-bottom:14px}
+.syncard .pair{font-family:var(--serif);font-size:23px;color:var(--cream);margin-bottom:3px}
+.syncard .pair b{color:var(--gold-soft)}
+.syncard .pct{font-family:var(--serif);font-size:46px;color:var(--gold);margin:8px 0 2px;text-shadow:0 0 24px rgba(201,168,97,.4)}
+.syncard .q{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--cream-dim);line-height:1.5;margin-top:14px}
+.syncard .brand{margin-top:18px;font-size:10px;letter-spacing:.4em;color:var(--gold)}
+
+.person{display:flex;align-items:center;gap:11px;background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:11px 13px;margin-bottom:9px}
+.person .av{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold-deep);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gold-soft)}
+.person .nm{font-size:14px;color:var(--cream)} .person .meta{font-size:11px;color:var(--mute)}
+.person .del{margin-left:auto;font-size:11px;color:#5a6275}
+
+.pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold);animation:p 1.4s ease-in-out infinite}
+@keyframes p{0%,100%{transform:scale(.7);opacity:.5}50%{transform:scale(1.25);opacity:1}}
+.dots i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--gold-soft);margin:0 2px;animation:d 1.3s ease-in-out infinite}
+.dots i:nth-child(2){animation-delay:.18s}.dots i:nth-child(3){animation-delay:.36s}
+@keyframes d{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+</style>
+</head>
+<body>
+
+<div class="page-h">
+  <h1>合盘重做 · UI / UX Mockup</h1>
+  <div class="sub">按 <b style="color:var(--cream-dim)">docs/superpowers/specs/2026-06-16-synastry-rework-design.md</b> §3 六项全做。高保真渲染稿,token 与真机一致(导航深蓝 / 金 / cream / starfield)。每屏标注对应单元 + 这是<span class="new">新增</span> / <span class="keep">保留</span> / <span class="kill">替换</span>了什么。</div>
+  <div class="legend">
+    <span class="chip"><b>A</b> 引擎暴露相位</span>
+    <span class="chip"><b>B+C</b> 分型解读 LLM</span>
+    <span class="chip"><b>D</b> 点名+下钻</span>
+    <span class="chip"><b>E</b> 等待态</span>
+    <span class="chip"><b>F</b> 发链接+合盘卡</span>
+    <span class="chip"><b>G</b> 再合循环</span>
+  </div>
+</div>
+
+<!-- ============ 1 ============ -->
+<div class="section">
+  <div class="section-h"><span class="n">1</span><h2>入口 · 选关系 + 显眼发链接</h2><span class="tag">Unit F · E</span></div>
+  <div class="section-note"><span class="kill">替换</span>:邀请从"一个不起眼的小按钮"升级为<b>页面第一动作</b>——病毒回路第一步现在是断的,这里把它接上。<span class="keep">保留</span>:5 类关系入口。</div>
+  <div class="gallery">
+
+    <div class="frame">
+      <span class="state">empty · 还没建 invite</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div class="back">‹</div><div class="crumb">合盘</div></div>
+        <div class="h-serif" style="font-size:25px;margin:8px 2px 4px">你想看你俩,<br><span class="gold-i">哪一种「合」?</span></div>
+        <div class="muted" style="font-size:12.5px;margin:0 2px 14px">选不同关系,我看的维度也不同</div>
+        <div class="panel invite">
+          <div style="font-size:13px;color:var(--cream)">想测<b style="color:var(--gold-soft)">真实</b>合盘?</div>
+          <div style="font-size:11.5px;color:var(--mute);line-height:1.6;margin:4px 0 11px">下面的分数只是<b class="dim">示例</b>。发链接给 TA,填好出生信息就自动变成你俩的真盘。</div>
+          <button class="gbtn">📨 邀 TA 测真实合盘</button>
+        </div>
+        <button class="typecard"><span class="ic">💞</span><span><span class="t" style="display:block">恋人 / 暧昧</span><span class="s" style="display:block">合不合、爱不爱、走不走得下去</span></span><span class="arrow">›</span></button>
+        <button class="typecard"><span class="ic">🤝</span><span><span class="t" style="display:block">合伙搞事业</span><span class="s" style="display:block">能不能一起赚钱、谁主导、合不合财</span></span><span class="arrow">›</span></button>
+        <button class="typecard"><span class="ic">💼</span><span><span class="t" style="display:block">共事 / 同事</span><span class="s" style="display:block">配不配合、会不会互相内耗</span></span><span class="arrow">›</span></button>
+        <button class="typecard"><span class="ic">👯</span><span><span class="t" style="display:block">朋友</span><span class="s" style="display:block">交不交心、处不处得久</span></span><span class="arrow">›</span></button>
+        <button class="typecard" style="margin-bottom:0"><span class="ic">👩‍👧</span><span><span class="t" style="display:block">家人</span><span class="s" style="display:block">懂不懂彼此、能不能和解</span></span><span class="arrow">›</span></button>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <span class="state">waiting · 等对方填(Unit E)</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div class="back">‹</div><div class="crumb">合盘</div></div>
+        <div class="h-serif" style="font-size:25px;margin:8px 2px 4px">你想看你俩,<br><span class="gold-i">哪一种「合」?</span></div>
+        <div class="muted" style="font-size:12.5px;margin:0 2px 14px">选不同关系,我看的维度也不同</div>
+        <div class="panel waiting">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--cream)"><span class="pulse"></span>链接已生成 · 等 <b style="color:var(--gold-soft)">小鱼</b> 填好<span class="dots" style="margin-left:2px"><i></i><i></i><i></i></span></div>
+          <div style="font-size:11px;color:var(--mute);line-height:1.6;margin:7px 0 9px">可以先去别处逛逛,TA 一填好这里就自动变成真盘。</div>
+          <div class="urlbox">vapeincity.com/synastry/invite/x7k2…</div>
+          <div class="row">
+            <button class="ghost" style="flex:0 0 auto;width:auto;padding:9px 12px">重新生成</button>
+            <button class="gbtn" style="flex:1">复制链接</button>
+          </div>
+        </div>
+        <button class="typecard"><span class="ic">💞</span><span><span class="t" style="display:block">恋人 / 暧昧</span><span class="s" style="display:block">合不合、爱不爱、走不走得下去</span></span><span class="arrow">›</span></button>
+        <button class="typecard"><span class="ic">🤝</span><span><span class="t" style="display:block">合伙搞事业</span><span class="s" style="display:block">能不能一起赚钱、谁主导</span></span><span class="arrow">›</span></button>
+        <button class="typecard" style="margin-bottom:0"><span class="ic">💼</span><span><span class="t" style="display:block">共事 / 同事</span><span class="s" style="display:block">配不配合、会不会互相内耗</span></span><span class="arrow">›</span></button>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <span class="state">connected · 已连接</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div class="back">‹</div><div class="crumb">合盘</div></div>
+        <div class="h-serif" style="font-size:25px;margin:8px 2px 4px">你想看你俩,<br><span class="gold-i">哪一种「合」?</span></div>
+        <div class="muted" style="font-size:12.5px;margin:0 2px 14px">选不同关系,我看的维度也不同</div>
+        <div class="panel connected" style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--green)">✓ 已连接 <b style="color:var(--cream)">小鱼</b> · 下面都是你俩的真实合盘</div>
+        <button class="typecard"><span class="ic">💞</span><span><span class="t" style="display:block">恋人 / 暧昧</span><span class="s" style="display:block">合不合、爱不爱、走不走得下去</span></span><span class="arrow">›</span></button>
+        <button class="typecard"><span class="ic">🤝</span><span><span class="t" style="display:block">合伙搞事业</span><span class="s" style="display:block">能不能一起赚钱、谁主导、合不合财</span></span><span class="arrow">›</span></button>
+        <button class="typecard"><span class="ic">💼</span><span><span class="t" style="display:block">共事 / 同事</span><span class="s" style="display:block">配不配合、会不会互相内耗</span></span><span class="arrow">›</span></button>
+        <button class="typecard"><span class="ic">👯</span><span><span class="t" style="display:block">朋友</span><span class="s" style="display:block">交不交心、处不处得久</span></span><span class="arrow">›</span></button>
+        <button class="typecard" style="margin-bottom:0"><span class="ic">👩‍👧</span><span><span class="t" style="display:block">家人</span><span class="s" style="display:block">懂不懂彼此、能不能和解</span></span><span class="arrow">›</span></button>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 2 ============ -->
+<div class="section">
+  <div class="section-h"><span class="n">2</span><h2>demo 态 · 无真人 = 绝不给假分(宪法 §8.3 强卡口)</h2><span class="tag">保留 · 不可松</span></div>
+  <div class="section-note"><span class="keep">保留并强调</span>:没连真人时<b>不给任何分数或解读</b>,只露"会测哪几面"当裂变钩子 + 引导邀请。重做时这道闸是第一道渲染判断,e2e 断言 demo 态无分/无解读/无卡。</div>
+  <div class="gallery">
+    <div class="frame">
+      <span class="state">demo · locked</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div class="back">‹</div><div class="crumb">合盘</div></div>
+        <div class="panel" style="background:rgba(143,182,216,.08);border:1px solid rgba(143,182,216,.28);text-align:center;padding:20px 16px;margin-top:14px">
+          <div class="h-serif" style="font-size:19px">邀小鱼填好出生信息,<br>才能算你俩在「恋人」上的<b style="color:var(--gold-soft)">真实契合度</b>。</div>
+          <div style="font-size:12px;color:var(--mute);line-height:1.6;margin:13px 0 11px">到时我会逐项给你俩看这几面——</div>
+          <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:16px">
+            <span class="chip">❤️‍🔥 心动</span><span class="chip">🛟 安全感</span><span class="chip">💬 懂你</span><span class="chip">⏳ 长久</span>
+          </div>
+          <button class="gbtn">邀 TA 解锁你俩的真实合盘 →</button>
+        </div>
+        <div class="legaldim">说的是相处动态,不是命定结局 · 怎么走你们说了算</div>
+      </div></div>
+    </div>
+    <div class="frame" style="width:380px">
+      <div class="cap" style="margin-top:34px"><b>为什么保留这道闸?</b><br>假分一旦能截图,就会被当真实结果传播 → 宪法 §8.3「不靠欺骗换指标」的红线。<br><br>裂变不靠"先给个假分勾住",靠"想看真分 → 必须拉一个人进来" —— 这反而是更强、且干净的 K 因子。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 3 ============ -->
+<div class="section">
+  <div class="section-h"><span class="n">3</span><h2>真实结果 · 点名两人 + 分型解读(杀 mad-lib)</h2><span class="tag">Unit D · B+C</span></div>
+  <div class="section-note"><span class="kill">替换核心</span>:左右两屏是<b>同一套引擎、不同关系类型</b>。注意金句——恋人盘说"先伸手谁输",同事盘说"谁说了算没摊开"。<b>旧版两者共用同一句"得有一个人先松口",这就是被杀掉的 mad-lib。</b> 解读由 LLM 实时生成,锚真实跨盘相位(§4.2 只写 prose 不编星位)。</div>
+  <div class="gallery">
+
+    <div class="frame">
+      <span class="state">恋人盘 · LLM 解读</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div class="back">‹</div><div class="crumb">合盘</div></div>
+        <div style="text-align:center;margin:6px 0 4px">
+          <div class="names">你 ↔ <b>小鱼</b></div>
+          <div style="font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:6px 0 2px">恋人盘 · 契合度</div>
+          <div class="score">73<small>%</small></div>
+          <div class="green" style="font-size:12.5px;margin-top:6px">心动够烈,但安全感是你们的暗礁</div>
+        </div>
+        <div style="margin-top:18px">
+          <div class="dimrow"><div class="lab"><span>❤️‍🔥 心动 <span class="caret">点开看星位 ⌄</span></span><span class="v" style="color:var(--pink)">88</span></div><div class="bar"><i style="width:88%;background:var(--pink)"></i></div></div>
+          <div class="dimrow"><div class="lab"><span>🛟 安全感 <span class="caret">点开看星位 ⌄</span></span><span class="v" style="color:var(--orange)">41</span></div><div class="bar"><i style="width:41%;background:var(--orange)"></i></div></div>
+          <div class="dimrow"><div class="lab"><span>💬 懂你 <span class="caret">点开看星位 ⌄</span></span><span class="v" style="color:var(--blue)">70</span></div><div class="bar"><i style="width:70%;background:var(--blue)"></i></div></div>
+          <div class="dimrow"><div class="lab"><span>⏳ 长久 <span class="caret">点开看星位 ⌄</span></span><span class="v" style="color:var(--gold-soft)">62</span></div><div class="bar"><i style="width:62%;background:var(--gold-soft)"></i></div></div>
+        </div>
+        <div class="read" style="margin-top:20px">
+          <p>你俩最烈的是「心动」——你的火星撞她的金星,一见面就来电。可「安全感」只有 41:她的月亮被你的土星压着,你越想靠近,她越觉得被审视。</p>
+          <p class="catch">你俩不会输给不爱,会输给都太硬——谁都赌对方先软,然后一起把它熬冷。</p>
+        </div>
+        <div style="text-align:center;font-size:12.5px;color:var(--gold-soft);margin:20px 0 4px">📤 把这份合盘存成卡</div>
+        <div class="legaldim">说的是相处动态,不是命定结局 · 怎么走你们说了算</div>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <span class="state">同事盘 · 同引擎 · 文案完全不同</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div class="back">‹</div><div class="crumb">合盘</div></div>
+        <div style="text-align:center;margin:6px 0 4px">
+          <div class="names">你 ↔ <b>Leo</b></div>
+          <div style="font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:6px 0 2px">共事盘 · 契合度</div>
+          <div class="score">68<small>%</small></div>
+          <div class="green" style="font-size:12.5px;margin-top:6px">互补能成事,但边界是你们的雷区</div>
+        </div>
+        <div style="margin-top:18px">
+          <div class="dimrow"><div class="lab"><span>🤝 配合 <span class="caret">点开看星位 ⌄</span></span><span class="v" style="color:var(--blue)">74</span></div><div class="bar"><i style="width:74%;background:var(--blue)"></i></div></div>
+          <div class="dimrow"><div class="lab"><span>🧩 互补 <span class="caret">点开看星位 ⌄</span></span><span class="v" style="color:var(--green)">81</span></div><div class="bar"><i style="width:81%;background:var(--green)"></i></div></div>
+          <div class="dimrow"><div class="lab"><span>🚧 边界 <span class="caret">点开看星位 ⌄</span></span><span class="v" style="color:var(--orange)">38</span></div><div class="bar"><i style="width:38%;background:var(--orange)"></i></div></div>
+        </div>
+        <div class="read" style="margin-top:20px">
+          <p>你俩最值钱的是「互补」——你的太阳顶他的土星,你冲他稳,正好补位。可「边界」只有 38:他的土星压你的月亮,合作久了你会觉得被管。</p>
+          <p class="catch">你俩的死穴不是能力,是俩人都觉得自己该拍板——不摊开,迟早互相拖死。</p>
+        </div>
+        <div style="text-align:center;font-size:12.5px;color:var(--gold-soft);margin:20px 0 4px">📤 把这份合盘存成卡</div>
+        <div class="legaldim">说的是相处动态,不是命定结局 · 怎么走你们说了算</div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 4 ============ -->
+<div class="section">
+  <div class="section-h"><span class="n">4</span><h2>维度下钻 · 「哪些星位造成的」</h2><span class="tag">Unit D · A</span></div>
+  <div class="section-note"><span class="new">新增</span>:点任一维度条 → 展开真实跨盘相位(引擎 Unit A 暴露的中间量,不改分数公式)。和谐<span class="green">绿</span>/张力<span style="color:var(--orange)">橙</span>用图标区分(非颜色依赖)。把"一个分数"变成"看得见的为什么"。</div>
+  <div class="gallery">
+    <div class="frame">
+      <span class="state">安全感 · 已点开</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div class="back">‹</div><div class="crumb">合盘</div></div>
+        <div style="text-align:center;margin:6px 0 4px">
+          <div class="names" style="font-size:18px">你 ↔ <b>小鱼</b> · 恋人盘</div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="dimrow"><div class="lab"><span>❤️‍🔥 心动 <span class="caret">点开 ⌄</span></span><span class="v" style="color:var(--pink)">88</span></div><div class="bar"><i style="width:88%;background:var(--pink)"></i></div></div>
+          <div class="dimrow" style="margin-bottom:0">
+            <div class="lab"><span>🛟 安全感 <span class="caret" style="color:var(--gold-soft)">收起 ⌃</span></span><span class="v" style="color:var(--orange)">41</span></div>
+            <div class="bar"><i style="width:41%;background:var(--orange)"></i></div>
+            <div class="drill">
+              <div class="asp"><span class="badge t">刑 90°</span><span class="txt"><b>你的月亮 — 小鱼的土星</b><br>她要的稳定,正好压在你最怕被束缚的地方。</span></div>
+              <div class="asp"><span class="badge h">拱 120°</span><span class="txt"><b>你的月亮 — 小鱼的月亮</b><br>情绪频率其实合——吵完总能绕回彼此。</span></div>
+              <div class="asp"><span class="badge t">对分 180°</span><span class="txt"><b>你的土星 — 小鱼的月亮</b><br>你下意识的克制,会让她觉得没被接住。</span></div>
+            </div>
+          </div>
+          <div class="dimrow" style="margin-top:11px"><div class="lab"><span>💬 懂你 <span class="caret">点开 ⌄</span></span><span class="v" style="color:var(--blue)">70</span></div><div class="bar"><i style="width:70%;background:var(--blue)"></i></div></div>
+          <div class="dimrow"><div class="lab"><span>⏳ 长久 <span class="caret">点开 ⌄</span></span><span class="v" style="color:var(--gold-soft)">62</span></div><div class="bar"><i style="width:62%;background:var(--gold-soft)"></i></div></div>
+        </div>
+        <div class="legaldim" style="margin-top:18px">相位算自你俩真实出生盘 · 不编不存在的相位</div>
+      </div></div>
+    </div>
+    <div class="frame" style="width:360px">
+      <div class="cap" style="margin-top:34px"><b>下钻的数据从哪来?</b><br>引擎 <code style="color:var(--gold-soft)">synastry()</code> 现在内部就算了这些跨盘相位(<code style="color:var(--gold-soft)">sep / near</code>),只是没 return。Unit A 把它按 strength 降序吐出<b>全部命中</b>(orb 阈值已天然过滤到每维就几条),UI 直接渲染。<br><br><b>不改分数算法</b> → 30 条 baseline 测试全绿,只是多暴露中间量。每条相位的"意味"那句由 LLM 随分型解读一起产出。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 5 ============ -->
+<div class="section">
+  <div class="section-h"><span class="n">5</span><h2>合盘卡(分享裂变) + 再合一个人 / 已合的人</h2><span class="tag">Unit F · G</span></div>
+  <div class="section-note"><span class="new">新增</span>:合盘卡是本命卡之外的新模板(承载 你↔对方 / 关系 / 总分 / 金句),走系统原生分享。<span class="new">新增</span>:再合循环 + 已合的人本地列表(可重看 / 删除)。§8.3:demo 态不生成卡。</div>
+  <div class="gallery">
+
+    <div class="frame">
+      <span class="state">合盘卡 · 可分享</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div class="back">‹</div><div class="crumb">存成卡</div></div>
+        <div class="syncard" style="margin-top:12px">
+          <div class="ded">M O L L Y · 合盘</div>
+          <div class="pair">你 <span style="color:var(--gold-deep)">↔</span> <b>小鱼</b></div>
+          <div style="font-size:11px;color:var(--mute);letter-spacing:.1em">恋人盘 · 契合度</div>
+          <div class="pct">73<small style="font-size:20px">%</small></div>
+          <div class="q">「不是不爱,是你们都怕<br>先伸手的那个,会先输。」</div>
+          <div class="brand">M O L L Y</div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin:14px 0 10px">
+          <span class="chip" style="border-color:var(--gold-deep)">模板 A</span><span class="chip">B</span><span class="chip">C</span><span class="chip">D</span>
+        </div>
+        <button class="gbtn">📤 分享 / 保存图片</button>
+        <div class="legaldim" style="margin-top:12px">仅真人合盘可生成 · 你看不到对方的出生信息</div>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <span class="state">再合 + 已合的人(Unit G)</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div class="back">‹</div><div class="crumb">合盘</div></div>
+        <div class="h-serif" style="font-size:23px;margin:10px 2px 4px">还想<span class="gold-i">合谁?</span></div>
+        <div class="muted" style="font-size:12px;margin:0 2px 16px">再邀一个人,或回看已经合过的</div>
+        <button class="gbtn" style="margin-bottom:18px">＋ 再合一个人</button>
+        <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 2px 10px">已合的人</div>
+        <div class="person"><span class="av">鱼</span><span><span class="nm" style="display:block">小鱼</span><span class="meta">恋人盘 · 73%</span></span><span class="del">删除</span></div>
+        <div class="person"><span class="av">L</span><span><span class="nm" style="display:block">Leo</span><span class="meta">共事盘 · 68%</span></span><span class="del">删除</span></div>
+        <div class="person" style="margin-bottom:0"><span class="av">妈</span><span><span class="nm" style="display:block">妈妈</span><span class="meta">家人盘 · 55%</span></span><span class="del">删除</span></div>
+        <div class="legaldim" style="margin-top:18px">删除只清你本地的记录 · 不影响对方</div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 6 ============ -->
+<div class="section">
+  <div class="section-h"><span class="n">6</span><h2>对方(B 端)完整旅程 · 裂变回路的另一半</h2><span class="tag">Unit F · B+C</span></div>
+  <div class="section-note"><span class="kill">补齐漏掉的路径</span>:对方打开链接后是<b>一条独立的端到端旅程</b>,不止一个表单。两处<span class="new">关键新增</span>:① 链接<b>带 A 选的关系类型</b>,落地页更具体;② 对方填完<b>也能看到合盘结果</b>(从 TA 视角写)——这是裂变高潮,旧版对方看不到结果就直接断了。隐私:对方只看配对层结果,<b>看不到 A 的原始出生信息</b>(§9.3)。</div>
+  <div class="gallery">
+
+    <div class="frame">
+      <span class="state">B-1 落地 loading · 校验 token</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold)"></div><span style="font-weight:500;letter-spacing:.4em;font-size:11px;color:var(--gold)">MOLLY</span></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+          <div style="width:38px;height:38px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold),0 0 18px rgba(201,138,70,.5)"></div>
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="muted" style="font-size:13px">正在打开邀请…</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <span class="state">B-2 链接失效 · invalid</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold)"></div><span style="font-weight:500;letter-spacing:.4em;font-size:11px;color:var(--gold)">MOLLY</span></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:0 10px">
+          <div style="font-size:38px">✦</div>
+          <div class="dim" style="font-size:15px;line-height:1.6">这个邀请链接失效了,<br>让对方再发你一个吧。</div>
+          <button class="ghost" style="width:auto;padding:10px 20px;margin-top:6px">了解 Molly 是什么 →</button>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <span class="state">B-3 表单 · 带类型 + 诚实默认 + 滚动容器</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold)"></div><span style="font-weight:500;letter-spacing:.4em;font-size:11px;color:var(--gold)">MOLLY</span></div></div>
+        <div style="flex:1;overflow-y:auto;padding-right:2px">
+          <div class="h-serif" style="font-size:23px;margin:18px 0 9px"><span class="gold-i">Kevin</span> 想测你俩的<br><span class="gold-i">恋人盘</span> 合不合。</div>
+          <div style="font-size:12.5px;color:var(--cream-dim);line-height:1.7;margin-bottom:16px">留下你真实的出生时间和地点——只用来排你俩的合盘;Kevin 只看到结果,<b style="color:var(--cream);font-weight:400">看不到你的出生信息</b>。</div>
+          <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">你的名字</div>
+          <div style="background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:12px;color:#566073;font-size:14px;margin-bottom:12px">怎么称呼你</div>
+          <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">出生日期</div>
+          <div style="background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:12px;color:#566073;font-size:14px;margin-bottom:12px">年 / 月 / 日</div>
+          <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">出生时间</div>
+          <div style="background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:12px;color:#566073;font-size:14px;margin-bottom:8px;opacity:.5">12 : 00</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:17px;height:17px;border-radius:6px;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#1a1305;font-size:11px;font-weight:700">✓</span><span style="font-size:12.5px;color:var(--cream-dim)">我知道准确的出生时间</span></div>
+          <div style="font-size:12px;color:var(--mute);line-height:1.5;margin-bottom:12px">不知道也没关系——按<b class="dim" style="font-weight:400">正午</b>排。</div>
+          <div class="row" style="margin-bottom:4px">
+            <div style="flex:1"><div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">国家</div><div style="background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:12px;color:#566073;font-size:14px">如 中国</div></div>
+            <div style="flex:1"><div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">城市</div><div style="background:var(--field);border:1px solid var(--field-bd);border-radius:13px;padding:12px;color:#566073;font-size:14px">如 上海</div></div>
+          </div>
+        </div>
+        <button class="gbtn" style="margin-top:12px">提交,看我俩合不合</button>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <span class="state">B-4 排盘中 · submitting</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold)"></div><span style="font-weight:500;letter-spacing:.4em;font-size:11px;color:var(--gold)">MOLLY</span></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center">
+          <div style="width:46px;height:46px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold-soft),0 0 24px rgba(201,138,70,.7)"></div>
+          <div class="h-serif gold-i" style="font-size:19px">正在为你俩排盘…</div>
+          <div class="dots"><i></i><i></i><i></i></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <span class="state">B-5 ★ 对方也看到合盘(新增 · 裂变高潮)</span>
+      <div class="phone" style="box-shadow:0 24px 60px -20px rgba(0,0,0,.8),0 0 0 1.5px var(--gold-deep)"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold)"></div><span style="font-weight:500;letter-spacing:.4em;font-size:11px;color:var(--gold)">MOLLY</span></div></div>
+        <div style="text-align:center;margin:8px 0 4px">
+          <div class="names">你 ↔ <b>Kevin</b></div>
+          <div style="font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:6px 0 2px">恋人盘 · 契合度</div>
+          <div class="score">73<small>%</small></div>
+          <div class="green" style="font-size:12.5px;margin-top:6px">心动够烈,但安全感是你俩的暗礁</div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="dimrow"><div class="lab"><span>❤️‍🔥 心动 <span class="caret">点开 ⌄</span></span><span class="v" style="color:var(--pink)">88</span></div><div class="bar"><i style="width:88%;background:var(--pink)"></i></div></div>
+          <div class="dimrow"><div class="lab"><span>🛟 安全感 <span class="caret">点开 ⌄</span></span><span class="v" style="color:var(--orange)">41</span></div><div class="bar"><i style="width:41%;background:var(--orange)"></i></div></div>
+          <div class="dimrow"><div class="lab"><span>💬 懂你 <span class="caret">点开 ⌄</span></span><span class="v" style="color:var(--blue)">70</span></div><div class="bar"><i style="width:70%;background:var(--blue)"></i></div></div>
+        </div>
+        <div class="read" style="margin-top:16px">
+          <p style="font-size:15.5px">你俩最烈的是「心动」——你的金星撞他的火星,一见就来电。可「安全感」只有 41:你的月亮被他的土星压着,他越想靠近,你越觉得被审视。</p>
+        </div>
+        <div style="text-align:center;font-size:10px;color:#566073;margin-top:6px">说的是相处动态,不是命定结局</div>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <span class="state">B-6 转化 · 把对方变成用户</span>
+      <div class="phone"><div class="starfield"></div><div class="scr">
+        <div class="topbar"><div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold)"></div><span style="font-weight:500;letter-spacing:.4em;font-size:11px;color:var(--gold)">MOLLY</span></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:0 6px">
+          <div class="eye-glow-mini" style="width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a);box-shadow:0 0 0 1px var(--gold),0 0 26px rgba(201,138,70,.6)"></div>
+          <div class="h-serif" style="font-size:22px;line-height:1.4">Kevin 让 Molly 看穿了<br>你俩。那 <span class="gold-i">单看你一个人</span> 呢?</div>
+          <div style="font-size:13px;color:var(--cream-dim);line-height:1.7">我已经有你的星盘了。要不要看看<br>Molly 第一眼在你身上看到什么?</div>
+          <button class="gbtn" style="margin-top:6px">让 Molly 也看看我 →</button>
+          <button class="btn-text" style="background:none;border:none;color:var(--gold-soft);font-size:13px">先把这份合盘存成卡</button>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:54px;border-top:1px solid #1b2030;padding-top:22px;color:var(--mute);font-size:13px;line-height:1.8">
+  <b style="color:var(--cream-dim)">下一步</b> —— 你 review 这版 UI/UX:哪些屏 / 文案 / 交互要调?确认后我把改动并回 spec,再进 writing-plans 出实施计划,按 PR1(引擎)→ PR5(再合循环)开工。<br>
+  <span style="color:#566073">注:本文件是 review 用的静态渲染稿,非生产代码。生产实现走 React + 真实引擎数据 + LLM,token 已与真机一致。</span>
+</div>
+
+</body>
+</html>
