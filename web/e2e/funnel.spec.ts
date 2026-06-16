@@ -18,12 +18,18 @@ async function walkToToday(page: Page) {
   await page.getByRole("link", { name: /看穿你/ }).click();
   await expect(page).toHaveURL(/\/input/);
   await page.getByRole("button", { name: /看你的盘/ }).click();
+  // 2 self-trait questions (back-compat ASC opener) …
   const opt = page.locator('[data-testid="cal-opt"]').first();
   await opt.waitFor({ state: "visible", timeout: 8000 });
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     await page.locator('[data-testid="cal-opt"]').first().click();
     await page.waitForTimeout(400);
   }
+  // … then the 人生大事 step: pick events (seeds the TimeBelief) and finish.
+  await page.locator('[data-testid="cal-event"]').first().waitFor({ state: "visible", timeout: 8000 });
+  await page.locator('[data-testid="cal-event"]').nth(0).click();
+  await page.locator('[data-testid="cal-event"]').nth(1).click();
+  await page.locator('[data-testid="cal-finish"]').click();
   await page.locator('[data-testid="firstread"]').waitFor({ state: "visible", timeout: 8000 });
   await page.locator('[data-testid="chip"]').first().click();
   await page.locator('[data-testid="login"]').first().waitFor({ state: "visible", timeout: 8000 });
