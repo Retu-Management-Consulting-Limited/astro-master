@@ -8,8 +8,10 @@ import { isFullChart } from "@/lib/astro/chart-validate";
 import { synastry, type RelType, type SynResult } from "@/lib/astro/synastry";
 import { synScaffold, type SynRead } from "@/lib/reading/synastry";
 import { fetchSynastryRead } from "@/lib/reading/remote";
+import { buildSynastryCardSVG, svgToPngBlob, type Template } from "@/lib/share/card";
 import { useFunnel } from "@/lib/store";
 import { readTokens, addStoredToken } from "@/lib/synastryTokens";
+import { track } from "@/lib/track";
 
 const TYPES: { id: RelType; ic: string; t: string; sub: string }[] = [
   { id: "lover", ic: "💞", t: "恋人 / 暧昧", sub: "合不合、爱不爱、走不走得下去" },
@@ -108,6 +110,29 @@ export default function SynastryPage() {
     }
   }
 
+  // 显眼发链接 (Unit F): native share sheet on mobile (the real viral action),
+  // graceful copy fallback on desktop / where Web Share is unavailable.
+  async function shareLink() {
+    if (!inviteUrl) return;
+    track("syn_invite_share");
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (nav.share) {
+      try {
+        await nav.share({ title: "Molly 合盘", text: "来和我测测我俩合不合 · Molly", url: inviteUrl });
+        return;
+      } catch {
+        /* user cancelled or share failed → fall through to copy */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* link is shown for manual copy */
+    }
+  }
+
   const partner = realPartner ?? DEMO_PARTNER;
   const result = useMemo(() => (chart && type ? synastry(chart, partner, type) : null), [chart, type, partner]);
   if (!ready || !chart) return null;
@@ -145,9 +170,11 @@ export default function SynastryPage() {
                       <span style={{ color: "var(--cream-dim)" }}>等 TA 填好，这里就自动出你俩的真盘</span>
                     </div>
                     <div data-testid="syn-invite-url" style={{ fontSize: 11, color: "var(--gold-soft)", wordBreak: "break-all", background: "#0d1018", borderRadius: 8, padding: "8px 10px", marginBottom: 8 }}>{inviteUrl}</div>
+                    {/* 显眼发链接 (Unit F): share is the primary viral action; copy/regenerate are secondary. */}
+                    <button data-testid="syn-share" onClick={shareLink} style={{ width: "100%", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", border: "none", color: "#1a1408", fontWeight: 600, borderRadius: 9, padding: "10px 0", fontSize: 13.5, cursor: "pointer", marginBottom: 8 }}>📤 发给 TA</button>
                     <div style={{ display: "flex", gap: 8, fontSize: 12 }}>
-                      <button onClick={createInvite} style={{ flex: "0 0 auto", background: "transparent", border: "1px solid var(--field-bd)", color: "var(--cream-dim)", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>重新生成</button>
-                      <button data-testid="syn-copy" onClick={() => { navigator.clipboard?.writeText(inviteUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {}); }} style={{ flex: 1, background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", border: "none", color: "#1a1408", fontWeight: 600, borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>{copied ? "已复制 ✓" : "复制链接"}</button>
+                      <button onClick={createInvite} style={{ flex: 1, background: "transparent", border: "1px solid var(--field-bd)", color: "var(--cream-dim)", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>重新生成</button>
+                      <button data-testid="syn-copy" onClick={() => { navigator.clipboard?.writeText(inviteUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {}); }} style={{ flex: 1, background: "transparent", border: "1px solid var(--field-bd)", color: "var(--cream-dim)", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>{copied ? "已复制 ✓" : "复制链接"}</button>
                     </div>
                   </div>
                 ) : (
@@ -175,10 +202,10 @@ export default function SynastryPage() {
 }
 
 function Result({ result, demo, onConnect, selfChart, partnerChart, partnerName, selfName }: { result: SynResult; demo: boolean; onConnect: () => void; selfChart: Chart; partnerChart: Chart | null; partnerName: string | null; selfName?: string }) {
-  const router = useRouter();
   const typeLabel = TYPES.find((t) => t.id === result.type)!.t;
   const [read, setRead] = useState<SynRead>(() => synScaffold(result, selfName ?? undefined, partnerName ?? undefined));
   const [openDim, setOpenDim] = useState<string | null>(null);
+  const [showCard, setShowCard] = useState(false);
 
   // Re-seed the deterministic scaffold whenever the pairing/type changes.
   useEffect(() => {
@@ -265,8 +292,68 @@ function Result({ result, demo, onConnect, selfChart, partnerChart, partnerName,
         <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{read.catchLine}</p>
       </div>
 
-      <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</button>
+      <button type="button" data-testid="syn-card-open" onClick={() => setShowCard(true)} style={{ display: "block", width: "100%", margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</button>
       <div style={{ marginTop: 0, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
+
+      {showCard && (
+        <SynCard pair={`你 ↔ ${who}`} relLabel={`${typeLabel}盘`} total={result.total} quote={read.catchLine} onClose={() => setShowCard(false)} />
+      )}
+    </div>
+  );
+}
+
+const TPLS: Template[] = ["a", "b", "c", "d"];
+
+// 合盘卡 overlay (Unit F): real pairing only (rendered inside the non-demo Result,
+// so §8.3 holds — no card for a fake score). Mirrors /share export: SVG on screen,
+// rasterized to PNG for native share / download.
+function SynCard({ pair, relLabel, total, quote, onClose }: { pair: string; relLabel: string; total: number; quote: string; onClose: () => void }) {
+  const [tpl, setTpl] = useState<Template>("a");
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const data = { pair, relLabel, total, quote };
+  const svg = buildSynastryCardSVG(data, tpl);
+
+  async function exportPng() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const scale = 3;
+      const out = buildSynastryCardSVG(data, tpl, { forExport: true, scale });
+      const blob = await svgToPngBlob(out, 318 * scale, 424 * scale);
+      const file = new File([blob], "molly-synastry.png", { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean; share?: (d: ShareData) => Promise<void> };
+      track("syn_card_share", { tpl });
+      if (nav.canShare?.({ files: [file] }) && nav.share) {
+        await nav.share({ files: [file], text: "我俩的合盘 · Molly" });
+        setToast("已唤起分享");
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "molly-synastry.png";
+        a.click();
+        URL.revokeObjectURL(url);
+        setToast("已保存图片 ✓");
+      }
+    } catch {
+      setToast("生成失败，再试一次");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div data-testid="syn-card" role="dialog" aria-modal="true" aria-label="合盘卡" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(4,5,10,.82)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 24 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 265, maxWidth: "100%" }} dangerouslySetInnerHTML={{ __html: svg }} />
+      <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", gap: 8 }}>
+        {TPLS.map((t) => (
+          <button key={t} type="button" aria-label={`模板 ${t.toUpperCase()}`} onClick={() => setTpl(t)} style={{ width: 26, height: 26, borderRadius: 999, border: t === tpl ? "1px solid var(--gold)" : "1px solid var(--field-bd)", background: "transparent", color: t === tpl ? "var(--gold-soft)" : "var(--cream-dim)", fontSize: 11, cursor: "pointer" }}>{t.toUpperCase()}</button>
+        ))}
+      </div>
+      <button type="button" data-testid="syn-card-export" onClick={(e) => { e.stopPropagation(); exportPng(); }} disabled={busy} className="gold-btn" style={{ maxWidth: 265, opacity: busy ? 0.7 : 1 }}>{busy ? "生成中…" : "📤 分享 / 保存图片"}</button>
+      <button type="button" onClick={onClose} style={{ background: "none", border: "none", color: "var(--cream-dim)", fontSize: 13, cursor: "pointer" }}>关闭</button>
+      {toast && <div style={{ fontSize: 12, color: "var(--gold-soft)" }}>{toast}</div>}
     </div>
   );
 }

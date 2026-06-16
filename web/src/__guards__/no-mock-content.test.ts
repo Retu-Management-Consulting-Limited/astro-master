@@ -68,7 +68,7 @@ describe("no mock content (R7-R9 tripwire)", () => {
   // files MUST sanitize first. Trusted-HTML files (own SVG / caller-controlled props)
   // are allowlisted. A new unsanitized AI-HTML render fails this tripwire.
   it("any AI/Molly text rendered as HTML goes through sanitizeRichText", () => {
-    const TRUSTED = ["share/page.tsx", "LoadingRitual.tsx"]; // own SVG / trusted prop
+    const TRUSTED = ["share/page.tsx", "synastry/page.tsx", "LoadingRitual.tsx"]; // own SVG / trusted prop
     const offenders = files.filter((f) => {
       const src = read(f);
       if (!src.includes("dangerouslySetInnerHTML")) return false;
