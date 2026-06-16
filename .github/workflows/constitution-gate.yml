@@ -1,9 +1,11 @@
 name: constitution-gate
 
-# 改宪法人工闸：宪法（或其 eval rubric）一旦在 PR 里被改动，必须同时在
-# docs/CONSTITUTION-CHANGELOG.md 登记一条变更——否则这个 check 红，PR 合不进。
-# 配合分支保护（require PR review）= 改宪法必须人工审 + bump 版本 + 记录理由。
-# 见 docs/CONSTITUTION-CHANGELOG.md。
+# 总宪法为准（single source of truth = main）。
+# 宪法 / 其 rubric 的权威副本在 main。任何分支不得擅自分叉：
+#   • 分支若改了宪法/rubric 但【没】走修宪流程（CONSTITUTION-CHANGELOG.md 登记）
+#     → 判为「与总宪法冲突」→ 这个 check 红 → 以总宪法为准、把分支同步回 main。
+#   • 分支若【确是】修宪：登记 changelog + 走人工 review（分支保护），才允许改总宪法。
+# 见 docs/CONSTITUTION-CHANGELOG.md 顶部「治理」。
 
 on:
   pull_request:
@@ -12,30 +14,34 @@ on:
       - 'docs/2026-06-16-constitution-eval-rubric.md'
 
 jobs:
-  changelog-required:
-    name: constitution change must be logged
+  master-governs:
+    name: branch constitution must stay synced to master (总宪法为准)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: require CONSTITUTION-CHANGELOG entry
+      - name: enforce single source of truth
         run: |
-          BASE="origin/${{ github.base_ref }}"
-          git fetch origin "${{ github.base_ref }}" --depth=0 || git fetch origin "${{ github.base_ref }}"
+          BASE_REF="${{ github.base_ref }}"
+          BASE="origin/${BASE_REF}"
+          git fetch origin "${BASE_REF}" --depth=0 || git fetch origin "${BASE_REF}"
+          LAW="docs/2026-06-16-molly-constitution.md docs/2026-06-16-constitution-eval-rubric.md"
           CHANGED="$(git diff --name-only "$BASE"...HEAD)"
           echo "Changed files:"; echo "$CHANGED"
           touched_law=false
           echo "$CHANGED" | grep -qx 'docs/2026-06-16-molly-constitution.md' && touched_law=true
           echo "$CHANGED" | grep -qx 'docs/2026-06-16-constitution-eval-rubric.md' && touched_law=true
-          if [ "$touched_law" = true ]; then
-            if echo "$CHANGED" | grep -qx 'docs/CONSTITUTION-CHANGELOG.md'; then
-              echo "✓ 宪法/rubric 改动已在 CONSTITUTION-CHANGELOG.md 登记。"
-            else
-              echo "::error::改了宪法或其 rubric，但 docs/CONSTITUTION-CHANGELOG.md 没有对应登记。" \
-                   "宪法是软部件，改它必须：人工审 + bump 版本 + 在 CONSTITUTION-CHANGELOG.md 记录理由。"
-              exit 1
-            fi
-          else
-            echo "未触及宪法，跳过。"
+          if [ "$touched_law" != true ]; then
+            echo "✓ 本分支未改动总宪法——一致。"
+            exit 0
           fi
+          if echo "$CHANGED" | grep -qx 'docs/CONSTITUTION-CHANGELOG.md'; then
+            echo "✓ 这是已登记的【修宪 PR】，交人工 review（分支保护）裁决是否纳入总宪法。"
+            exit 0
+          fi
+          echo "::error::本分支的宪法/rubric 与总宪法分叉，且未走修宪流程 → 冲突，以总宪法为准。"
+          echo "::error::同步分支回 main（总宪法覆盖分支）："
+          echo "::error::  git fetch origin ${BASE_REF} && git checkout origin/${BASE_REF} -- ${LAW} && git commit -m 'sync constitution to master (总宪法为准)'"
+          echo "::error::（若你确是要【修宪】：在 docs/CONSTITUTION-CHANGELOG.md 登记一条 + bump 版本，再走人工 review）"
+          exit 1
