@@ -175,47 +175,51 @@ export default function SynastryPage() {
 
 function Result({ result, demo, onConnect }: { result: SynResult; demo: boolean; onConnect: () => void }) {
   const router = useRouter();
-  const r = reading(result);
   const typeLabel = TYPES.find((t) => t.id === result.type)!.t;
-  // When showing sample data (no real partner yet), the score/dims/reading are
-  // fabricated — blur them and overlay a connect CTA so a casual user never
-  // reads a fake 78% as their real compatibility (B3 / R4).
-  const veil: React.CSSProperties = demo
-    ? { filter: "blur(6px)", opacity: 0.5, userSelect: "none", pointerEvents: "none" }
-    : {};
-  return (
-    <div data-testid="syn-result">
-      {demo && (
-        <div data-testid="syn-demo-banner" style={{ display: "flex", flexDirection: "column", gap: 8, background: "rgba(143,182,216,.08)", border: "1px solid rgba(143,182,216,.28)", borderRadius: 12, padding: "12px 14px", marginBottom: 14, textAlign: "center" }}>
-          <div style={{ fontSize: 12.5, color: "var(--cream-dim)", lineHeight: 1.6 }}>下面是<b style={{ color: "var(--cream)" }}>示例</b>分数，不是你俩的真实结果。</div>
-          <button type="button" onClick={onConnect} style={{ background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", border: "none", color: "#1a1408", fontWeight: 600, borderRadius: 9, padding: "9px 0", fontSize: 13, cursor: "pointer" }}>邀 TA 解锁你俩的真实合盘 →</button>
-        </div>
-      )}
-      <div style={{ position: "relative" }}>
-        <div aria-hidden={demo || undefined} style={veil}>
-          <div style={{ textAlign: "center", margin: "6px 0 4px" }}>
-            <div style={{ fontSize: 10.5, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 3 }}>{typeLabel} · 契合度</div>
-            <div style={{ fontFamily: "var(--serif)", fontSize: 58, fontWeight: 600, color: "var(--gold)", lineHeight: 1, textShadow: "0 0 30px rgba(201,168,97,.3)" }}>{result.total}<small style={{ fontSize: 22 }}>%</small></div>
-            <div style={{ marginTop: 7, fontSize: 12.5, color: "var(--green)" }}>{r.vibe}</div>
-          </div>
-          <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-            {result.dims.map((d, i) => (
-              <div key={d.key}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 5 }}><span>{d.label}</span><b style={{ color: DIM_COLOR[i % DIM_COLOR.length] }}>{d.value}</b></div>
-                <div style={{ height: 7, background: "#1b2130", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, width: `${d.value}%`, background: DIM_COLOR[i % DIM_COLOR.length] }} /></div>
-              </div>
+  // 强卡口（R4 / 宪法 §8.3 不误导）：没有真实 partner 时，绝不给任何契合度分数
+  // 或解读——连模糊的假分都不给，杜绝被当真实结果截图分享。只展示「这个关系会
+  // 测哪些面」(维度名、不带分值) 当裂变钩子，并引导去邀请对方。
+  if (demo) {
+    return (
+      <div data-testid="syn-result">
+        <div data-testid="syn-demo-banner" style={{ display: "flex", flexDirection: "column", gap: 12, background: "rgba(143,182,216,.08)", border: "1px solid rgba(143,182,216,.28)", borderRadius: 14, padding: "18px 16px", textAlign: "center" }}>
+          <div style={{ fontFamily: "var(--serif)", fontSize: 19, color: "var(--cream)", lineHeight: 1.5 }}>邀 TA 填好出生信息，<br />才能算你俩在「{typeLabel}」上的<b style={{ color: "var(--gold-soft)" }}>真实契合度</b>。</div>
+          <div style={{ fontSize: 12.5, color: "var(--mute)", lineHeight: 1.6 }}>到时我会逐项给你俩看这几面——</div>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
+            {result.dims.map((d) => (
+              <span key={d.key} style={{ fontSize: 12.5, color: "var(--cream-dim)", border: "1px solid var(--field-bd)", borderRadius: 999, padding: "5px 12px" }}>{d.label}</span>
             ))}
           </div>
-          <div style={{ marginTop: 24 }}>
-            <p style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 18.5, lineHeight: 1.6, color: "var(--cream-dim)", marginBottom: 13 }}>{r.body}</p>
-            <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{r.catchLine}</p>
-          </div>
+          <button type="button" onClick={onConnect} style={{ marginTop: 4, background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", border: "none", color: "#1a1408", fontWeight: 600, borderRadius: 10, padding: "11px 0", fontSize: 14, cursor: "pointer" }}>邀 TA 解锁你俩的真实合盘 →</button>
+        </div>
+        <div style={{ marginTop: 14, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
+      </div>
+    );
+  }
+  const r = reading(result);
+  return (
+    <div data-testid="syn-result">
+      <div>
+        <div style={{ textAlign: "center", margin: "6px 0 4px" }}>
+          <div style={{ fontSize: 10.5, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 3 }}>{typeLabel} · 契合度</div>
+          <div style={{ fontFamily: "var(--serif)", fontSize: 58, fontWeight: 600, color: "var(--gold)", lineHeight: 1, textShadow: "0 0 30px rgba(201,168,97,.3)" }}>{result.total}<small style={{ fontSize: 22 }}>%</small></div>
+          <div style={{ marginTop: 7, fontSize: 12.5, color: "var(--green)" }}>{r.vibe}</div>
+        </div>
+        <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+          {result.dims.map((d, i) => (
+            <div key={d.key}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--cream-dim)", marginBottom: 5 }}><span>{d.label}</span><b style={{ color: DIM_COLOR[i % DIM_COLOR.length] }}>{d.value}</b></div>
+              <div style={{ height: 7, background: "#1b2130", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, width: `${d.value}%`, background: DIM_COLOR[i % DIM_COLOR.length] }} /></div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 24 }}>
+          <p style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 18.5, lineHeight: 1.6, color: "var(--cream-dim)", marginBottom: 13 }}>{r.body}</p>
+          <p style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 18.5, color: "var(--green)", borderLeft: "2px solid var(--green)", paddingLeft: 13 }}>{r.catchLine}</p>
         </div>
       </div>
-      {!demo && (
-        <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</button>
-      )}
-      <div style={{ marginTop: demo ? 14 : 0, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
+      <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "22px 0 6px", textAlign: "center", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这份合盘存成卡</button>
+      <div style={{ marginTop: 0, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 怎么走你们说了算</div>
     </div>
   );
 }
