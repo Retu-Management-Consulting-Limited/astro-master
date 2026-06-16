@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { computeChart } from "@/lib/astro/chart";
 import { resolveBirth } from "@/lib/birth";
+import { BirthDateField } from "@/components/BirthDateField";
 
 // Person B's landing page from a synastry invite link. They fill in their real
 // birth data; we resolve it (same correct-offset path as /input) and submit the
@@ -98,8 +99,8 @@ export default function InvitePage() {
                 <input id="inv-name" className="field-inp" data-testid="inv-name" autoComplete="nickname" value={name} onChange={(e) => setName(e.target.value)} placeholder="怎么称呼你" />
               </div>
               <div>
-                <label style={lbl} htmlFor="inv-date">出生日期</label>
-                <input id="inv-date" className="field-inp" type="date" autoComplete="bday" value={date} onChange={(e) => setDate(e.target.value)} />
+                <label style={lbl} htmlFor="inv-year">出生日期</label>
+                <BirthDateField idPrefix="inv" value={date} onChange={setDate} />
               </div>
               <div>
                 <label style={lbl} htmlFor="inv-time">出生时间</label>
