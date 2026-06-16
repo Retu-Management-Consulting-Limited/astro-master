@@ -7,6 +7,8 @@ import { generateThemeRead, THEME_IDS } from "../lib/reading/theme";
 import { synastry } from "../lib/astro/synastry";
 import { detectHighlights } from "../lib/astro/highlights";
 import { biorhythm } from "../lib/biorhythm";
+import { moneyPersona } from "../lib/money/persona";
+import { nextChapter } from "../lib/money/narrative";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 动态内容契约 (FRESHNESS CONTRACT) — see CLAUDE.md & design/DESIGN-SYSTEM.md.
@@ -32,6 +34,20 @@ const B = computeChart({ year: 1990, month: 11, day: 2, hour: 21, minute: 15, la
 const C = computeChart({ year: 1985, month: 3, day: 21, hour: 6, minute: 5, lat: 40.7128, lng: -74.006, tz: -5 });
 
 const text = (parts: unknown[]) => parts.map((p) => JSON.stringify(p)).join("|");
+
+describe("freshness contract · money narrative (per-day + personalized)", () => {
+  it("adjacent days produce a different hopeNote (per-day surface)", () => {
+    const p = moneyPersona(A);
+    for (let i = 0; i < 30; i++) {
+      const a = nextChapter(p, A, new Date(Date.UTC(2026, 0, 1 + i, 12)), []);
+      const b = nextChapter(p, A, new Date(Date.UTC(2026, 0, 2 + i, 12)), []);
+      expect(a.hopeNote).not.toBe(b.hopeNote);
+    }
+  });
+  it("two clearly-different charts produce a different money persona (personalized)", () => {
+    expect(text([moneyPersona(A)])).not.toBe(text([moneyPersona(B)]));
+  });
+});
 
 describe("freshness contract · per-day surfaces differ on ADJACENT days", () => {
   it("daily reading: todayLine + todayQuote differ every consecutive day", () => {
@@ -83,8 +99,8 @@ describe("freshness contract · personalized surfaces differ between charts", ()
     for (const id of THEME_IDS) {
       const a = generateThemeRead(A, id);
       const b = generateThemeRead(B, id);
-      expect(text([a.planetLabel, a.paragraphs, a.quote]), `theme ${id} not personalized`).not.toBe(
-        text([b.planetLabel, b.paragraphs, b.quote])
+      expect(text([a.planetLabel, a.paragraphs, a.quote, a.deepRead]), `theme ${id} not personalized`).not.toBe(
+        text([b.planetLabel, b.paragraphs, b.quote, b.deepRead])
       );
     }
   });

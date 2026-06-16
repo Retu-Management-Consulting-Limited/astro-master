@@ -34,3 +34,5 @@ playwright-report/
 # Generated screenshots (design-review / app shots — output of shot*.mjs etc.)
 _review_shots/
 _app_shots/
+_ux_shots/
+_verify_shots/

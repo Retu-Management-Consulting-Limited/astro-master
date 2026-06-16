@@ -91,7 +91,7 @@ export default function CalibrationPage() {
           <button type="button" onClick={goBack} aria-label={idx === 0 ? "返回" : "上一题"} style={{ fontSize: 20, lineHeight: 1, color: "var(--mute)", cursor: "pointer", padding: 4, marginLeft: -4 }}>←</button>
           <div className="eye-mini" />
           <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>{[0, 1, 2].map((i) => <span key={i} style={{ width: 6, height: 6, borderRadius: "50%", display: "block", background: i <= 1 ? "var(--gold)" : "#2a3142" }} />)}</div>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>{[0, 1, 2].map((i) => <span key={i} style={{ width: 6, height: 6, borderRadius: "50%", display: "block", background: i <= idx ? "var(--gold)" : "#2a3142" }} />)}</div>
         </div>
 
         <div style={{ marginTop: 40, display: "flex", alignItems: "center", gap: 12 }}>

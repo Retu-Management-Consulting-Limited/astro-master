@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
@@ -53,6 +53,17 @@ export default function TodayPage() {
       setVerdict(v === "hit" || v === "miss" ? v : null);
     } catch {}
   }, [dkNow]);
+
+  // S0 money-funnel impression. The money entry is now a chip inside the 今 card
+  // (was a standalone EntryCard); preserve the exact event so the H1/H2/H3 funnel
+  // top keeps its signal. Fire once, when the page actually renders for a user.
+  const moneyImpr = useRef(false);
+  useEffect(() => {
+    if (ready && chart && !moneyImpr.current) {
+      moneyImpr.current = true;
+      track("money_entry_impression", { surface: "today" });
+    }
+  }, [ready, chart]);
 
   if (!ready || !chart || !now) return null;
 
@@ -133,6 +144,12 @@ export default function TodayPage() {
           )}
           <button type="button" onClick={() => router.push("/wealth")} data-testid="fortune-chip" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 13, padding: "9px 12px", borderRadius: 11, background: "rgba(127,201,154,.07)", border: `1px solid ${fortune.c}55`, fontSize: 12.5, color: fortune.c, cursor: "pointer" }}>
             <span style={{ width: 9, height: 9, borderRadius: "50%", background: fortune.c, boxShadow: `0 0 8px ${fortune.c}` }} aria-hidden="true" /><span>今日财运 <b style={{ color: fortune.b }}>{fortune.label}</b> · {fortune.txt}</span><span style={{ marginLeft: "auto", color: "#5f8f73" }}>查日历 →</span>
+          </button>
+          {/* S0 金钱入口 — demoted from a standalone gold card to a chip inside 今,
+              so it stops splitting the 昨/今/明 arc and stops competing with this
+              card's gold. Same data-testid + /money target as the old EntryCard. */}
+          <button type="button" onClick={() => router.push("/money")} data-testid="money-entry" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 9, padding: "9px 12px", borderRadius: 11, background: "rgba(201,168,97,.07)", border: "1px solid rgba(201,168,97,.34)", fontSize: 12.5, color: "var(--gold-soft)", cursor: "pointer" }}>
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 8px var(--gold)" }} aria-hidden="true" /><span>钱，对你<b style={{ color: "var(--cream)" }}>不只是钱</b></span><span style={{ marginLeft: "auto", color: "var(--gold-soft)" }}>让 Molly 看穿 →</span>
           </button>
         </div>
 
