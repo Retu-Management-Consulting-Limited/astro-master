@@ -50,7 +50,9 @@ test("H1: /me/birth deep-link refills the user's real stored data (no demo overw
   await page.goto("/me/birth");
   await expect(page.locator('[data-testid="edit-birth"]')).toBeVisible({ timeout: 8000 });
   // Form shows REAL stored values, not demo defaults (1998-06-13 / female).
-  await expect(page.locator("#edit-date")).toHaveValue("1990-03-15");
+  await expect(page.locator("#edit-year")).toHaveValue("1990");
+  await expect(page.locator("#edit-month")).toHaveValue("3");
+  await expect(page.locator("#edit-day")).toHaveValue("15");
   await expect(page.locator('[data-testid="edit-city"]')).toHaveValue("北京");
   await expect(page.locator("#edit-country")).toHaveValue("中国");
   await expect(page.locator('[data-testid="edit-gender-male"]')).toHaveAttribute("aria-pressed", "true");

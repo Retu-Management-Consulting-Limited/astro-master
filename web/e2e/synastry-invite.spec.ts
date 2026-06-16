@@ -43,7 +43,9 @@ test("synastry invite: A invites → B submits real birth → A sees real partne
   await b.goto(url!.trim());
   await expect(b.locator('[data-testid="syn-invite"]')).toBeVisible({ timeout: 5000 });
   await b.locator('[data-testid="inv-name"]').fill("小鱼");
-  await b.locator('#inv-date').fill("1996-01-01"); // birth fields no longer pre-filled (B4)
+  await b.locator('#inv-year').selectOption("1996"); // birth fields no longer pre-filled (B4)
+  await b.locator('#inv-month').selectOption("1");
+  await b.locator('#inv-day').selectOption("1");
   // time now defaults to "unknown→noon"; opt into the exact-time field before filling (D-1 反转)
   await b.getByRole("checkbox", { name: /我知道准确的出生时间/ }).click();
   await b.locator('#inv-time').fill("12:00");

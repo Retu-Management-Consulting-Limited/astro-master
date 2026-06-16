@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { computeChart } from "@/lib/astro/chart";
 import { useFunnel } from "@/lib/store";
 import { resolveBirth } from "@/lib/birth";
+import { BirthDateField } from "@/components/BirthDateField";
 import { validBirthDateTime } from "@/lib/astro/birthdate";
 import { track } from "@/lib/track";
 
@@ -92,8 +93,8 @@ export default function InputPage() {
             </div>
           </div>
           <div className="reveal" style={{ animationDelay: ".55s" }}>
-            <label style={lbl} htmlFor="birth-date">出生日期</label>
-            <input id="birth-date" className="field-inp" type="date" autoComplete="bday" min="1900-01-01" max={new Date().toISOString().slice(0, 10)} value={date} onChange={(e) => setDate(e.target.value)} />
+            <label style={lbl} htmlFor="birth-year">出生日期</label>
+            <BirthDateField idPrefix="birth" value={date} onChange={setDate} />
           </div>
           <div className="reveal" style={{ animationDelay: ".7s" }}>
             <label style={lbl} htmlFor="birth-time">出生时间</label>

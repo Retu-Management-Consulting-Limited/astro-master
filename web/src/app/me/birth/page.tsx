@@ -5,6 +5,7 @@ import { computeChart } from "@/lib/astro/chart";
 import { useFunnel, snapshotOf, type BirthForm } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { resolveBirth } from "@/lib/birth";
+import { BirthDateField } from "@/components/BirthDateField";
 import { apiSync } from "@/lib/auth-client";
 import { BackButton } from "@/components/BackButton";
 import { track } from "@/lib/track";
@@ -94,8 +95,8 @@ function EditBirthForm() {
             </div>
           </div>
           <div>
-            <label style={lbl} htmlFor="edit-date">出生日期</label>
-            <input id="edit-date" className="field-inp" type="date" autoComplete="bday" min="1900-01-01" max={new Date().toISOString().slice(0, 10)} value={date} onChange={(e) => setDate(e.target.value)} />
+            <label style={lbl} htmlFor="edit-year">出生日期</label>
+            <BirthDateField idPrefix="edit" value={date} onChange={setDate} />
           </div>
           <div>
             <label style={lbl} htmlFor="edit-time">出生时间</label>
