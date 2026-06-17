@@ -1,10 +1,15 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
+import createMiddleware from "next-intl/middleware";
+import { routing } from "@/i18n/routing";
 
-// Assigns each visitor a stable tester id (httpOnly cookie). Server routes read
-// it to attribute telemetry/feedback — the client never needs to see it.
-// (Next 16: this is the `proxy` convention, formerly `middleware`.)
+const intlMiddleware = createMiddleware(routing);
+
+// Next 16: this is the `proxy` convention, formerly `middleware`.
+// 先跑 next-intl（locale 路由/重定向 + NEXT_LOCALE cookie），再把稳定的
+// 访客 tester id（mid，httpOnly）合并到它的响应上。服务端路由读 mid
+// 归因 telemetry/feedback——客户端从不需要看到它。
 export function proxy(req: NextRequest) {
-  const res = NextResponse.next();
+  const res = intlMiddleware(req);
   if (!req.cookies.get("mid")?.value) {
     res.cookies.set("mid", crypto.randomUUID(), {
       httpOnly: true,

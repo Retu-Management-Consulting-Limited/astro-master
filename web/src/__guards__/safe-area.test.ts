@@ -8,7 +8,9 @@ import { join } from "node:path";
 // 实测证据（Pixel 5 实跑）：17 个页面顶部 34px 状态栏区全部命中 header 内容；
 // today/chart/chat/me 的 TabBar navCutByGesture 全为 true。
 const ROOT = join(__dirname, "..");
-const layout = readFileSync(join(ROOT, "app/layout.tsx"), "utf8");
+// i18n 重构后 <html>/viewport 从 app/layout.tsx 下移到 app/[locale]/layout.tsx
+// （next-intl [locale] 段约定）；viewportFit:cover 不变，只是换了文件。
+const layout = readFileSync(join(ROOT, "app/[locale]/layout.tsx"), "utf8");
 const css = readFileSync(join(ROOT, "app/globals.css"), "utf8");
 
 describe("safe-area guard：cover 模式下 .phone 必须避让安全区", () => {

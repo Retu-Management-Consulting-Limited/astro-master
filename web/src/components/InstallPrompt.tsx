@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { detectA2HS, type A2HSState } from "@/lib/pwa/a2hs";
 import { track } from "@/lib/track";
 

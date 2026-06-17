@@ -1,48 +1,9 @@
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
-import { InstallPrompt } from "@/components/InstallPrompt";
-import { StoreHydration } from "@/components/StoreHydration";
-import { AuthHydration } from "@/components/AuthHydration";
-import { FeedbackButton } from "@/components/FeedbackButton";
-import { PageView } from "@/components/PageView";
-
-export const metadata: Metadata = {
-  title: "Molly · 看穿你的本命",
-  description: "一个不问你星座的占星师。告诉我你出生的那一刻，剩下的交给我。",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Molly" },
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
-};
-
-export const viewport: Viewport = {
-  themeColor: "#04050a",
-  width: "device-width",
-  initialScale: 1,
-  // no maximumScale — allow pinch-zoom for accessibility (WCAG 1.4.4)
-  viewportFit: "cover",
-};
-
+// Pass-through root layout — the real <html>/<body> + providers live in
+// src/app/[locale]/layout.tsx (next-intl [locale] segment convention).
+// Next 16 still requires an app/ root layout to exist; this one only forwards
+// children so it doesn't double-wrap <html>.
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html lang="zh" className="h-full">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500;1,600&family=Hanken+Grotesk:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="min-h-full">
-        <StoreHydration />
-        <AuthHydration />
-        <PageView />
-        {children}
-        <InstallPrompt />
-        <FeedbackButton />
-      </body>
-    </html>
-  );
+  return children;
 }

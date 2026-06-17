@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { TEST_MODE } from "@/lib/track";
 
 // Floating feedback affordance — internal test only (NEXT_PUBLIC_MOLLY_TEST=1).

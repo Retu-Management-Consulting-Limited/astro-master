@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { track } from "@/lib/track";
 
 // Fires a page_view for every screen on navigation (internal test only — track()
