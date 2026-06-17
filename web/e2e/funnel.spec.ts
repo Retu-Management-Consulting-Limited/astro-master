@@ -1,4 +1,14 @@
 import { test, expect, type Page } from "@playwright/test";
+import { computeChart } from "../src/lib/astro/chart";
+import { generateFirstRead } from "../src/lib/reading/generate";
+
+// Seeded funnel so /today renders under a spoofed mobile UA without walking the
+// onboarding (its date picker goes native on mobile). Used by the A2HS test.
+const _seedChart = computeChart({ year: 1995, month: 6, day: 15, hour: 14, minute: 30, lat: 31.23, lng: 121.47, tz: 8 });
+const FUNNEL_SEED = JSON.stringify({
+  state: { chart: _seedChart, birth: { year: 1995, month: 6, day: 15, hour: 14, minute: 30, lat: 31.23, lng: 121.47, tz: 8 }, birthForm: { date: "1995-06-15", time: "14:30", knownTime: true, country: "中国", city: "上海" }, firstRead: generateFirstRead(_seedChart), nickname: "小满", gender: "female", joinedAt: 1718000000000 },
+  version: 0,
+});
 
 // Kill CSS animations (spinning eye motifs break click stability), hide the
 // Next dev indicator + install banner so they don't intercept clicks.
@@ -126,21 +136,29 @@ test("activation funnel: landing → input → calibration → first-read → re
   await expect(page.getByText(/保存图片|唤起分享/)).toBeVisible({ timeout: 5000 });
 });
 
-test("PWA install prompt: appears post-activation on /today and is dismissable", async ({ page }) => {
-  await quietPage(page, false); // keep the install banner visible
+// A2HS prompt now branches on environment (design §6). Under iOS Safari it shows
+// the install card; under a desktop browser with no install path it intentionally
+// stays hidden. Test the install + dismiss-persist behavior under iOS Safari.
+test.describe(() => {
+  test.use({ userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" });
+  test("PWA install prompt: appears on /today (iOS) and is dismissable", async ({ page }) => {
+    await quietPage(page, false); // keep the install banner visible
+    await page.addInitScript((s) => localStorage.setItem("molly-funnel", s), FUNNEL_SEED);
+    await page.goto("/today");
+    await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
 
-  await walkToToday(page);
-  const prompt = page.locator('[data-testid="install-prompt"]');
-  await expect(prompt).toBeVisible({ timeout: 6000 });
-  await expect(prompt.getByText("把 Molly 放进你的口袋")).toBeVisible();
+    const prompt = page.locator('[data-testid="install-prompt"]');
+    await expect(prompt).toBeVisible({ timeout: 6000 });
+    await expect(prompt.getByText("把 Molly 放进你的口袋")).toBeVisible();
 
-  // dismissing (✕) hides it and remembers the choice across reloads
-  await prompt.getByText("✕").click();
-  await expect(prompt).toBeHidden();
-  await page.reload();
-  await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
-  await page.waitForTimeout(3200);
-  await expect(page.locator('[data-testid="install-prompt"]')).toBeHidden();
+    // dismissing (✕) hides it and remembers the choice across reloads
+    await prompt.getByText("✕").click();
+    await expect(prompt).toBeHidden();
+    await page.reload();
+    await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 8000 });
+    await page.waitForTimeout(3200);
+    await expect(page.locator('[data-testid="install-prompt"]')).toBeHidden();
+  });
 });
 
 test("settings: AI disclosure + data deletion wipes everything → landing", async ({ page }) => {
