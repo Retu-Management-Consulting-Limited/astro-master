@@ -41,3 +41,16 @@ test("navigation preserves ru locale", async ({ page }) => {
   await entry.click();
   await expect(page).toHaveURL(/\/ru\/money/);
 });
+
+// Task 6 load-bearing assertion: switching locale from the settings page must
+// keep the user on the SAME page (settings), only swapping the locale prefix.
+test("switcher keeps you on same page across locales", async ({ page }) => {
+  await prep(page);
+  await page.goto("/ru/me/settings");
+  const select = page.locator('[data-testid="locale-switcher"]');
+  await expect(select).toBeVisible({ timeout: 8000 });
+  await expect(select).toHaveValue("ru");
+  await select.selectOption("zh");
+  await expect(page).toHaveURL(/\/me\/settings$/); // zh has no prefix (as-needed)
+  await expect(page.locator("html")).toHaveAttribute("lang", "zh");
+});

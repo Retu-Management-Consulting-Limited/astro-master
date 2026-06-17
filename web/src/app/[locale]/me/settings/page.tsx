@@ -6,6 +6,7 @@ import { useChartGuard } from "@/lib/guard";
 import { apiMe, apiLogout, apiDeleteAccount, type Me } from "@/lib/auth-client";
 import { pushAvailable, isPushEnabled, enablePush, disablePush } from "@/lib/push-client";
 import { BackButton } from "@/components/BackButton";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 
 const NOTIF_KEY = "molly_notif";
 type Notif = { daily: boolean; wealth: boolean; synastry: boolean };
@@ -146,6 +147,10 @@ export default function SettingsPage() {
             ? row("登录方式", <span data-testid="account-email" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180, minWidth: 0 }}>{me.email} ›</span>, undefined, false, false)
             : row("登录方式", <span style={{ marginLeft: "auto", color: "var(--gold-soft)", fontSize: 13 }}>本机 · 未绑定，去登录 ›</span>, () => router.push("/register"), false, true)}
           {me && row("退出登录", <span data-testid="logout" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>›</span>, logout, false, true)}
+        </Group>
+
+        <Group label="语言">
+          <LocaleSwitcher />
         </Group>
 
         <Group label="通知">

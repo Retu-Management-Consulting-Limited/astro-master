@@ -1,4 +1,5 @@
 {
+  "common": { "language": "语言" },
   "nav": { "ariaLabel": "主导航", "today": "今日", "chart": "本命", "chat": "对话", "me": "我的" },
   "landing": {
     "kicker": "不寒暄 · 直接说中",
