@@ -32,8 +32,8 @@
 - [ ] content-freshness 登记身心日历强断言。
 
 ## Phase 5 · 症状自证 → 喂模型 + 喂时辰校准
-- [ ] 身心判词的症状自证微互动：她确认 → 喂身心自我模型；**若该症状是四角/六宫相关，顺手 `refine(confirm)` 喂 timeBelief**（接 T3 calibrationSignal，纯行星相关不喂）。
-- [ ] 测：四角相关身心确认→belief 微升；纯行星身心确认→belief 不动。
+- [x] 身心判词的症状自证微互动：她确认 → 喂身心自我模型；**若该症状是四角/六宫相关，顺手 `refine(confirm)` 喂 timeBelief**（接 T3 calibrationSignal，纯行星相关不喂）。实作：`confirmBodySignal(prev, BodySignalSource)`，zone=六宫→必喂、selfCheck=四角 target 才喂；`bodyVerdict.selfCheck.target` 携带驱动点。
+- [x] 测：四角相关身心确认→belief 微升；纯行星身心确认→belief 不动（referentially equal）。+ 端到端用真盘真红日 selfCheck.target / 真 zone 钉接线；content-freshness 中央登记。
 
 ## Phase 6 · 护栏 + 契约收口
 - [ ] **身心守宪 guard**：新增 test 断言身心文案无诊断/病种断言、有转专业兜底、说倾向、过 money/guardrail 真vs编；edge-preservation 扩到身心（校准不软化身心情感诚实、不减"留意"日）。
