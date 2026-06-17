@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 import { InstallPrompt } from "@/components/InstallPrompt";
@@ -10,13 +10,23 @@ import { AuthHydration } from "@/components/AuthHydration";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { PageView } from "@/components/PageView";
 
-export const metadata: Metadata = {
-  title: "Molly · 看穿你的本命",
-  description: "一个不问你星座的占星师。告诉我你出生的那一刻，剩下的交给我。",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Molly" },
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  // Next 16: params is async. Inline type (matches the layout's own pattern)
+  // so `tsc --noEmit` passes on a clean checkout before .next/types exists.
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  return {
+    title: t("title"),
+    description: t("description"),
+    manifest: "/manifest.webmanifest",
+    appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Molly" },
+    icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#04050a",
