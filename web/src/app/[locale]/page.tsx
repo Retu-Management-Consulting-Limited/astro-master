@@ -1,7 +1,9 @@
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { CosmicEye } from "@/components/CosmicEye";
 
 export default function Landing() {
+  const t = useTranslations("landing");
   return (
     <main className="phone">
       <div className="starfield" />
@@ -32,13 +34,13 @@ export default function Landing() {
             className="reveal"
             style={{ fontSize: 12.5, letterSpacing: ".24em", color: "var(--mute)", textTransform: "uppercase", marginBottom: 18, animationDelay: ".6s" }}
           >
-            不寒暄 · 直接说中
+            {t("kicker")}
           </div>
           <div className="reveal" style={{ fontFamily: "var(--serif)", color: "var(--cream)", fontWeight: 500, fontSize: 40, lineHeight: 1.24, animationDelay: ".8s" }}>
-            别人问你星座，
+            {t("line1")}
           </div>
           <div className="reveal" style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 40, lineHeight: 1.24, color: "var(--gold-soft)", fontStyle: "italic", animationDelay: "1.05s" }}>
-            我直接看穿你。
+            {t("line2")}
           </div>
           <p className="reveal" style={{ marginTop: 22, fontWeight: 300, fontSize: 15, lineHeight: 1.8, color: "var(--cream-dim)", maxWidth: 300, animationDelay: "1.5s" }}>
             告诉我你出生的那一刻，
@@ -49,7 +51,7 @@ export default function Landing() {
 
         <div className="reveal" style={{ marginTop: "auto", width: "100%", display: "flex", flexDirection: "column", alignItems: "center", animationDelay: "1.9s" }}>
           <Link href="/input" className="gold-btn" style={{ display: "block", maxWidth: 320, textDecoration: "none" }}>
-            让 Molly 看穿你 →
+            {t("cta")}
           </Link>
           <div style={{ marginTop: 16, fontSize: 11.5, color: "var(--mute)", letterSpacing: ".04em" }}>
             内测中 · <b style={{ color: "var(--cream-dim)" }}>说穿你</b>，而不是说你的星座

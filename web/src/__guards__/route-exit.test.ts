@@ -28,7 +28,9 @@ function listPages(dir: string, route = ""): { route: string; file: string }[] {
   for (const name of readdirSync(dir)) {
     const full = join(dir, name);
     if (statSync(full).isDirectory()) {
-      const seg = name.startsWith("(") ? "" : `/${name}`; // 路由组不计入路径
+      // 路由组 (...) 不计入路径；i18n 的 [locale] 前缀段也不计入——它只是
+      // 语言前缀，语义路由不变（/[locale]/today 仍是 /today），EXEMPT 沿用。
+      const seg = name.startsWith("(") || name === "[locale]" ? "" : `/${name}`;
       out.push(...listPages(full, route + seg));
     } else if (name === "page.tsx") {
       out.push({ route: route || "/", file: full });
