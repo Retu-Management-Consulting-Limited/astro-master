@@ -72,9 +72,13 @@ export default function TodayPage() {
   const daily = dailyReading(chart, now);
   const tv = todayVerdict(chart, now);
 
-  // 今日格点门 / fortune chip → 财运 tab，红日带 doorDate 那天直接选中。
+  // 今日格点门 / 财运 chip → /wealth 页，红日带 doorDate 那天直接选中。
   function goWealth(selDay?: number) {
     router.push(selDay ? `/wealth?selDay=${selDay}` : "/wealth");
+  }
+  // 身心 chip → /body 身心日历（T4 Phase 3 · 对称于财运 chip）。
+  function goBody() {
+    router.push("/body");
   }
 
   function pickMood(t: string) {
@@ -135,7 +139,7 @@ export default function TodayPage() {
 
         {/* 今 hero — three-state 今日格 (design/20)：旺/慎/平淡各一副面孔。
             状态标·命令·内在why·赦免糖·动作/前门(红日 doorDate→财运当天)·备战糖·fortune chip。*/}
-        <TodayCell verdict={tv} daily={daily} onWealth={goWealth} />
+        <TodayCell verdict={tv} daily={daily} onWealth={goWealth} onBody={goBody} />
 
         {/* S0 金钱入口 — chip 紧跟今日格，承袭旧 EntryCard 的 testid + /money 目标，
             保住 H1/H2/H3 漏斗顶的信号；放在 TodayCell 外，让三态卡专注当日判词。*/}

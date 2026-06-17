@@ -5,38 +5,47 @@ import { TabBar } from "./TabBar";
 
 afterEach(cleanup);
 
-// The 财运 tab is the money funnel's persistent home (was reachable only via the
-// 今日格 fortune-chip / red-day door). It must sit 2nd of 5 and point at /wealth.
-describe("TabBar · 财运 tab", () => {
-  it("renders exactly 5 tabs in order 今日/财运/本命/对话/我的", () => {
+// T4 Phase 3 · IA 重构：财运从 tab 降为「今日格 chip → /wealth 页」，TabBar 回到
+// 4 tab（今日/本命/对话/我的）——对称于身心轨也走 chip→页、不占 tab。财运/身心两轨
+// 都靠今日格双 chip 进各自日历，比常驻 tab 更好发现（design/23 终版 X）。
+describe("TabBar · 回 4 tab（财运降 chip）", () => {
+  it("renders exactly 4 tabs in order 今日/本命/对话/我的", () => {
     render(<TabBar active="today" />);
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(5);
-    expect(links.map((a) => a.textContent)).toEqual(["今日", "财运", "本命", "对话", "我的"]);
+    expect(links).toHaveLength(4);
+    expect(links.map((a) => a.textContent)).toEqual(["今日", "本命", "对话", "我的"]);
   });
 
-  it("财运 is the 2nd tab and its href is /wealth", () => {
+  it("不再有 财运 tab，也没有指向 /wealth 的 tab", () => {
     render(<TabBar active="today" />);
     const links = screen.getAllByRole("link");
-    const money = links[1];
-    expect(money.textContent).toBe("财运");
-    expect(money.getAttribute("href")).toBe("/wealth");
+    expect(links.some((a) => a.textContent === "财运")).toBe(false);
+    expect(links.some((a) => a.getAttribute("href") === "/wealth")).toBe(false);
   });
 
-  it("active=money marks ONLY the 财运 tab as current page", () => {
-    render(<TabBar active="money" />);
-    const current = screen.getAllByRole("link").filter((a) => a.getAttribute("aria-current") === "page");
-    expect(current).toHaveLength(1);
-    expect(current[0].textContent).toBe("财运");
-    expect(current[0].getAttribute("href")).toBe("/wealth");
-  });
-
-  it("the other four tabs keep their existing hrefs", () => {
+  it("the four tabs keep their existing hrefs", () => {
     render(<TabBar active="today" />);
     const byHref = (h: string) => screen.getAllByRole("link").find((a) => a.getAttribute("href") === h);
     expect(byHref("/today")).toBeTruthy();
     expect(byHref("/chart")).toBeTruthy();
     expect(byHref("/chat")).toBeTruthy();
     expect(byHref("/me")).toBeTruthy();
+  });
+
+  it("active=today marks ONLY the 今日 tab as current page", () => {
+    render(<TabBar active="today" />);
+    const current = screen.getAllByRole("link").filter((a) => a.getAttribute("aria-current") === "page");
+    expect(current).toHaveLength(1);
+    expect(current[0].textContent).toBe("今日");
+    expect(current[0].getAttribute("href")).toBe("/today");
+  });
+
+  // /wealth 与新 /body 复用 <TabBar> 满足 route-exit guard，但它们不再有「自己的」
+  // active tab——传一个不匹配任何 tab 的 active（如 "wealth"）时，0 个 tab 被标 current，
+  // 不会误高亮别的 tab。这是「页存在但不占 tab」的语义证据。
+  it("active 指向已删的 tab（如 'money'/'wealth'）时，没有任何 tab 被标 current", () => {
+    render(<TabBar active="wealth" />);
+    const current = screen.getAllByRole("link").filter((a) => a.getAttribute("aria-current") === "page");
+    expect(current).toHaveLength(0);
   });
 });
