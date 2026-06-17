@@ -12,7 +12,8 @@
 - [ ] 读 `web/AGENTS.md`（改版 Next）。读真实签名：`todayVerdict.ts`（怎么加 channel/身心）、`wealth.ts`（旺平慎+monthLevels memo，照它做身心评分+配额）、`TodayCell.tsx`/`TabBar.tsx`/`app/wealth`、`calibrationSignal.ts`（四角确认接口）、`app/today/page.tsx`（chip 现状）。
 
 ## Phase 1 · 身心评分引擎 `lib/astro/body.ts`（纯逻辑 TDD）
-- [ ] 照 wealth.ts 模式：`bodyScore(chart,date)`（月亮态 + 六宫行运 + 火/土压力）→ `bodyLevel`（如 低/平/稳，对应"别硬扛"/"按常态"/"今天有劲"）；`monthBodyLevels` 配额（**memo，照 wealth 防平台浮点非确定**）。
+- [ ] 照 wealth.ts 模式：`bodyScore(chart,date)`（月亮态 + 六宫行运 + 火/土压力）→ `bodyLevel`，**用与财运同一套红/绿/平行动灯语义**：低/该歇/留意 = **红**、有劲/状态好 = **绿**、平稳 = **平**（别另起一套色/词，两轨颜色一致——见 UI 真相源 design/23）；`monthBodyLevels` 配额（**memo，照 wealth 防平台浮点非确定**）。
+- [ ] **TodayCell / 日历组件复用同一套红/绿/平渲染**（财运/身心共用，只是 label 与内容不同），不为身心新建配色。
 - [ ] 测：确定性、按天变、按盘不同、稀有配额、memo 同参恒等（edge-preservation 同款）。
 
 ## Phase 2 · 身心判词 + channel 选择

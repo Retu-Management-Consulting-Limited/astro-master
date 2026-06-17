@@ -40,8 +40,9 @@
   .why{font-size:12px;color:var(--mute);margin-bottom:5px}
   .soft{font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.45;color:var(--cream-dim)}
 
-  .bodycell{border:1px solid rgba(111,194,192,.42);background:linear-gradient(180deg,rgba(111,194,192,.09),rgba(111,194,192,.02))}
-  .bodycell .ctag{color:var(--teal)}.bodycell .ctag .dot{background:var(--teal)}.bodycell .cmd{color:var(--teal-soft)}
+  /* 身心格用同一套红/绿/平行动灯：低/留意=红、有劲=绿、平稳=neutral（这里样张多是"低/留意"=红）*/
+  .bodycell{border:1px solid rgba(224,120,106,.42);background:linear-gradient(180deg,rgba(224,120,106,.09),rgba(224,120,106,.02))}
+  .bodycell .ctag{color:var(--red)}.bodycell .ctag .dot{background:var(--red)}.bodycell .cmd{color:#f0b6ab}
   .moneycell{border:1px solid rgba(127,201,154,.42);background:linear-gradient(180deg,rgba(127,201,154,.09),rgba(127,201,154,.02))}
   .moneycell .ctag{color:var(--green)}.moneycell .ctag .dot{background:var(--green)}.moneycell .cmd{color:#b6e8c8}
   .wang{display:inline-block;font-size:10.5px;color:#1a1206;background:linear-gradient(90deg,var(--gold-soft),var(--gold));padding:2px 8px;border-radius:20px;font-weight:600;margin-bottom:7px}
@@ -52,6 +53,9 @@
   .chip .b{width:7px;height:7px;border-radius:50%;background:currentColor}.chip .arr{margin-left:auto;opacity:.6}
   .chip.money{background:rgba(127,201,154,.07);border:1px solid rgba(127,201,154,.22);color:var(--green)}
   .chip.body{background:rgba(111,194,192,.07);border:1px solid rgba(111,194,192,.24);color:var(--teal)}
+  .chip.red{background:rgba(224,120,106,.07);border:1px solid rgba(224,120,106,.26);color:var(--red)}
+  .chip.green{background:rgba(127,201,154,.07);border:1px solid rgba(127,201,154,.22);color:var(--green)}
+  .chip.plain{background:rgba(122,129,148,.07);border:1px solid rgba(122,129,148,.24);color:var(--cream-dim)}
   .chip.lead{box-shadow:0 0 0 1px currentColor inset;opacity:1}
 
   .tabbar{position:relative;z-index:4;display:flex;justify-content:space-around;padding:9px 4px 13px;border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,#080a12,rgba(8,10,18,.6))}
@@ -69,8 +73,8 @@
   .cal .wd{text-align:center;font-size:9px;color:#4d5566}
   .cal .d{aspect-ratio:1;border-radius:8px;background:rgba(255,255,255,.035);display:flex;align-items:center;justify-content:center;font-size:11px;color:#6b7488;position:relative}
   .cal .d.today{outline:2px solid var(--gold);color:var(--cream);font-weight:600}
-  .cal .d.low{background:radial-gradient(circle,#5a86a8,#243b50);color:#dceaf5}
-  .cal .d.steady{background:radial-gradient(circle,var(--teal),#1f5c5a);color:#eafffe}
+  .cal .d.low{background:radial-gradient(circle,var(--red),#7a2c24);color:#fff}
+  .cal .d.steady{background:radial-gradient(circle,var(--green),#1f6e45);color:#eafff3}
   .cal .d .mn{position:absolute;top:1px;right:3px;font-size:8px;opacity:.8}
   .legend{display:flex;gap:11px;justify-content:center;font-size:10px;color:var(--mute);margin:7px 0 12px}
   .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
@@ -96,8 +100,8 @@
             <div class="why">你这阵子容易把累憋着、忽略身体信号。</div>
             <div class="soft">早睡不是偷懒，是把自己接住。</div>
             <div class="chips">
-              <div class="chip body lead"><span class="b"></span>身心 累 · 看身心日历<span class="arr">→</span></div>
-              <div class="chip money"><span class="b"></span>财运 平 · 看财运日历<span class="arr">→</span></div>
+              <div class="chip red lead"><span class="b"></span>身心 累 · 看身心日历<span class="arr">→</span></div>
+              <div class="chip plain"><span class="b"></span>财运 平 · 看财运日历<span class="arr">→</span></div>
             </div>
           </div>
         </div>
@@ -116,8 +120,8 @@
             <div class="cmd">宜 · 今天去开口谈</div>
             <div class="why" style="color:var(--cream-dim)">今天你说得出口、压得住场。报价往上抬一档。</div>
             <div class="chips">
-              <div class="chip money lead"><span class="b"></span>财运 旺 · 看财运日历<span class="arr">→</span></div>
-              <div class="chip body"><span class="b"></span>身心 稳 · 看身心日历<span class="arr">→</span></div>
+              <div class="chip green lead"><span class="b"></span>财运 旺 · 看财运日历<span class="arr">→</span></div>
+              <div class="chip plain"><span class="b"></span>身心 稳 · 看身心日历<span class="arr">→</span></div>
             </div>
           </div>
         </div>
@@ -145,7 +149,7 @@
             <span class="d">15</span><span class="d today">16</span><span class="d">17</span><span class="d">18</span><span class="d">19</span><span class="d steady">20</span><span class="d">21<span class="mn">🌕</span></span>
             <span class="d">22</span><span class="d">23</span><span class="d low">24</span><span class="d">25</span><span class="d">26</span><span class="d">27</span><span class="d">28</span>
           </div>
-          <div class="legend"><span><i style="background:var(--teal)"></i>有劲</span><span><i style="background:#5a86a8"></i>该歇</span><span><i style="background:#2a3140"></i>平稳</span></div>
+          <div class="legend"><span><i style="background:var(--green)"></i>有劲(好)</span><span><i style="background:var(--red)"></i>该歇/留意</span><span><i style="background:#2a3140"></i>平稳</span></div>
           <div class="card bodycell" style="margin-bottom:9px"><div class="ctag"><span class="dot"></span>今天 · 身心 · 平稳</div><div class="ctxt" style="font-size:13px;color:var(--cream-dim)">按常态走就好。下一个该顾一下自己的是 <b style="color:var(--teal-soft)">24 号</b>（月亮压六宫）。</div></div>
           <div class="deeplink">身心深度 · 你的能量周期 / 自我照顾<span class="arr">→</span></div>
         </div>
