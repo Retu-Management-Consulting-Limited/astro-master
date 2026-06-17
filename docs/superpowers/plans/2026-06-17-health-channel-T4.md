@@ -36,9 +36,9 @@
 - [x] 测：四角相关身心确认→belief 微升；纯行星身心确认→belief 不动（referentially equal）。+ 端到端用真盘真红日 selfCheck.target / 真 zone 钉接线；content-freshness 中央登记。
 
 ## Phase 6 · 护栏 + 契约收口
-- [ ] **身心守宪 guard**：新增 test 断言身心文案无诊断/病种断言、有转专业兜底、说倾向、过 money/guardrail 真vs编；edge-preservation 扩到身心（校准不软化身心情感诚实、不减"留意"日）。
-- [ ] content-freshness 中央登记：身心判词三态、身心日历、主导 channel 选择（按盘/按天 not.toBe）。
-- [ ] **全量 gate**：tsc + 全量 vitest + next build + **全 e2e** 全绿（含改过的财运 chip 走法、新身心走法）。
+- [x] **身心守宪 guard**（`src/__guards__/body-charter.test.ts`）：身心文案无诊断/病种断言（DIAGNOSIS 正则扫一年三盘全串）、留意区必带转专业兜底（高风险器官 zone.region 必连转专业，不误伤"脑子歇会儿"口语）、症状自证只问体感、全部串过 money/guardrail；edge-preservation 扩到身心（state 是 (chart,date) 纯函数、belief-无关、确定性；校准 confirmBodySignal 不软化情感诚实、不减「该歇」日、封顶 <1、纯行星 referentially equal）。
+- [x] content-freshness 中央登记：身心判词三态 presentation（同态相邻日轮换 + plain 多数态不冻 + 按盘不同）、身心日历(monthBody/bodyScore 已在 P1/P2 登记)、主导 channel 选择（按月真翻轨 + 不同盘整月序列 not.toBe + belief-无关）。
+- [x] **全量 gate**：tsc 0 · 全量 vitest 613/613 · next build 0 · 全 e2e 19/19 全绿（含 Phase 3 财运 chip 走法、/body+/wealth 脏盘 sweep）。
 
 ## 验收（DoD）
 1. 今日格显当天主导轨（财运重显财运三态 / 身心累显身心态）；财运+身心双 chip 恒在、主导加亮、各进日历。**回 4 tab**。
