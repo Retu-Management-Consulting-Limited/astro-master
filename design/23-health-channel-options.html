@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molly · 健康轨(身心) 终版 X</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Hanken+Grotesk:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--void:#07090f;--void2:#0c111d;--ink:#05070c;--gold:#c9a861;--gold-soft:#e0c98a;
+    --cream:#efe7d4;--cream-dim:#c2baa6;--mute:#7a8194;--iris:#b58fb0;--blue:#8fb6d8;--green:#7fc99a;--red:#e0786a;
+    --teal:#6fc2c0;--teal-soft:#a6e0de;
+    --field:#0f1320;--field-bd:#262d3d;--serif:'Cormorant Garamond','Noto Serif SC',serif;--sans:'Hanken Grotesk','Noto Sans SC',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04050a;font-family:var(--sans);padding:24px 14px 50px;color:var(--cream);-webkit-font-smoothing:antialiased}
+  h1{font-family:var(--serif);font-weight:600;font-size:22px;color:var(--teal-soft);text-align:center;margin-bottom:4px}
+  .top{text-align:center;color:var(--mute);font-size:12px;margin-bottom:24px;line-height:1.6}
+  .top b{color:var(--teal-soft)}
+  .qh{font-family:var(--serif);font-size:19px;color:var(--cream);text-align:center;margin-bottom:3px}
+  .qd{text-align:center;color:var(--mute);font-size:12px;margin-bottom:16px}
+  .qsec{margin-bottom:40px}
+  .pair{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+  .col{display:flex;flex-direction:column;align-items:center;gap:9px;width:316px}
+  .cap{font-size:12px;color:var(--cream-dim);text-align:center;line-height:1.5}.cap b{color:var(--teal-soft)}
+
+  .phone{position:relative;width:316px;height:540px;border-radius:28px;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% -4%,#16263a 0%,var(--void2) 42%,var(--void) 70%,var(--ink) 100%);
+    display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px #1a2030}
+  .phone::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 14% 9%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 82% 6%,rgba(111,194,192,.6),transparent);}
+  .bar{position:relative;z-index:3;display:flex;align-items:center;gap:9px;padding:16px 18px 6px}
+  .eye{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle,#2a2160,#0a0e1a 70%);box-shadow:0 0 0 1px var(--gold),0 0 10px rgba(201,138,70,.4)}
+  .nm{font-weight:500;letter-spacing:.4em;font-size:10px;color:var(--gold)}.kn{margin-left:auto;font-size:10px;color:var(--cream-dim)}.kn b{color:var(--gold)}
+  .scroll{position:relative;z-index:2;flex:1;overflow:hidden;padding:6px 16px 8px}
+  .greet{font-family:var(--serif);font-size:18px;color:var(--cream);margin:2px 2px 9px}.greet i{font-style:italic}
+  .wx{display:flex;gap:7px;border-radius:10px;padding:7px 10px;font-size:11px;margin-bottom:11px}
+  .wx.b{background:rgba(111,194,192,.08);border:1px solid rgba(111,194,192,.2);color:var(--teal)}.wx.b b{color:var(--teal-soft)}
+  .wx.m{background:rgba(127,201,154,.08);border:1px solid rgba(127,201,154,.2);color:var(--green)}.wx.m b{color:#b6e8c8}
+  .card{border-radius:14px;padding:13px 14px;margin-bottom:9px;border:1px solid var(--field-bd);background:var(--field)}
+  .ctag{font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:6px}.ctag .dot{width:5px;height:5px;border-radius:50%}
+  .cmd{font-family:var(--serif);font-size:21px;font-weight:600;line-height:1.25;margin-bottom:7px}
+  .why{font-size:12px;color:var(--mute);margin-bottom:5px}
+  .soft{font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.45;color:var(--cream-dim)}
+
+  /* 身心格用同一套红/绿/平行动灯：低/留意=红、有劲=绿、平稳=neutral（这里样张多是"低/留意"=红）*/
+  .bodycell{border:1px solid rgba(224,120,106,.42);background:linear-gradient(180deg,rgba(224,120,106,.09),rgba(224,120,106,.02))}
+  .bodycell .ctag{color:var(--red)}.bodycell .ctag .dot{background:var(--red)}.bodycell .cmd{color:#f0b6ab}
+  .moneycell{border:1px solid rgba(127,201,154,.42);background:linear-gradient(180deg,rgba(127,201,154,.09),rgba(127,201,154,.02))}
+  .moneycell .ctag{color:var(--green)}.moneycell .ctag .dot{background:var(--green)}.moneycell .cmd{color:#b6e8c8}
+  .wang{display:inline-block;font-size:10.5px;color:#1a1206;background:linear-gradient(90deg,var(--gold-soft),var(--gold));padding:2px 8px;border-radius:20px;font-weight:600;margin-bottom:7px}
+
+  /* dual chips — both channels, every day, in home */
+  .chips{margin-top:11px;display:flex;flex-direction:column;gap:7px}
+  .chip{display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:9px;font-size:11.5px}
+  .chip .b{width:7px;height:7px;border-radius:50%;background:currentColor}.chip .arr{margin-left:auto;opacity:.6}
+  .chip.money{background:rgba(127,201,154,.07);border:1px solid rgba(127,201,154,.22);color:var(--green)}
+  .chip.body{background:rgba(111,194,192,.07);border:1px solid rgba(111,194,192,.24);color:var(--teal)}
+  .chip.red{background:rgba(224,120,106,.07);border:1px solid rgba(224,120,106,.26);color:var(--red)}
+  .chip.green{background:rgba(127,201,154,.07);border:1px solid rgba(127,201,154,.22);color:var(--green)}
+  .chip.plain{background:rgba(122,129,148,.07);border:1px solid rgba(122,129,148,.24);color:var(--cream-dim)}
+  .chip.lead{box-shadow:0 0 0 1px currentColor inset;opacity:1}
+
+  .tabbar{position:relative;z-index:4;display:flex;justify-content:space-around;padding:9px 4px 13px;border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,#080a12,rgba(8,10,18,.6))}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9.5px;color:#5a6173;flex:1}.tab.on{color:var(--gold)}.tab .ic{font-size:15px}
+
+  .confirm{margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.07);font-size:12px;color:#9fb6c4}
+  .fb{display:flex;gap:8px;margin-top:8px}.fb span{flex:1;text-align:center;border-radius:9px;padding:7px;font-size:12px;border:1px solid #2b3a4e;color:#a9c4dd}.fb span.y{background:rgba(111,194,192,.14);border-color:rgba(111,194,192,.4);color:var(--teal-soft)}
+  .refer{margin-top:11px;background:rgba(143,182,216,.09);border-left:3px solid var(--blue);border-radius:8px;padding:9px 11px;font-size:12px;color:#cfe0f0;line-height:1.5}
+  .pcard{width:336px}
+  .pgbar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:16px 18px 4px;font-size:13px;color:var(--cream-dim)}
+  .pgbar .bk{font-size:18px;color:var(--mute)}.pgbar .t{font-family:var(--serif);font-size:17px;color:var(--cream)}
+  .sech{font-family:var(--serif);font-size:17px;color:var(--cream);margin:6px 2px 2px}
+  .secsub{font-size:11px;color:var(--mute);margin-bottom:11px;line-height:1.5}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px}
+  .cal .wd{text-align:center;font-size:9px;color:#4d5566}
+  .cal .d{aspect-ratio:1;border-radius:8px;background:rgba(255,255,255,.035);display:flex;align-items:center;justify-content:center;font-size:11px;color:#6b7488;position:relative}
+  .cal .d.today{outline:2px solid var(--gold);color:var(--cream);font-weight:600}
+  .cal .d.low{background:radial-gradient(circle,var(--red),#7a2c24);color:#fff}
+  .cal .d.steady{background:radial-gradient(circle,var(--green),#1f6e45);color:#eafff3}
+  .cal .d .mn{position:absolute;top:1px;right:3px;font-size:8px;opacity:.8}
+  .legend{display:flex;gap:11px;justify-content:center;font-size:10px;color:var(--mute);margin:7px 0 12px}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
+  .deeplink{display:flex;align-items:center;gap:8px;padding:11px 13px;border-radius:11px;border:1px solid var(--field-bd);background:var(--field);font-size:12.5px;color:var(--cream-dim);margin-top:4px}.deeplink .arr{margin-left:auto;color:var(--teal-soft)}
+</style>
+</head>
+<body>
+<h1>健康轨（身心）· 终版 X</h1>
+<p class="top">两轨**对称**：财运 + 身心都做 <b>chip → 各自日历页</b>，**都不当 tab**（回 4 tab：今日/本命/对话/我的）。今日格**显当天主导轨**，两 chip 每天都在 home 可见（比 tab 更好发现）。守 charter：<b>说倾向不说病 · 症状自证 · 真信号转专业</b>。</p>
+
+<!-- 主导轨切换：身心主导 vs 财运主导 -->
+<div class="qsec">
+  <div class="qd">今日格按当天哪轨响显哪轨；财运/身心 chip 恒在，主导那条加亮、点进各自日历。</div>
+  <div class="pair">
+    <div class="col">
+      <div class="phone">
+        <div class="bar"><div class="eye"></div><span class="nm">MOLLY</span><span class="kn">懂你 <b>64%</b></span></div>
+        <div class="scroll">
+          <div class="greet">周三好，<i style="color:var(--teal-soft)">今天先顾好自己</i>。</div>
+          <div class="wx b">🌙 <span>月亮压你六宫 · <b>身体在替你喊累</b></span></div>
+          <div class="card bodycell"><div class="ctag"><span class="dot"></span>今天 · 身心</div>
+            <div class="cmd">今天能量低<br>别硬扛</div>
+            <div class="why">你这阵子容易把累憋着、忽略身体信号。</div>
+            <div class="soft">早睡不是偷懒，是把自己接住。</div>
+            <div class="chips">
+              <div class="chip red lead"><span class="b"></span>身心 累 · 看身心日历<span class="arr">→</span></div>
+              <div class="chip plain"><span class="b"></span>财运 平 · 看财运日历<span class="arr">→</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tabbar"><div class="tab on"><span class="ic">☾</span>今日</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+      </div>
+      <div class="cap"><b>身心主导日</b>：今日格=身心态（全卡），身心 chip 加亮领头、财运 chip 次之。4 tab，两 chip 都在。</div>
+    </div>
+    <div class="col">
+      <div class="phone">
+        <div class="bar"><div class="eye"></div><span class="nm">MOLLY</span><span class="kn">懂你 <b>64%</b></span></div>
+        <div class="scroll">
+          <div class="greet">周二好，<i style="color:#b6e8c8">今天是你的日子</i>。</div>
+          <div class="wx m">🪐 <span>木星拱你二宫 · <b>谈钱窗口开着</b></span></div>
+          <div class="card moneycell"><div class="ctag"><span class="dot"></span>今天 · 宜</div>
+            <span class="wang">✦ 财运旺 · 搞钱黄金日</span>
+            <div class="cmd">宜 · 今天去开口谈</div>
+            <div class="why" style="color:var(--cream-dim)">今天你说得出口、压得住场。报价往上抬一档。</div>
+            <div class="chips">
+              <div class="chip green lead"><span class="b"></span>财运 旺 · 看财运日历<span class="arr">→</span></div>
+              <div class="chip plain"><span class="b"></span>身心 稳 · 看身心日历<span class="arr">→</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tabbar"><div class="tab on"><span class="ic">☾</span>今日</div><div class="tab"><span class="ic">✶</span>本命</div><div class="tab"><span class="ic">◎</span>对话</div><div class="tab"><span class="ic">♡</span>我的</div></div>
+      </div>
+      <div class="cap"><b>财运主导日</b>：今日格=财运三态，财运 chip 加亮领头、身心 chip 次之。**两轨对称**，谁响谁领头。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 身心日历页（点 chip 进去落地的月历，和财运日历同构）-->
+<div class="qsec">
+  <div class="qh">点「身心」chip 进去 = 身心日历（和财运日历同构）</div>
+  <div class="qd">你问的就是这个：一张月历，身心态按 <b style="color:var(--teal-soft)">月相 + 六宫行运</b> 排，疏密=平淡为底。结构跟财运日历一样，内容是身心。</div>
+  <div class="pair">
+    <div class="col">
+      <div class="phone">
+        <div class="pgbar"><span class="bk">←</span><span class="t">身心 · 六月</span></div>
+        <div class="scroll">
+          <div class="secsub">大多数日子平稳——别天天有戏。🌑新月/🌕满月情绪最满。点未来某天看那天身心态。</div>
+          <div class="cal">
+            <span class="wd">一</span><span class="wd">二</span><span class="wd">三</span><span class="wd">四</span><span class="wd">五</span><span class="wd">六</span><span class="wd">日</span>
+            <span class="d">1</span><span class="d">2</span><span class="d low">3</span><span class="d">4</span><span class="d">5</span><span class="d steady">6<span class="mn">🌑</span></span><span class="d">7</span>
+            <span class="d">8</span><span class="d">9</span><span class="d">10</span><span class="d">11</span><span class="d low">12</span><span class="d">13</span><span class="d">14</span>
+            <span class="d">15</span><span class="d today">16</span><span class="d">17</span><span class="d">18</span><span class="d">19</span><span class="d steady">20</span><span class="d">21<span class="mn">🌕</span></span>
+            <span class="d">22</span><span class="d">23</span><span class="d low">24</span><span class="d">25</span><span class="d">26</span><span class="d">27</span><span class="d">28</span>
+          </div>
+          <div class="legend"><span><i style="background:var(--green)"></i>有劲(好)</span><span><i style="background:var(--red)"></i>该歇/留意</span><span><i style="background:#2a3140"></i>平稳</span></div>
+          <div class="card bodycell" style="margin-bottom:9px"><div class="ctag"><span class="dot"></span>今天 · 身心 · 平稳</div><div class="ctxt" style="font-size:13px;color:var(--cream-dim)">按常态走就好。下一个该顾一下自己的是 <b style="color:var(--teal-soft)">24 号</b>（月亮压六宫）。</div></div>
+          <div class="deeplink">身心深度 · 你的能量周期 / 自我照顾<span class="arr">→</span></div>
+        </div>
+      </div>
+      <div class="cap"><b>身心日历 /body</b>＝月历(和财运 /wealth 同构)：身心态疏密(有劲/该歇/平稳) + 月相标记 + 今日身心 + 看更深。<b>chip→页、非 tab</b>。</div>
+    </div>
+    <div class="col">
+      <div class="card" style="width:300px;border-color:rgba(201,168,97,.25)"><div class="ctag" style="color:var(--gold)"><span class="dot" style="background:var(--gold)"></span>对照 · 财运日历 /wealth</div><div class="ctxt" style="font-size:13px">同一张月历骨架（见 mockup 20 第④屏）：旺/平/慎疏密 + 搞钱黄金日 + 今日财运 + 看更深。<br><br><b style="color:var(--teal-soft)">两轨对称</b>：财运日历什么样，身心日历就什么样，只是内容从"钱"换成"身心"。</div></div>
+      <div class="cap" style="width:300px">两个 chip → 两张同构日历。这就是 X 的对称：身心不被降级，和财运一模一样的待遇。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 每日身心格内核 + 症状自证 / 转专业 -->
+<div class="qsec">
+  <div class="qh">每日身心格内核（点身心日历/身心主导时）</div>
+  <div class="qd">月亮天气 + 能量态 + 自我照顾许可 + <b style="color:var(--teal-soft)">症状自证</b>（喂身心模型+顺手喂时辰校准）+ 真信号转专业。</div>
+  <div class="pair">
+    <div class="col" style="width:340px">
+      <div class="card bodycell pcard"><div class="ctag"><span class="dot"></span>今天 · 身心</div>
+        <div class="cmd" style="font-size:20px">今天能量低，别硬扛</div>
+        <div class="why">月亮压你六宫——你这阵子容易把累憋着、忽略身体信号。</div>
+        <div class="soft">今天给自己留个早睡。不是偷懒，是把自己接住。</div>
+        <div class="confirm">是不是<b style="color:var(--teal-soft)">睡眠 / 肠胃</b>先告诉你你累了？
+          <div class="fb"><span class="y">对，是这样 ✓</span><span>没有</span></div>
+        </div>
+      </div>
+      <div class="cap" style="width:340px">**症状自证**：点"身体哪喊累"=症状(她答得了)，非诊断。她一答=被看穿+喂身心模型+(四角相关时)顺手喂时辰校准。</div>
+    </div>
+    <div class="col" style="width:340px">
+      <div class="card bodycell pcard"><div class="ctag"><span class="dot"></span>今天 · 身心 · 身体留意区</div>
+        <div class="cmd" style="font-size:19px">消化这块，<br>别再拖了</div>
+        <div class="why">土星压你六宫好几个月了——这块对应的是<b style="color:var(--teal-soft)">肠胃/消化</b>。</div>
+        <div class="confirm" style="margin-top:10px">最近肠胃是不是给过你信号（胀、不舒服、没胃口）？
+          <div class="fb"><span class="y">有，是这样 ✓</span><span>还好</span></div>
+        </div>
+        <div class="refer">▸ 她答"有" → "找时间做个体检 / 看看肠胃科。" 我点出这块该留意、陪你盯，<b>但不替医生说你得了什么病</b>。</div>
+      </div>
+      <div class="cap" style="width:340px">**身体留意区**（稀有·慢相位才出）：**点名部位**（六宫/土星映射）+ 问她有没有信号(搜集信息·喂模型) + 有分量→转专业。点区域 ✓，断器官病种 ✗（§6.4/§9）。</div>
+    </div>
+  </div>
+</div>
+
+<p class="top" style="margin-top:6px">终版 X 定了。身心格的劲（安抚/permission + 症状自证 + 转专业）你看还有哪句要改，否则我就写健康轨 plan。</p>
+</body>
+</html>
