@@ -2,6 +2,7 @@ import type { Chart, BodyName } from "../astro/chart";
 import { dayWealth, type WealthLevel } from "../astro/wealth";
 import { dailyAspect } from "./daily";
 import type { TimeBelief } from "../astro/rectify";
+import { bodyVerdict, type BodyVerdict } from "./bodyVerdict";
 
 // 今日财运 → 一句"该怎么过今天"的笃定判词。纯逻辑、确定性、无 AI。
 //
@@ -33,6 +34,9 @@ export type TodayState = "red" | "green" | "plain";
 // 火星/土星谁主导这张盘的"用钱脾性"。push=敢出手，guard=守得紧，even=两股劲拉扯。
 export type MoneyLean = "push" | "guard" | "even";
 
+// 今日格主导轨：'钱'=财运轨当主体、'健康'=身心轨当主体。另一条进 chip。
+export type Channel = "钱" | "健康";
+
 export interface TodayVerdict {
   state: TodayState;
   intensity: number; // 0..100，原样透传自 dayWealth().intensity
@@ -45,6 +49,30 @@ export interface TodayVerdict {
   action?: string;    // green：今天去做的事
   askDidYouAct?: string; // green：回访时回溯式校验「你动了吗」
   prep?: string;      // plain：今天可铺垫的小事
+  // —— T4 双轨：身心轨并入 + 主导 channel（皆 (chart,date) 纯函数、belief-无关）——
+  bodyState: TodayState; // 身心三态（与财运同一套红/绿/平），来自 dayBody().level
+  body: BodyVerdict;     // 完整身心判词（同一引擎 bodyVerdict，不分叉）
+  channel: Channel;      // 当天主导轨：按强度选——主导那条当今日格主体、另一条进 chip
+}
+
+// ── 主导 channel 选择（按强度，design/23「谁响谁领头」）─────────────────────
+// 强度 = 一轨今天有多「有戏」。red/green 是 charged（有戏），plain 是平淡。
+// charge 分：charged 给底分 100，再叠上「离中性 50 的偏离」当细分；plain 只算偏离。
+// 谁的 charge 分高谁主导；恰有一轨 charged 时必然是那条（可证伪核）。同分 → 钱（确定性兜底）。
+// 纯函数 of (state, intensity)，belief-无关——不动任一轨的 state。
+function chargeScore(state: TodayState, intensity: number): number {
+  const charged = state !== "plain" ? 100 : 0;
+  return charged + Math.abs(intensity - 50);
+}
+function dominantChannel(
+  moneyState: TodayState,
+  moneyIntensity: number,
+  bodyState: TodayState,
+  bodyIntensity: number,
+): Channel {
+  const money = chargeScore(moneyState, moneyIntensity);
+  const body = chargeScore(bodyState, bodyIntensity);
+  return body > money ? "健康" : "钱"; // 同分偏向「钱」——确定性、不悬空
 }
 
 // ── lean：火星 vs 土星在本命盘的权重（按落宫强弱）。财库宫(2/8)最重，
@@ -253,6 +281,12 @@ export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief): Tod
   // 间换具体性，所以 belief 收窄时这条 line 会更"点到你身上"——但 state 始终不动。
   const line = (base: string) => `${base}${moonTail}${natalHit}。`;
 
+  // ── T4 双轨：身心判词 + 主导 channel。身心轨完全独立计算（同一 (chart,date) 纯函数、
+  //    belief-无关），绝不回写财运的 state/line/intensity——财运字段与旧路径 byte-identical。──
+  const body = bodyVerdict(chart, date);
+  const channel = dominantChannel(state, w.intensity, body.state, body.intensity);
+  const dual = { bodyState: body.state, body, channel };
+
   if (state === "red") {
     return {
       state,
@@ -262,6 +296,7 @@ export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief): Tod
       quote: pick(RED_QUOTE, sord),
       natalHit,
       doorDate: ymd(date), // 红日必有门，指向当天的 /wealth
+      ...dual,
     };
   }
   if (state === "green") {
@@ -274,6 +309,7 @@ export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief): Tod
       natalHit,
       action: pick(GREEN_ACTION, sord),
       askDidYouAct: pick(GREEN_ASK, sord),
+      ...dual,
     };
   }
   return {
@@ -284,5 +320,6 @@ export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief): Tod
     quote: pick(PLAIN_QUOTE, sord),
     natalHit,
     prep: pick(PLAIN_PREP, sord),
+    ...dual,
   };
 }

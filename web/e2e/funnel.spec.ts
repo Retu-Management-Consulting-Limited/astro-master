@@ -59,13 +59,16 @@ test("activation funnel: landing → input → calibration → first-read → re
   await page.locator('a[href="/me"]').click();
   await expect(page.locator('[data-testid="me"]')).toBeVisible({ timeout: 5000 });
 
-  // 财运日历 — reached via the persistent 财运 tab (2nd of 5)
+  // 财运日历 — T4 Phase 3: 财运不再是 tab（回 4 tab），改由今日格的「财运 chip」进入。
+  // 走法同步改成 today → fortune-chip → /wealth（不再点已删的 a[href="/wealth"] tab）。
   await page.locator('a[href="/today"]').click();
   await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 5000 });
-  await page.locator('a[href="/wealth"]').click();
+  // 双 chip 恒在：财运 chip 进 /wealth、身心 chip 进 /body。这里走财运 chip。
+  await page.locator('[data-testid="fortune-chip"]').click();
   await expect(page.locator('[data-testid="wealth"]')).toBeVisible({ timeout: 5000 });
-  // 财运 tab is marked current on the wealth page (no dead end — TabBar root)
-  await expect(page.locator('nav a[aria-current="page"]')).toHaveText("财运");
+  // /wealth 不再有自己的 active tab（财运降 chip）——TabBar 仍在（route-exit 出口），
+  // 但 0 高亮。故不再断言 aria-current=='财运'；用 TabBar 渲染证明非死胡同即可。
+  await expect(page.locator('nav[aria-label="主导航"]')).toBeVisible();
   // 月历: tap a future day → its money verdict preview renders in the detail card
   const days = page.locator('[data-testid="wealth-day"]');
   await expect(days.first()).toBeVisible();
@@ -78,7 +81,24 @@ test("activation funnel: landing → input → calibration → first-read → re
   await page.getByRole("button", { name: "返回" }).first().click();
   await expect(page.locator('[data-testid="wealth"]')).toBeVisible({ timeout: 5000 });
 
-  // 合盘 — leave the wealth tab via 我的
+  // 身心日历 — T4 Phase 4: 身心轨与财运对称，也由今日格的「身心 chip」进入（非 tab）。
+  // 走法 today → body-chip → /body（同构月历，不漏屏）。
+  await page.locator('a[href="/today"]').click();
+  await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 5000 });
+  await page.locator('[data-testid="body-chip"]').click();
+  await expect(page.locator('[data-testid="body"]')).toBeVisible({ timeout: 5000 });
+  // /body 同构于 /wealth：也无自己的 active tab，TabBar 仍渲染（route-exit 出口）。
+  await expect(page.locator('nav[aria-label="主导航"]')).toBeVisible();
+  // 月历: tap a future day → its body verdict preview renders in the detail card
+  const bodyDays = page.locator('[data-testid="body-day"]');
+  await expect(bodyDays.first()).toBeVisible();
+  await bodyDays.last().click();
+  await expect(page.locator('[data-testid="body-detail"]')).toBeVisible();
+  // "看更深" 身心深度 → 对话（非死胡同）
+  await page.locator('[data-testid="body-deeper"]').click();
+  await expect(page).toHaveURL(/\/chat$/, { timeout: 5000 });
+
+  // 合盘 — back to /today then leave via 我的
   await page.locator('a[href="/me"]').click();
   await page.locator('[data-testid="row-synastry"]').click();
   await expect(page.locator('[data-testid="synastry"]')).toBeVisible({ timeout: 5000 });

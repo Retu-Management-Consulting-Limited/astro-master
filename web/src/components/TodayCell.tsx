@@ -1,4 +1,4 @@
-import type { TodayVerdict } from "@/lib/reading/todayVerdict";
+import type { TodayVerdict, TodayState } from "@/lib/reading/todayVerdict";
 import type { DailyReading } from "@/lib/reading/daily";
 
 // 今日格 · 三态变身（design/20-today-cell-states.html）。
@@ -7,7 +7,8 @@ import type { DailyReading } from "@/lib/reading/daily";
 //   • plain（天清/平淡，多数日）：先歇（赦免）+ 备战糖(prep)，不空屏 = 维生素天天响。
 //   • red（慎，稀有·刹车）     ：命令叫停(line) + 内在why + 赦免糖(quote) + 前门(door→那天财运)。
 //   • green（旺，稀有·勇气义肢）：命令出手(line) + 可晒"财运旺"badge(轻免责) + 落到可控动作(action)。
-// 每一态都带 fortune chip（钱轨入口），点进 /wealth。
+// 每一态都带「双 chip」（财运 + 身心，恒在，主导加亮）：财运 chip → /wealth、身心
+// chip → /body（T4 Phase 3 · 两轨对称，谁响谁领头；都用同一套红/绿/平行动灯）。
 //
 // 纯展示组件：所有内容来自 props（todayVerdict + dailyReading 背景层），不自己取数、
 // 不依赖 store/router，便于 jsdom smoke。文案是否过 money guardrail 由 todayVerdict 负责，
@@ -21,30 +22,69 @@ const TAG: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: 7,
 };
 
+// 三态 → 同一套红/绿/平行动灯（与财运 wealth 共用语义，身心不另起配色）。
+// accent=状态点/文字主色，soft=label 的高亮色，bg/bd=chip 底/边（淡同色）。
+const STATE_STYLE: Record<TodayState, { accent: string; soft: string; bg: string; bd: string }> = {
+  red: { accent: "var(--red)", soft: "#f0b6ab", bg: "rgba(224,120,106,.08)", bd: "rgba(224,120,106,.3)" },
+  green: { accent: "var(--green)", soft: "#a8e0bf", bg: "rgba(127,201,154,.08)", bd: "rgba(127,201,154,.3)" },
+  plain: { accent: "var(--cream-dim)", soft: "#c2baa6", bg: "rgba(122,129,148,.08)", bd: "rgba(122,129,148,.28)" },
+};
+// 各轨 × 各态的短 label（说倾向、不诊断）。财运沿用旧词；身心安抚口吻。
+const MONEY_LABEL: Record<TodayState, string> = { red: "慎", green: "旺", plain: "平" };
+const BODY_LABEL: Record<TodayState, string> = { red: "累", green: "有劲", plain: "稳" };
+
 export function TodayCell({
-  verdict, daily, onWealth,
+  verdict, daily, onWealth, onBody,
 }: {
   verdict: TodayVerdict;
   daily: DailyReading;
   onWealth: (selDay?: number) => void;
+  onBody: () => void;
 }) {
-  // 每态共用的 fortune chip — plain/red 用 flat 灰底，green 用绿底（呼应主态）。
-  const chip = (flat: boolean, label: string, txt: string, accent: string, accentSoft: string) => (
-    <button
-      type="button"
-      data-testid="fortune-chip"
-      onClick={() => onWealth(verdict.doorDate ? Number(verdict.doorDate.slice(-2)) : undefined)}
-      style={{
-        width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 12,
-        padding: "9px 12px", borderRadius: 11, cursor: "pointer", fontSize: 12.5, color: accent,
-        background: flat ? "rgba(122,129,148,.08)" : "rgba(127,201,154,.08)",
-        border: `1px solid ${flat ? "rgba(122,129,148,.28)" : "rgba(127,201,154,.3)"}`,
-      }}
-    >
-      <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: accent, boxShadow: `0 0 8px ${accent}` }} />
-      <span>今日财运 <b style={{ color: accentSoft }}>{label}</b> · {txt}</span>
-      <span style={{ marginLeft: "auto", opacity: 0.7 }}>查日历 →</span>
-    </button>
+  // 双 chip（财运 + 身心，恒在，主导加亮）→ 各进 /wealth 与 /body。两条都用与财运同一套
+  // 红/绿/平语义着色（身心不另起 teal 配色，见 design/23）。主导那条(verdict.channel)
+  // 加亮领头：data-lead='true' + 内描边(box-shadow inset) + 不透明；另一条略降透明。
+  const moneyLead = verdict.channel === "钱";
+  const fortuneStyle = STATE_STYLE[verdict.state];
+  const bodyStyle = STATE_STYLE[verdict.bodyState];
+
+  const chips = () => (
+    <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 7 }}>
+      <button
+        type="button"
+        data-testid="fortune-chip"
+        data-lead={moneyLead ? "true" : "false"}
+        onClick={() => onWealth(verdict.doorDate ? Number(verdict.doorDate.slice(-2)) : undefined)}
+        style={{
+          width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8,
+          padding: "9px 12px", borderRadius: 11, cursor: "pointer", fontSize: 12.5, color: fortuneStyle.accent,
+          background: fortuneStyle.bg, border: `1px solid ${fortuneStyle.bd}`,
+          boxShadow: moneyLead ? `inset 0 0 0 1px ${fortuneStyle.accent}` : "none",
+          opacity: moneyLead ? 1 : 0.82,
+        }}
+      >
+        <span data-testid="fortune-chip-dot" aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: fortuneStyle.accent, boxShadow: `0 0 8px ${fortuneStyle.accent}` }} />
+        <span>财运 <b style={{ color: fortuneStyle.soft }}>{MONEY_LABEL[verdict.state]}</b> · 看财运日历</span>
+        <span style={{ marginLeft: "auto", opacity: 0.7 }}>→</span>
+      </button>
+      <button
+        type="button"
+        data-testid="body-chip"
+        data-lead={!moneyLead ? "true" : "false"}
+        onClick={() => onBody()}
+        style={{
+          width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8,
+          padding: "9px 12px", borderRadius: 11, cursor: "pointer", fontSize: 12.5, color: bodyStyle.accent,
+          background: bodyStyle.bg, border: `1px solid ${bodyStyle.bd}`,
+          boxShadow: !moneyLead ? `inset 0 0 0 1px ${bodyStyle.accent}` : "none",
+          opacity: !moneyLead ? 1 : 0.82,
+        }}
+      >
+        <span data-testid="body-chip-dot" aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: bodyStyle.accent, boxShadow: `0 0 8px ${bodyStyle.accent}` }} />
+        <span>身心 <b style={{ color: bodyStyle.soft }}>{BODY_LABEL[verdict.bodyState]}</b> · 看身心日历</span>
+        <span style={{ marginLeft: "auto", opacity: 0.7 }}>→</span>
+      </button>
+    </div>
   );
 
   // ── 绿 · 旺（勇气义肢）──
@@ -76,7 +116,7 @@ export function TodayCell({
             ▸ {verdict.action}
           </div>
         )}
-        {chip(false, "旺", "今天去推", "var(--green)", "#a8e0bf")}
+        {chips()}
       </div>
     );
   }
@@ -113,7 +153,7 @@ export function TodayCell({
         >
           ▸ 想动的，先去日历看看<b style={{ color: "var(--gold-soft)", textDecoration: "underline", textUnderlineOffset: 3 }}>今天为什么慎</b>——看明白了，再决定。
         </button>
-        {chip(true, "慎", "钱上先按住手", "var(--cream-dim)", "#c2baa6")}
+        {chips()}
       </div>
     );
   }
@@ -138,7 +178,7 @@ export function TodayCell({
           ▸ {verdict.prep}
         </div>
       )}
-      {chip(true, "平", "钱上没大事", "var(--cream-dim)", "#c2baa6")}
+      {chips()}
     </div>
   );
 }

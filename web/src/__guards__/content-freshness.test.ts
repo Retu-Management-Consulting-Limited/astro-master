@@ -11,8 +11,10 @@ import { biorhythm } from "../lib/biorhythm";
 import { moneyPersona } from "../lib/money/persona";
 import { nextChapter } from "../lib/money/narrative";
 import { todayVerdict } from "../lib/reading/todayVerdict";
+import { monthBody, bodyScore } from "../lib/astro/body";
 import { seed, withConfidence } from "../lib/astro/timeBelief";
-import { detectiveBandCopy } from "../lib/reading/calibrationSignal";
+import { detectiveBandCopy, confirmBodySignal } from "../lib/reading/calibrationSignal";
+import { bodyVerdict } from "../lib/reading/bodyVerdict";
 import type { LifeEvent } from "../lib/astro/rectify";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,6 +88,125 @@ describe("freshness contract · per-day surfaces differ on ADJACENT days", () =>
       const ping = days.filter((d) => d.level === "ping").length;
       expect(shen, `慎 quota: ${shen}/30`).toBeLessThanOrEqual(4);
       expect(ping, `平淡 floor: ${ping}/30`).toBeGreaterThanOrEqual(Math.ceil(0.6 * days.length));
+    }
+  });
+});
+
+// #T4 身心轨 (monthBody/dayBody/bodyScore) — 身心健康轨与财运同构：按天 + 按盘两轴。
+// R14/R15 登记，强形式钉在「真正按天移动的字段」上：
+//   • per-day: level 受月度稀有配额(天定+保底)刻意压成一长串 calm（design/23：大多数日子
+//     平稳），所以 level 不是按天真正移动的字段——在它上做相邻日 not.toBe 会退化成
+//     Set.size>1 弱断言（一月只 5/29 对不同就过，正是 R15 假绿灯）。真正按天移动的是
+//     intensity（原始星象分，未被配额重塑）：实测 A/B/D 29/29、C 26/29 相邻日不同。照 wealth
+//     的 >20/29 强形式把 floor 钉在 intensity 上。
+//   • personalized: 不同盘的整月 intensity 序列 + 同日 bodyScore not.toBe（禁 Set.size>1）。
+describe("freshness contract · body/health varies by day (intensity) and by chart", () => {
+  it("body: adjacent-day intensity moves on most days (>20/29) — assert the field that actually moves, not the quota-flattened level", () => {
+    for (const ch of [A, B, C]) {
+      const iv = monthBody(ch, 2026, 6).days.map((d) => d.intensity);
+      let changes = 0;
+      for (let i = 1; i < iv.length; i++) if (iv[i] !== iv[i - 1]) changes++;
+      expect(changes, `body intensity changed only ${changes}/${iv.length - 1} days`).toBeGreaterThan(20);
+    }
+  });
+  it("body: the month rotates LEVELS across days, and the rare quota actually holds (慎 low≤4, 平 calm≥60%)", () => {
+    for (const ch of [A, B, C]) {
+      const days = monthBody(ch, 2026, 6).days;
+      expect(new Set(days.map((d) => d.level)).size, "a month rendered one frozen body level").toBeGreaterThan(1);
+      const low = days.filter((d) => d.level === "low").length;
+      const calm = days.filter((d) => d.level === "calm").length;
+      expect(low, `low quota: ${low}/${days.length}`).toBeLessThanOrEqual(4);
+      expect(calm, `calm floor: ${calm}/${days.length}`).toBeGreaterThanOrEqual(Math.ceil(0.6 * days.length));
+    }
+  });
+  it("body is personalized: different charts → different month intensity series AND different same-day bodyScore (not.toBe)", () => {
+    const sig = (ch: typeof A) => monthBody(ch, 2026, 6).days.map((d) => d.intensity).join(",");
+    expect(sig(A)).not.toBe(sig(B));
+    expect(sig(B)).not.toBe(sig(C));
+    const day = new Date(Date.UTC(2026, 5, 16, 12));
+    expect(bodyScore(A, day)).not.toBe(bodyScore(B, day));
+    expect(bodyScore(B, day)).not.toBe(bodyScore(C, day));
+  });
+});
+
+// #T4 身心判词 (bodyVerdict) — 身心轨的 PRESENTATION 层（对称于 todayVerdict 财运判词）。
+// R14 (值会变 ≠ 呈现会变)：bodyScore/level 已在上面登记按天/按盘真动；这里登记【用户真正
+// 看到的那段话】——line/why/care/quote/weather 在【同态相邻日】要轮换、【不同盘】要不同。
+// 强形式钉在同态相邻日（最难的退化点：换了一天还一样，正是 2026-06-15 的 bug），不只挑
+// 状态翻面的 easy 日；按盘同日 not.toBe（禁 Set.size>1）。
+describe("freshness contract · body verdict (身心判词) rotates per-day and personalizes per-chart", () => {
+  const cell = (v: ReturnType<typeof bodyVerdict>) =>
+    text([v.weather, v.line, v.why, v.care, v.quote]);
+
+  it("ADJACENT SAME-STATE days rotate the body cell (not just state-change days)", () => {
+    for (const chart of [A, B, C]) {
+      let sameStatePairs = 0;
+      let prev: ReturnType<typeof bodyVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = bodyVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+        if (prev && prev.state === v.state) {
+          sameStatePairs++;
+          expect(cell(prev), `frozen body cell, same-state adjacent days (doy ${i})`).not.toBe(cell(v));
+        }
+        prev = v;
+      }
+      expect(sameStatePairs, "too few same-state pairs to test body rotation").toBeGreaterThan(50);
+    }
+  });
+
+  it("ADJACENT 平稳(plain) days rotate the calm body cell (the dominant state is not a frozen void)", () => {
+    // plain 是配额下的多数态，是用户大多数日子看到的格——它也必须按天换。
+    for (const chart of [A, B, C]) {
+      let plainPairs = 0;
+      let prev: ReturnType<typeof bodyVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = bodyVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+        if (prev && prev.state === "plain" && v.state === "plain") {
+          plainPairs++;
+          expect(cell(prev), `frozen plain body cell (doy ${i})`).not.toBe(cell(v));
+        }
+        prev = v;
+      }
+      expect(plainPairs, "too few plain→plain body pairs — quota not making plain dominant?").toBeGreaterThan(40);
+    }
+  });
+
+  it("different charts, SAME day, render a different body cell (personalized, not.toBe)", () => {
+    const day = new Date(Date.UTC(2026, 5, 14, 12));
+    expect(cell(bodyVerdict(A, day)), "A and B share the whole body cell").not.toBe(cell(bodyVerdict(B, day)));
+    expect(cell(bodyVerdict(B, day)), "B and C share the whole body cell").not.toBe(cell(bodyVerdict(C, day)));
+  });
+});
+
+// #T4 主导 channel 选择 (todayVerdict.channel) — 「今天谁领头」(钱/健康) 是一个 (chart,date)
+// 纯函数的 DYNAMIC 选择面。R14：登记它真按天/按盘动——不是断言某一天必是哪条轨（那是内容），
+// 而是断言这个选择沿两轴会变（不是一年钉死一条轨、不是所有盘同一序列）。强形式：相邻日有真翻轨
+// （not.toBe 在序列层）+ 不同盘的整月 channel 序列 not.toBe（禁 Set.size>1）。
+describe("freshness contract · dominant channel (主导 channel 钱/健康) varies by day and by chart", () => {
+  const monthChannels = (ch: typeof A) =>
+    Array.from({ length: 30 }, (_, i) => todayVerdict(ch, new Date(Date.UTC(2026, 5, 1 + i, 12))).channel);
+
+  it("the channel actually FLIPS across the month — it is not a single frozen track all month", () => {
+    for (const ch of [A, B, C]) {
+      const seq = monthChannels(ch);
+      const flips = seq.slice(1).filter((c, i) => c !== seq[i]).length;
+      expect(flips, `channel flipped only ${flips} times in 30 days for a chart`).toBeGreaterThan(0);
+    }
+  });
+
+  it("two clearly-different charts produce a DIFFERENT month channel series (personalized, not.toBe)", () => {
+    expect(monthChannels(A).join(",")).not.toBe(monthChannels(B).join(","));
+    expect(monthChannels(B).join(",")).not.toBe(monthChannels(C).join(","));
+  });
+
+  it("channel is belief-INVARIANT — it is a pure function of the two tracks' (state,intensity), no calibration door", () => {
+    // 与 edge-preservation 同源：channel 由两轨 state/intensity 选，二者都是 (chart,date)
+    // 纯函数。重读同一 (chart,date) 的 channel 必须 byte-identical（没有藏 belief/mood）。
+    for (const ch of [A, B, C]) {
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(Date.UTC(2026, 5, 1 + i, 12));
+        expect(todayVerdict(ch, d).channel).toBe(todayVerdict(ch, d).channel);
+      }
     }
   });
 });
@@ -351,5 +472,44 @@ describe("freshness contract · time detective band (detectiveBandCopy) varies b
     expect(detectiveBandCopy(asHouse), "mode flip did not move the detective line").not.toBe(
       detectiveBandCopy(sharp),
     );
+  });
+});
+
+// #T4 Phase 5 身心症状自证 → 喂时辰 (confirmBodySignal) — 校准 OUTCOME 按【信号来源类型】分叉：
+// 这不是"按天/按盘"的渲染轴，而是"喂回 belief 的真假证据门"的契约：四角(ASC/MC)/六宫(zone)
+// 相关的身心确认让 confidence 真升，纯行星相关的 referentially 不动。强断言（not.toBe /
+// toBe(before)），禁 Set.size 弱形式——这道门若被未来改动悄悄打通（纯行星也喂），这里红。
+describe("freshness contract · body symptom confirm feeds the hour ONLY when angle/六宫-related", () => {
+  const birth = { year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 };
+  const move: LifeEvent = { kind: "move", year: 2019, month: 3 };
+
+  it("angle/六宫 source ticks confidence up; pure-planet source is referentially unchanged (the gate forks the outcome)", () => {
+    const before = seed(birth, [move]);
+    const angle = confirmBodySignal(before, { kind: "selfCheck", target: "ASC" });
+    const zone = confirmBodySignal(before, { kind: "zone" });
+    const planet = confirmBodySignal(before, { kind: "selfCheck", target: "Moon" });
+    // angle & zone genuinely move the belief …
+    expect(angle.confidence, "ASC body confirm did not feed").toBeGreaterThan(before.confidence);
+    expect(zone.confidence, "zone body confirm did not feed").toBeGreaterThan(before.confidence);
+    // … pure-planet is an identity (no manufactured calibration)
+    expect(planet, "pure-planet body confirm leaked into the belief").toBe(before);
+  });
+
+  it("a real red day's selfCheck carries the deciding target — confirming it routes through the same gate", () => {
+    const A = computeChart(birth);
+    const before = seed(birth, [move]);
+    let asserted = 0;
+    for (let i = 0; i < 365 && asserted < 2; i++) {
+      const v = bodyVerdict(A, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+      if (!v.selfCheck) continue;
+      const after = confirmBodySignal(before, { kind: "selfCheck", target: v.selfCheck.target });
+      if (v.selfCheck.target === "ASC" || v.selfCheck.target === "MC") {
+        expect(after.confidence).toBeGreaterThan(before.confidence);
+      } else {
+        expect(after).toBe(before);
+      }
+      asserted++;
+    }
+    expect(asserted, "no red-day selfCheck surfaced on chart A in a year").toBeGreaterThan(0);
   });
 });

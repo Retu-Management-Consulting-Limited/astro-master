@@ -17,11 +17,11 @@ const PLAIN = D("2026-01-01T12:00:00.000Z");
 const RED = D("2026-01-11T12:00:00.000Z");
 const GREEN = D("2026-01-13T12:00:00.000Z");
 
-function renderAt(date: Date, onWealth = vi.fn()) {
+function renderAt(date: Date, onWealth = vi.fn(), onBody = vi.fn()) {
   const v = todayVerdict(A, date);
   const daily = dailyReading(A, date);
-  render(<TodayCell verdict={v} daily={daily} onWealth={onWealth} />);
-  return { v, daily, onWealth };
+  render(<TodayCell verdict={v} daily={daily} onWealth={onWealth} onBody={onBody} />);
+  return { v, daily, onWealth, onBody };
 }
 
 describe("TodayCell · three-state 今 card", () => {
@@ -67,6 +67,73 @@ describe("TodayCell · three-state 今 card", () => {
       const chip = screen.getByTestId("fortune-chip");
       fireEvent.click(chip);
       expect(onWealth).toHaveBeenCalled();
+      cleanup();
+    }
+  });
+
+  // ── T4 Phase 3 · 双 chip（财运 + 身心，恒在，主导加亮）─────────────────────
+  it("每一态都恒在两条 chip：fortune-chip(→/wealth) + body-chip(→/body)", () => {
+    for (const date of [PLAIN, RED, GREEN]) {
+      const onWealth = vi.fn();
+      const onBody = vi.fn();
+      renderAt(date, onWealth, onBody);
+      // 财运 chip → /wealth
+      const fortune = screen.getByTestId("fortune-chip");
+      expect(fortune).toBeTruthy();
+      // 身心 chip → /body（对称，每天都在）
+      const body = screen.getByTestId("body-chip");
+      expect(body).toBeTruthy();
+      fireEvent.click(body);
+      expect(onBody).toHaveBeenCalled();
+      expect(onWealth).not.toHaveBeenCalled();
+      cleanup();
+    }
+  });
+
+  it("身心 chip 的文案带「身心」字样 + 看身心日历入口（说倾向、不诊断）", () => {
+    for (const date of [PLAIN, RED, GREEN]) {
+      renderAt(date);
+      const body = screen.getByTestId("body-chip");
+      expect(body.textContent).toContain("身心");
+      expect(body.textContent).toContain("身心日历");
+      // 不点器官病种：chip 是入口 + 倾向词，不出现诊断式断言
+      expect(body.textContent).not.toMatch(/有病|患了|确诊|癌|心脏病/);
+      cleanup();
+    }
+  });
+
+  it("主导轨那条 chip 加亮领头（data-lead），另一条不加亮——按 verdict.channel", () => {
+    for (const date of [PLAIN, RED, GREEN]) {
+      const { v } = renderAt(date);
+      const fortune = screen.getByTestId("fortune-chip");
+      const body = screen.getByTestId("body-chip");
+      const fortuneLead = fortune.getAttribute("data-lead") === "true";
+      const bodyLead = body.getAttribute("data-lead") === "true";
+      // 恰有一条领头
+      expect(fortuneLead !== bodyLead).toBe(true);
+      // 领头那条 = 主导 channel
+      if (v.channel === "钱") {
+        expect(fortuneLead).toBe(true);
+        expect(bodyLead).toBe(false);
+      } else {
+        expect(bodyLead).toBe(true);
+        expect(fortuneLead).toBe(false);
+      }
+      cleanup();
+    }
+  });
+
+  it("两条 chip 的状态点颜色用与财运同一套红/绿/平语义（不另起配色）", () => {
+    // 身心 chip 的状态色由 verdict.bodyState 决定，且取值只能落在红/绿/平三色集合内
+    const RGP = new Set(["var(--red)", "var(--green)", "var(--cream-dim)"]);
+    for (const date of [PLAIN, RED, GREEN]) {
+      const { v } = renderAt(date);
+      const dot = screen.getByTestId("body-chip-dot");
+      // dot 用 background 表态——必须属于红/绿/平这同一组（不是新起的 teal 等）
+      expect(RGP.has(dot.style.background)).toBe(true);
+      // 且严格对应 bodyState：red→红、green→绿、plain→平
+      const expected = v.bodyState === "red" ? "var(--red)" : v.bodyState === "green" ? "var(--green)" : "var(--cream-dim)";
+      expect(dot.style.background).toBe(expected);
       cleanup();
     }
   });

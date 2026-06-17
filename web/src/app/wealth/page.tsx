@@ -174,7 +174,9 @@ function WealthView() {
         <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 晒我的搞钱黄金日</button>
       </div>
 
-      <TabBar active="money" />
+      {/* 财运降 chip 后，/wealth 不再有自己的 active tab——传不匹配任何 tab 的值，
+          TabBar 仍渲染（满足 route-exit guard）但 0 高亮（见 TabBar.test）。*/}
+      <TabBar active="wealth" />
     </main>
   );
 }
