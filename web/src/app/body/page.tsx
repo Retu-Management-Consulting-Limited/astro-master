@@ -20,9 +20,12 @@ import { TabBar } from "@/components/TabBar";
 //
 // state 的色板与 /wealth 的 color() 同源（同一组 red/green/plain 语义），只是身心轨
 // 三态命名为 low/good/calm。
-const RED = { bg: "#c9302c", fg: "#fff" };       // 该歇/留意 = 红（同 wealth shen）
-const GREEN = { bg: "#1f8a46", fg: "#eafff1" };  // 有劲 = 绿（同 wealth wang）
-const PLAIN = { bg: "#d9dee7", fg: "#39414c" };  // 平稳 = 平（同 wealth ping）
+// 与 /wealth 同一套红/绿/平行动灯——身心轨不另起配色（design/23）。三档都取 wealth
+// 的最深档：RED=wealth shen 最深 #c9302c、GREEN=wealth wang 最深 #1a7a3a、PLAIN=wealth
+// ping #d9dee7（见 app/wealth/page.tsx color()）。
+const RED = { bg: "#c9302c", fg: "#fff" };       // 该歇/留意 = 红（= wealth shen 最深 #c9302c）
+const GREEN = { bg: "#1a7a3a", fg: "#eafff1" };  // 有劲 = 绿（= wealth wang 最深 #1a7a3a）
+const PLAIN = { bg: "#d9dee7", fg: "#39414c" };  // 平稳 = 平（= wealth ping #d9dee7）
 function cellColor(level: DayBody["level"]): { bg: string; fg: string } {
   if (level === "good") return GREEN;
   if (level === "low") return RED;
