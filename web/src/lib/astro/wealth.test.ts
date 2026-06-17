@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { computeChart, isRetrograde, type BirthInput } from "./chart";
 import { wealthScore, wealthLevel, dayWealth, monthWealth, signRuler, houseSign,
-         eventPressure, eventTerms, dayDriver, mergeWindows, monthEvents, MONEY_PLANETS } from "./wealth";
+         eventPressure, eventTerms, dayDriver, mergeWindows, monthEvents, MONEY_PLANETS,
+         WANG_CAP } from "./wealth";
 
 const sample: BirthInput = { year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 };
 const chart = computeChart(sample);
@@ -55,6 +56,18 @@ describe("monthly rare quota (天定 + 保底): 红≤~4, 平淡≥~60%", () => 
       for (let m = 1; m <= 12; m++) {
         const shen = monthWealth(ch, 2026, m).days.filter((d) => d.level === "shen").length;
         expect(shen, `month ${m} had ${shen} 慎 days`).toBeLessThanOrEqual(4);
+      }
+    }
+  });
+
+  // 绿帽：旺(green) is also rarity-capped (≤ WANG_CAP/month), mirroring the 慎 cap,
+  // so a strong month can no longer render as a wall of green. Without this, 旺 filled
+  // the whole 平淡-floor remainder (~10/30 = 33% green) — green stopped being rare.
+  it("every chart, every month of 2026: 旺(green) days ≤ WANG_CAP", () => {
+    for (const ch of charts) {
+      for (let m = 1; m <= 12; m++) {
+        const wang = monthWealth(ch, 2026, m).days.filter((d) => d.level === "wang").length;
+        expect(wang, `month ${m} had ${wang} 旺 days`).toBeLessThanOrEqual(WANG_CAP);
       }
     }
   });

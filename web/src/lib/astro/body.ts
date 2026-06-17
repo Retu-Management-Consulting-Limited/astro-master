@@ -144,6 +144,10 @@ export function bodyLevel(score: number): BodyLevel {
 // 会让 state 不再是 (chart,date) 的纯函数、戳穿 edge-preservation 守护。因此 MEMOIZE：
 // 同一 (chart,year,month) 在一次 run 内永远返回同一个 Record（按 chart 身份 WeakMap 缓存）。
 export const LOW_CAP = 4;       // ≤ 4 个 low(red) 日/月
+// 绿帽 (green cap)：有劲(good) 也封顶，镜像 LOW_CAP 的红帽。没这帽时 good 填满平稳-floor
+// 的剩余额度（~好月一眼满屏绿），「有劲」就不再稀有（charter I2b：红绿稀有、平淡为底）。
+// 比红松一档（6 vs 4）：鼓励比叫停害小，但绿仍须稀有、不能成月度默认态。
+export const GOOD_CAP = 6;      // ≤ 6 个 good(green) 日/月
 export const CALM_FLOOR = 0.6;  // ≥ 60% 的月份是 calm(平稳)
 
 const _monthLevelsCache = new WeakMap<Chart, Map<number, Record<number, BodyLevel>>>();
@@ -169,10 +173,13 @@ export function monthBodyLevels(chart: Chart, year: number, month: number): Reco
     .sort((a, b) => a.score - b.score || a.day - b.day);
   for (const s of rawLow.slice(0, LOW_CAP)) out[s.day] = "low";
 
-  // good：平稳必须 ≥ CALM_FLOOR。low 固定后，good 至多 (月 − low − calmFloor)，保留最高分的
-  // raw-good 日到这个预算，其余回落平稳。
+  // good：平稳必须 ≥ CALM_FLOOR。low 固定后，平稳-floor 至多放 (月 − low − calmFloor) 个充能日；
+  // 但 good 还受绿帽 GOOD_CAP 限——保留最高分的 raw-good 日到 min(floorBudget, GOOD_CAP)，
+  // 其余回落平稳（所以平稳升高）。排序稳定确定：分降序、再按日期升序 tie-break。
   const calmFloor = Math.ceil(CALM_FLOOR * last);
-  const goodBudget = Math.max(0, last - rawLow.slice(0, LOW_CAP).length - calmFloor);
+  const lowKept = Math.min(rawLow.length, LOW_CAP);
+  const floorBudget = Math.max(0, last - lowKept - calmFloor);
+  const goodBudget = Math.min(floorBudget, GOOD_CAP);
   const rawGood = scored
     .filter((s) => bodyLevel(s.score) === "good")
     .sort((a, b) => b.score - a.score || a.day - b.day);

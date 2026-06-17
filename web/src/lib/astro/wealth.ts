@@ -168,6 +168,12 @@ export function wealthLevel(score: number): WealthLevel {
 // Ties break on raw score then day, so the mapping is deterministic and a single
 // day's level is identical whether read alone (dayWealth) or in a month grid.
 export const SHEN_CAP = 4;        // ≤ 4 慎(red) days per month
+// 绿帽 (green cap): 旺 is rarity-capped too, mirroring SHEN_CAP. Without it, 旺 just
+// fills the whole 平淡-floor remainder (~10/30 = 33% green) and a strong month becomes
+// a wall of green — killing the felt rarity of a 旺 day (charter I2b: 红绿稀有、平淡为底).
+// Set one notch LOOSER than 慎 (6 vs 4): over-encouraging is less harmful than
+// over-alarming, but green must still be rare — not the month's default.
+export const WANG_CAP = 6;        // ≤ 6 旺(green) days per month
 export const PING_FLOOR = 0.6;    // ≥ 60% of the month is 平淡(ping)
 
 // Levels for a whole month under the quota, indexed day → level. Pure: depends
@@ -206,11 +212,14 @@ export function monthLevels(chart: Chart, year: number, month: number): Record<n
   const shenKeep = rawShen.slice(0, SHEN_CAP);
   for (const s of shenKeep) out[s.day] = "shen";
 
-  // 旺: 平淡 must stay ≥ PING_FLOOR of the month. With shenKeep fixed, the most
-  // 旺 days we can allow is (month − 慎 − pingFloor). Keep the highest-intensity
-  // raw-旺 days up to that budget; the rest fall back to 平淡.
+  // 旺: 平淡 must stay ≥ PING_FLOOR of the month. With shenKeep fixed, the 平淡-floor
+  // allows at most (month − 慎 − pingFloor) charged-up days — but 旺 is ALSO rarity-
+  // capped at WANG_CAP (绿帽), so keep only the highest-intensity raw-旺 days up to
+  // min(floorBudget, WANG_CAP); the rest fall back to 平淡 (which is why 平淡 rises).
+  // Sort is stable & deterministic: score desc, then day asc as tie-break.
   const pingFloor = Math.ceil(PING_FLOOR * last);
-  const wangBudget = Math.max(0, last - shenKeep.length - pingFloor);
+  const floorBudget = Math.max(0, last - shenKeep.length - pingFloor);
+  const wangBudget = Math.min(floorBudget, WANG_CAP);
   const rawWang = scored
     .filter((s) => wealthLevel(s.score) === "wang")
     .sort((a, b) => b.score - a.score || a.day - b.day);
