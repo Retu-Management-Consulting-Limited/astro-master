@@ -54,8 +54,8 @@ describe("no mock content (R7-R9 tripwire)", () => {
   });
 
   it("today & wealth derive 'now' from a real, non-frozen date (useNow → new Date())", () => {
-    const today = read(join(APP, "today/page.tsx"));
-    const wealth = read(join(APP, "wealth/page.tsx"));
+    const today = read(join(APP, "[locale]/today/page.tsx"));
+    const wealth = read(join(APP, "[locale]/wealth/page.tsx"));
     // `new Date()` now lives in the shared useNow() hook (which also refreshes on
     // app resume so a kept-open PWA rolls over to the new local day).
     expect(today).toContain("useNow()");
