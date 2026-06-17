@@ -13,7 +13,8 @@ import { nextChapter } from "../lib/money/narrative";
 import { todayVerdict } from "../lib/reading/todayVerdict";
 import { monthBody, bodyScore } from "../lib/astro/body";
 import { seed, withConfidence } from "../lib/astro/timeBelief";
-import { detectiveBandCopy } from "../lib/reading/calibrationSignal";
+import { detectiveBandCopy, confirmBodySignal } from "../lib/reading/calibrationSignal";
+import { bodyVerdict } from "../lib/reading/bodyVerdict";
 import type { LifeEvent } from "../lib/astro/rectify";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -389,5 +390,44 @@ describe("freshness contract · time detective band (detectiveBandCopy) varies b
     expect(detectiveBandCopy(asHouse), "mode flip did not move the detective line").not.toBe(
       detectiveBandCopy(sharp),
     );
+  });
+});
+
+// #T4 Phase 5 身心症状自证 → 喂时辰 (confirmBodySignal) — 校准 OUTCOME 按【信号来源类型】分叉：
+// 这不是"按天/按盘"的渲染轴，而是"喂回 belief 的真假证据门"的契约：四角(ASC/MC)/六宫(zone)
+// 相关的身心确认让 confidence 真升，纯行星相关的 referentially 不动。强断言（not.toBe /
+// toBe(before)），禁 Set.size 弱形式——这道门若被未来改动悄悄打通（纯行星也喂），这里红。
+describe("freshness contract · body symptom confirm feeds the hour ONLY when angle/六宫-related", () => {
+  const birth = { year: 1998, month: 6, day: 13, hour: 8, minute: 40, lat: -37.8136, lng: 144.9631, tz: 10 };
+  const move: LifeEvent = { kind: "move", year: 2019, month: 3 };
+
+  it("angle/六宫 source ticks confidence up; pure-planet source is referentially unchanged (the gate forks the outcome)", () => {
+    const before = seed(birth, [move]);
+    const angle = confirmBodySignal(before, { kind: "selfCheck", target: "ASC" });
+    const zone = confirmBodySignal(before, { kind: "zone" });
+    const planet = confirmBodySignal(before, { kind: "selfCheck", target: "Moon" });
+    // angle & zone genuinely move the belief …
+    expect(angle.confidence, "ASC body confirm did not feed").toBeGreaterThan(before.confidence);
+    expect(zone.confidence, "zone body confirm did not feed").toBeGreaterThan(before.confidence);
+    // … pure-planet is an identity (no manufactured calibration)
+    expect(planet, "pure-planet body confirm leaked into the belief").toBe(before);
+  });
+
+  it("a real red day's selfCheck carries the deciding target — confirming it routes through the same gate", () => {
+    const A = computeChart(birth);
+    const before = seed(birth, [move]);
+    let asserted = 0;
+    for (let i = 0; i < 365 && asserted < 2; i++) {
+      const v = bodyVerdict(A, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+      if (!v.selfCheck) continue;
+      const after = confirmBodySignal(before, { kind: "selfCheck", target: v.selfCheck.target });
+      if (v.selfCheck.target === "ASC" || v.selfCheck.target === "MC") {
+        expect(after.confidence).toBeGreaterThan(before.confidence);
+      } else {
+        expect(after).toBe(before);
+      }
+      asserted++;
+    }
+    expect(asserted, "no red-day selfCheck surfaced on chart A in a year").toBeGreaterThan(0);
   });
 });

@@ -27,6 +27,9 @@ import { dailyAspect } from "./daily";
 export interface BodySelfCheck {
   ask: string;       // 问她：身体哪块先告诉你你累了？（症状自证，她答得了）
   options: string[]; // ≥2 个候选体感区域，让她指认（睡眠/肠胃/肩颈…）
+  // 该确认的星象驱动点 = 当天月亮 aspect 的 target（dailyAspect.target）。Phase 5 用它
+  // 判断她"准"了之后要不要顺手喂时辰：四角(ASC/MC)才喂、纯行星不喂（接 calibrationSignal）。
+  target: string;
 }
 
 // 身体留意区（稀有）：点名一个该留意的身体「区域」+ 问她信号 + 转专业兜底。
@@ -260,6 +263,7 @@ export function bodyVerdict(chart: Chart, date: Date): BodyVerdict {
     out.selfCheck = {
       ask: pick(SELFCHECK_ASKS, ord),
       options: [SELFCHECK_OPTIONS[i0], SELFCHECK_OPTIONS[i1]],
+      target: moonAsp.target, // 驱动点：四角时她的"准"喂时辰，纯行星不喂（Phase 5）
     };
   }
 

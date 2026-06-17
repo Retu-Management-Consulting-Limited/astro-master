@@ -32,6 +32,55 @@ export function confirmVerdict(prev: TimeBelief, target: string): TimeBelief {
   return refine(prev, { type: "confirm" });
 }
 
+// ── T4 Phase 5 · 身心症状自证 → 喂时辰校准 ─────────────────────────────────────
+// 身心判词里有两类"她答得了的"症状自证微互动（见 bodyVerdict）：
+//
+//   • selfCheck（该歇日）：今天月亮结到她本命某点，问她"身体哪块先喊累"。这个判词
+//     的驱动点 = 当天月亮 aspect 的 target（dailyAspect.target）。只有当那个 target
+//     是四角(ASC/MC)时，她的"准"才对出生时辰说了话——四角随时辰摆 ~1°/4min。
+//   • zone（身体留意区·稀有）：由慢星长压【六宫宫位 / 六宫宫主】触发。六宫宫位与宫主
+//     都从上升推出，所以 zone 这类确认天然是"六宫/时辰相关"——必喂。
+//
+// 她一答 → ① 喂身心自我模型（产品侧记录，这里只产判定 + 回话），② 若信号是四角/六宫
+// 相关，顺手 refine(confirm) 喂 timeBelief（接 calibrationSignal 同一条收窄管线）。
+// 纯行星相关的身心确认绝不喂时辰：今天月亮只是结到她的月亮/火星，这对她的"出生*时辰*"
+// 没说什么，喂它就是编造她没真给的精度（宪法 §8 真vs编，与 confirmVerdict 同源）。
+export type BodySignalSource =
+  | { kind: "zone" }                  // 身体留意区：六宫宫位/宫主驱动 → 天然时辰相关
+  | { kind: "selfCheck"; target: string }; // 症状自证：驱动点 = 当天月亮 aspect.target
+
+// 这条身心确认对出生时辰是否是真证据？zone 永远是（六宫=上升推出）；selfCheck 只在
+// 月亮今天结的是四角(ASC/MC)时才是（复用 isAngleRelated 同一道四角门）。
+export function isBodySignalAngleRelated(source: BodySignalSource): boolean {
+  if (source.kind === "zone") return true; // 六宫宫位/宫主 → 时辰敏感
+  return isAngleRelated(source.target);    // 症状自证：四角 target 才喂
+}
+
+// 她确认了一条身心信号：四角/六宫相关 → refine(confirm) 喂时辰（与 confirmVerdict 同一
+// 个 distribution-preserving 微升、asymptotic 封顶）；纯行星相关 → 原样返回（referentially
+// equal，belief 一字不动）。喂身心自我模型本身是产品侧副作用，这里只负责时辰这条线。
+export function confirmBodySignal(prev: TimeBelief, source: BodySignalSource): TimeBelief {
+  if (!isBodySignalAngleRelated(source)) return prev; // 纯行星身心确认不喂时辰
+  return refine(prev, { type: "confirm" });
+}
+
+// 从一条身心判词的自证面构造 BodySignalSource：身体留意区(zone) → {kind:'zone'}（必喂）；
+// 症状自证(selfCheck) → 带上它的星象驱动点 target（四角才喂）。给 UI 一条干净的接线：
+// 拿 bodyVerdict 的 zone/selfCheck 直接喂这里，不必在组件里重复判定四角门。
+export function selfCheckSource(target: string): BodySignalSource {
+  return { kind: "selfCheck", target };
+}
+export function zoneSource(): BodySignalSource {
+  return { kind: "zone" };
+}
+
+// 她一答即「被看穿」的回话——确认收到她指认的那块体感（喂身心模型的用户侧回执）。
+// 说倾向不说病：只复述她自证得了的"区域/体感"，绝不升格成病种断言（§6.4/§9）。
+// 过 money/guardrail（不报数字 / 不羞辱 / 不怂恿赌性）。
+export function bodySignalAck(region: string): string {
+  return `${region}这块，我记下了——这阵子多搭把手照顾它，身体的话我陪你一起听。`;
+}
+
 // Phase 6A. Events the user gave a year for but never a month — the rectifier
 // reads these at a mid-year stand-in, so completing one genuinely sharpens it.
 export function halfFilledEvents(events: LifeEvent[]): LifeEvent[] {
