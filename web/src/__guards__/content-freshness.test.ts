@@ -11,6 +11,7 @@ import { biorhythm } from "../lib/biorhythm";
 import { moneyPersona } from "../lib/money/persona";
 import { nextChapter } from "../lib/money/narrative";
 import { todayVerdict } from "../lib/reading/todayVerdict";
+import { monthBody, bodyScore } from "../lib/astro/body";
 import { seed, withConfidence } from "../lib/astro/timeBelief";
 import { detectiveBandCopy } from "../lib/reading/calibrationSignal";
 import type { LifeEvent } from "../lib/astro/rectify";
@@ -87,6 +88,43 @@ describe("freshness contract · per-day surfaces differ on ADJACENT days", () =>
       expect(shen, `慎 quota: ${shen}/30`).toBeLessThanOrEqual(4);
       expect(ping, `平淡 floor: ${ping}/30`).toBeGreaterThanOrEqual(Math.ceil(0.6 * days.length));
     }
+  });
+});
+
+// #T4 身心轨 (monthBody/dayBody/bodyScore) — 身心健康轨与财运同构：按天 + 按盘两轴。
+// R14/R15 登记，强形式钉在「真正按天移动的字段」上：
+//   • per-day: level 受月度稀有配额(天定+保底)刻意压成一长串 calm（design/23：大多数日子
+//     平稳），所以 level 不是按天真正移动的字段——在它上做相邻日 not.toBe 会退化成
+//     Set.size>1 弱断言（一月只 5/29 对不同就过，正是 R15 假绿灯）。真正按天移动的是
+//     intensity（原始星象分，未被配额重塑）：实测 A/B/D 29/29、C 26/29 相邻日不同。照 wealth
+//     的 >20/29 强形式把 floor 钉在 intensity 上。
+//   • personalized: 不同盘的整月 intensity 序列 + 同日 bodyScore not.toBe（禁 Set.size>1）。
+describe("freshness contract · body/health varies by day (intensity) and by chart", () => {
+  it("body: adjacent-day intensity moves on most days (>20/29) — assert the field that actually moves, not the quota-flattened level", () => {
+    for (const ch of [A, B, C]) {
+      const iv = monthBody(ch, 2026, 6).days.map((d) => d.intensity);
+      let changes = 0;
+      for (let i = 1; i < iv.length; i++) if (iv[i] !== iv[i - 1]) changes++;
+      expect(changes, `body intensity changed only ${changes}/${iv.length - 1} days`).toBeGreaterThan(20);
+    }
+  });
+  it("body: the month rotates LEVELS across days, and the rare quota actually holds (慎 low≤4, 平 calm≥60%)", () => {
+    for (const ch of [A, B, C]) {
+      const days = monthBody(ch, 2026, 6).days;
+      expect(new Set(days.map((d) => d.level)).size, "a month rendered one frozen body level").toBeGreaterThan(1);
+      const low = days.filter((d) => d.level === "low").length;
+      const calm = days.filter((d) => d.level === "calm").length;
+      expect(low, `low quota: ${low}/${days.length}`).toBeLessThanOrEqual(4);
+      expect(calm, `calm floor: ${calm}/${days.length}`).toBeGreaterThanOrEqual(Math.ceil(0.6 * days.length));
+    }
+  });
+  it("body is personalized: different charts → different month intensity series AND different same-day bodyScore (not.toBe)", () => {
+    const sig = (ch: typeof A) => monthBody(ch, 2026, 6).days.map((d) => d.intensity).join(",");
+    expect(sig(A)).not.toBe(sig(B));
+    expect(sig(B)).not.toBe(sig(C));
+    const day = new Date(Date.UTC(2026, 5, 16, 12));
+    expect(bodyScore(A, day)).not.toBe(bodyScore(B, day));
+    expect(bodyScore(B, day)).not.toBe(bodyScore(C, day));
   });
 });
 

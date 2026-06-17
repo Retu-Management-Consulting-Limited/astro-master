@@ -56,15 +56,19 @@ describe("身心评分引擎 bodyScore / bodyLevel", () => {
 });
 
 describe("身心轨 · 动态内容契约（按天变 / 按盘不同，最强断言）", () => {
-  it("按天变：相邻日的身心态在一个月里不全相同（not all identical）", () => {
-    const m = monthBody(A, 2026, 6);
-    const levels = m.days.map((d) => d.level);
-    // 强断言：至少有一对相邻日不同（不靠 Set.size>1 弱断言）
-    let adjacentDiffer = false;
-    for (let i = 1; i < levels.length; i++) {
-      if (levels[i] !== levels[i - 1]) { adjacentDiffer = true; break; }
+  it("按天变：相邻日的 intensity 几乎天天动（在真正按天移动的字段上做最强断言，≥21/29）", () => {
+    // R15：测目标别测代理。level 受月度稀有配额(天定+保底)刻意压平成一长串 calm
+    // （大多数日子平稳，design/23），所以 level 不是按天真正移动的字段——在它上面做
+    // 「相邻日不同」必然退化成 Set.size>1 式的弱断言（一月里只要 5/29 对不同就过）。
+    // 真正按天移动的是 intensity（原始星象分，未被配额重塑）：实测 A/B/D 29/29、C 26/29
+    // 相邻日不同。照 wealth 注册表的强形式（content-freshness.test.ts:68-73 的 >20/29），
+    // 把 not.toBe 钉在会动的字段上、要求多数相邻日确实变。
+    const iv = monthBody(A, 2026, 6).days.map((d) => d.intensity);
+    let changes = 0;
+    for (let i = 1; i < iv.length; i++) {
+      if (iv[i] !== iv[i - 1]) changes++;
     }
-    expect(adjacentDiffer, "相邻日身心态全相同——按天的呈现没变").toBe(true);
+    expect(changes, `intensity 仅 ${changes}/${iv.length - 1} 个相邻日变化——按天没真动`).toBeGreaterThan(20);
   });
 
   it("按盘不同：不同盘的整月身心态序列不同（相邻盘 not.toBe，禁 Set.size>1）", () => {
