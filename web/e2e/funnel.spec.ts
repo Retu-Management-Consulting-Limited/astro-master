@@ -81,7 +81,24 @@ test("activation funnel: landing → input → calibration → first-read → re
   await page.getByRole("button", { name: "返回" }).first().click();
   await expect(page.locator('[data-testid="wealth"]')).toBeVisible({ timeout: 5000 });
 
-  // 合盘 — leave the wealth tab via 我的
+  // 身心日历 — T4 Phase 4: 身心轨与财运对称，也由今日格的「身心 chip」进入（非 tab）。
+  // 走法 today → body-chip → /body（同构月历，不漏屏）。
+  await page.locator('a[href="/today"]').click();
+  await expect(page.locator('[data-testid="today"]')).toBeVisible({ timeout: 5000 });
+  await page.locator('[data-testid="body-chip"]').click();
+  await expect(page.locator('[data-testid="body"]')).toBeVisible({ timeout: 5000 });
+  // /body 同构于 /wealth：也无自己的 active tab，TabBar 仍渲染（route-exit 出口）。
+  await expect(page.locator('nav[aria-label="主导航"]')).toBeVisible();
+  // 月历: tap a future day → its body verdict preview renders in the detail card
+  const bodyDays = page.locator('[data-testid="body-day"]');
+  await expect(bodyDays.first()).toBeVisible();
+  await bodyDays.last().click();
+  await expect(page.locator('[data-testid="body-detail"]')).toBeVisible();
+  // "看更深" 身心深度 → 对话（非死胡同）
+  await page.locator('[data-testid="body-deeper"]').click();
+  await expect(page).toHaveURL(/\/chat$/, { timeout: 5000 });
+
+  // 合盘 — back to /today then leave via 我的
   await page.locator('a[href="/me"]').click();
   await page.locator('[data-testid="row-synastry"]').click();
   await expect(page.locator('[data-testid="synastry"]')).toBeVisible({ timeout: 5000 });

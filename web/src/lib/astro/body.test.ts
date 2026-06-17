@@ -7,6 +7,8 @@ import {
   dayBody,
   monthBody,
   monthBodyLevels,
+  bodyMark,
+  moonPhaseMark,
   type BodyLevel,
 } from "./body";
 
@@ -175,5 +177,42 @@ describe("身心轨 · 单日 vs 整月一致 + memo 同参恒等", () => {
         expect(["red", "green", "plain"]).toContain(state);
       }
     }
+  });
+});
+
+// 日历渲染助手（bodyMark / moonPhaseMark）——/body 页与任何复用身心格的组件认同一份
+// 渲染语义（与 wealth.wealthMark 对称，不为身心另起配色）。
+describe("身心日历渲染助手 bodyMark / moonPhaseMark", () => {
+  it("bodyMark：三态各给 glyph+label，三态互不相同（不复用财运 label，但同一套灯）", () => {
+    const good = bodyMark("good");
+    const low = bodyMark("low");
+    const calm = bodyMark("calm");
+    for (const m of [good, low, calm]) {
+      expect(m.glyph.length).toBeGreaterThan(0);
+      expect(m.label.length).toBeGreaterThan(0);
+    }
+    // 三态 label 两两不同——渲染层能据此分辨灯色。
+    expect(new Set([good.label, low.label, calm.label]).size).toBe(3);
+    // 说倾向不说病：label 不得含病种/诊断字样。
+    for (const m of [good, low, calm]) {
+      expect(m.label).not.toMatch(/病|症|癌|诊断/);
+    }
+  });
+
+  it("moonPhaseMark：纯 (date) 函数，新月≈🌑 / 满月≈🌕，其余日 null，且一个朔望月内两相皆现", () => {
+    // 同参恒等（确定性）。
+    const d = new Date(Date.UTC(2026, 5, 16, 12));
+    expect(moonPhaseMark(d)).toBe(moonPhaseMark(d));
+    // 扫一个朔望月：新月与满月都至少出现一次，且多数日子无标记（疏）。
+    let nm = 0, fm = 0, none = 0;
+    for (let i = 0; i < 30; i++) {
+      const g = moonPhaseMark(new Date(Date.UTC(2026, 5, 1 + i, 12)));
+      if (g === "🌑") nm++;
+      else if (g === "🌕") fm++;
+      else none++;
+    }
+    expect(nm, "一个月里没扫到新月").toBeGreaterThan(0);
+    expect(fm, "一个月里没扫到满月").toBeGreaterThan(0);
+    expect(none, "月相标记没保持疏（大多数日子应无标记）").toBeGreaterThan(20);
   });
 });

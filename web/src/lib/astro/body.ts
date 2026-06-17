@@ -2,6 +2,27 @@ import { bodyLongitude, type Chart, type BodyName } from "./chart";
 import { signRuler, houseSign } from "./wealth";
 import type { TodayState } from "../reading/todayVerdict";
 
+// ── 日历渲染助手（对称于 wealth.wealthMark）──────────────────────────────────
+// 身心日历格 / 图例 / TodayCell 复用同一套「红/绿/平行动灯」glyph + label，不为身心
+// 另起一套配色（design/23：身心格用同一套红/绿/平，teal 只是 chip/标题点缀）。
+// 把 mark 收在引擎层，让 /body 页和任何复用身心格的组件认同一份渲染语义。
+export function bodyMark(level: BodyLevel): { glyph: string; label: string } {
+  if (level === "good") return { glyph: "▲", label: "有劲" };
+  if (level === "low") return { glyph: "▼", label: "该歇" };
+  return { glyph: "·", label: "平稳" };
+}
+
+// 月相标记：行运月亮与太阳的角距（黄经差）。≈0° 新月🌑、≈180° 满月🌕——design/23 第二屏
+// 「新月/满月情绪最满」的格子角标。其余日子返回 null（不标）。是 (date) 的纯函数。
+export function moonPhaseMark(date: Date): "🌑" | "🌕" | null {
+  const moon = bodyLongitude("Moon", date);
+  const sun = bodyLongitude("Sun", date);
+  const elong = sep(moon, sun);
+  if (elong <= 7) return "🌑";
+  if (elong >= 173) return "🌕";
+  return null;
+}
+
 // ── 身心轨（健康）评分引擎 ───────────────────────────────────────────────────
 // 与 wealth.ts 完全同构：把行运星象折成一个 0..100 的「身心」分，再用月度稀有
 // 配额（天定 + 保底，照 wealth 的 WeakMap memo + rank-quota）把分翻成三态。

@@ -29,7 +29,7 @@ test("H2-sweep: a dirty/half chart redirects to /input instead of crashing gated
   await quiet(page);
   // placements:[] is invalid per isFullChart → guard must treat as no chart.
   await seedFunnel(page, { chart: { ascSign: "天蝎", ascSignIndex: 7, asc: 1, mc: 1, aspects: [], placements: [] }, nickname: "测", joinedAt: 1 });
-  for (const path of ["/today", "/chart", "/wealth", "/share"]) {
+  for (const path of ["/today", "/chart", "/wealth", "/body", "/share"]) {
     await page.goto(path);
     await expect(page).toHaveURL(/\/input/, { timeout: 8000 });
     // not the ErrorBoundary

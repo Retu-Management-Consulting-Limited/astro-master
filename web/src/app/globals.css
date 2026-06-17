@@ -5,6 +5,8 @@
   --gold:#c9a861; --gold-soft:#e0c98a; --gold-deep:#9a7d44;
   --cream:#efe7d4; --cream-dim:#c2baa6; --mute:#8b92a6;
   --irisc:#b58fb0; --pink:#e69ec8; --orange:#f0a868; --blue:#8fb6d8; --green:#7fc99a; --red:#e5736f;
+  /* 健康轨(身心)点缀色——仅标题/chip 装饰，NOT a state 灯（state 仍复用 red/green/平，见 design/23）。*/
+  --teal:#6fc2c0; --teal-soft:#a6e0de;
   --field:#141a29; --field-bd:#2c3447;
   --serif:'Cormorant Garamond','Noto Serif SC',Georgia,serif;
   --sans:'Hanken Grotesk','Noto Sans SC',system-ui,sans-serif;
