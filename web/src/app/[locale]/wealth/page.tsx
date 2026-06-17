@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { monthWealth, wealthMark, type DayWealth } from "@/lib/astro/wealth";
 import { useNow } from "@/lib/useNow";

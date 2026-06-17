@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { computeChart } from "@/lib/astro/chart";
 import { useFunnel, snapshotOf, type BirthForm } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";

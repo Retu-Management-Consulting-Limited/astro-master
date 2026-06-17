@@ -20,9 +20,11 @@ vi.hoisted(() => {
   });
 });
 
-// next/navigation isn't wired in jsdom — stub the router the page pushes through.
+// next-intl's navigation shim isn't wired in jsdom — stub the router the page
+// pushes through. The page + useChartGuard now import useRouter from
+// @/i18n/navigation, so mock that module.
 const push = vi.fn();
-vi.mock("next/navigation", () => ({
+vi.mock("@/i18n/navigation", () => ({
   useRouter: () => ({ push, replace: vi.fn(), back: vi.fn() }),
 }));
 

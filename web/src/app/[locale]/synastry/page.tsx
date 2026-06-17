@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { BackButton } from "@/components/BackButton";
 import { computeChart, type Chart } from "@/lib/astro/chart";

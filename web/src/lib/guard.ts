@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useFunnel } from "./store";
 import { isFullChart } from "./astro/chart-validate";
 

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 import { computeChart, type Chart } from "@/lib/astro/chart";
 import { isFullChart } from "@/lib/astro/chart-validate";
 import { resolveBirth } from "@/lib/birth";
@@ -106,7 +107,7 @@ export default function InvitePage() {
             <div style={{ fontSize: 40, marginBottom: 14 }}>✦</div>
             <div style={{ fontFamily: "var(--serif)", fontSize: 24, color: "var(--cream)", lineHeight: 1.4 }}>填好了，谢谢你。</div>
             <p style={{ marginTop: 12, fontSize: 14, color: "var(--cream-dim)", lineHeight: 1.7 }}>{inviter} 那边就能看到你俩的真实合盘了。<br />想看你自己的本命盘吗？</p>
-            <a href="/" style={{ display: "inline-block", marginTop: 20, color: "var(--gold-soft)", fontSize: 14 }}>让 Molly 也看看我 →</a>
+            <Link href="/" style={{ display: "inline-block", marginTop: 20, color: "var(--gold-soft)", fontSize: 14 }}>让 Molly 也看看我 →</Link>
           </div>
         ) : (
           <>
@@ -207,7 +208,7 @@ function BResult({ myChart, myName, otherChart, otherName, type }: { myChart: Ch
       {/* B-6 conversion: turn the invitee into a user. */}
       <div style={{ marginTop: 26, background: "rgba(201,168,97,.06)", border: "1px solid rgba(201,168,97,.22)", borderRadius: 14, padding: "16px 16px", textAlign: "center" }}>
         <div style={{ fontFamily: "var(--serif)", fontSize: 17, color: "var(--cream)", lineHeight: 1.5 }}>{otherName} 让 Molly 看穿了你俩。<br />那 <span style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>单看你一个人</span> 呢？</div>
-        <a href="/" data-testid="invite-cta" style={{ display: "block", marginTop: 14, background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", color: "#1a1408", fontWeight: 600, borderRadius: 10, padding: "11px 0", fontSize: 14, textDecoration: "none" }}>让 Molly 也看看我 →</a>
+        <Link href="/" data-testid="invite-cta" style={{ display: "block", marginTop: 14, background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", color: "#1a1408", fontWeight: 600, borderRadius: 10, padding: "11px 0", fontSize: 14, textDecoration: "none" }}>让 Molly 也看看我 →</Link>
       </div>
       <div style={{ marginTop: 12, textAlign: "center", fontSize: 10, color: "#566073" }}>说的是相处动态，不是命定结局 · 你看不到对方的出生信息</div>
     </div>

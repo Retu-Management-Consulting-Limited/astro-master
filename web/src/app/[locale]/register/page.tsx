@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useFunnel, snapshotOf } from "@/lib/store";
 import { identify, track } from "@/lib/track";
 import { apiRegister, apiLogin } from "@/lib/auth-client";

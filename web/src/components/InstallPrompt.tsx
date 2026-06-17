@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 
 interface BIPEvent extends Event {
   prompt: () => Promise<void>;

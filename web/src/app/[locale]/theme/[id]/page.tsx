@@ -1,6 +1,6 @@
 "use client";
 import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { generateThemeRead, THEME_IDS, type ThemeId, type ThemeRead } from "@/lib/reading/theme";

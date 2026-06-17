@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { metLabel } from "@/lib/relationship";

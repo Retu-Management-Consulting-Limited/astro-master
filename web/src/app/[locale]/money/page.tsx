@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { BackButton } from "@/components/BackButton";
 import { moneyPersona } from "@/lib/money/persona";

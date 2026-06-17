@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
 import { monthBody, bodyMark, moonPhaseMark, type DayBody } from "@/lib/astro/body";
 import { bodyVerdict } from "@/lib/reading/bodyVerdict";

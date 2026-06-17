@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 // Shared back/close affordance so every screen's header is a real, focusable,
 // labelled <button> instead of a hand-rolled <span onClick> (F / R1). Use
