@@ -129,6 +129,88 @@ describe("freshness contract · body/health varies by day (intensity) and by cha
   });
 });
 
+// #T4 身心判词 (bodyVerdict) — 身心轨的 PRESENTATION 层（对称于 todayVerdict 财运判词）。
+// R14 (值会变 ≠ 呈现会变)：bodyScore/level 已在上面登记按天/按盘真动；这里登记【用户真正
+// 看到的那段话】——line/why/care/quote/weather 在【同态相邻日】要轮换、【不同盘】要不同。
+// 强形式钉在同态相邻日（最难的退化点：换了一天还一样，正是 2026-06-15 的 bug），不只挑
+// 状态翻面的 easy 日；按盘同日 not.toBe（禁 Set.size>1）。
+describe("freshness contract · body verdict (身心判词) rotates per-day and personalizes per-chart", () => {
+  const cell = (v: ReturnType<typeof bodyVerdict>) =>
+    text([v.weather, v.line, v.why, v.care, v.quote]);
+
+  it("ADJACENT SAME-STATE days rotate the body cell (not just state-change days)", () => {
+    for (const chart of [A, B, C]) {
+      let sameStatePairs = 0;
+      let prev: ReturnType<typeof bodyVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = bodyVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+        if (prev && prev.state === v.state) {
+          sameStatePairs++;
+          expect(cell(prev), `frozen body cell, same-state adjacent days (doy ${i})`).not.toBe(cell(v));
+        }
+        prev = v;
+      }
+      expect(sameStatePairs, "too few same-state pairs to test body rotation").toBeGreaterThan(50);
+    }
+  });
+
+  it("ADJACENT 平稳(plain) days rotate the calm body cell (the dominant state is not a frozen void)", () => {
+    // plain 是配额下的多数态，是用户大多数日子看到的格——它也必须按天换。
+    for (const chart of [A, B, C]) {
+      let plainPairs = 0;
+      let prev: ReturnType<typeof bodyVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = bodyVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)));
+        if (prev && prev.state === "plain" && v.state === "plain") {
+          plainPairs++;
+          expect(cell(prev), `frozen plain body cell (doy ${i})`).not.toBe(cell(v));
+        }
+        prev = v;
+      }
+      expect(plainPairs, "too few plain→plain body pairs — quota not making plain dominant?").toBeGreaterThan(40);
+    }
+  });
+
+  it("different charts, SAME day, render a different body cell (personalized, not.toBe)", () => {
+    const day = new Date(Date.UTC(2026, 5, 14, 12));
+    expect(cell(bodyVerdict(A, day)), "A and B share the whole body cell").not.toBe(cell(bodyVerdict(B, day)));
+    expect(cell(bodyVerdict(B, day)), "B and C share the whole body cell").not.toBe(cell(bodyVerdict(C, day)));
+  });
+});
+
+// #T4 主导 channel 选择 (todayVerdict.channel) — 「今天谁领头」(钱/健康) 是一个 (chart,date)
+// 纯函数的 DYNAMIC 选择面。R14：登记它真按天/按盘动——不是断言某一天必是哪条轨（那是内容），
+// 而是断言这个选择沿两轴会变（不是一年钉死一条轨、不是所有盘同一序列）。强形式：相邻日有真翻轨
+// （not.toBe 在序列层）+ 不同盘的整月 channel 序列 not.toBe（禁 Set.size>1）。
+describe("freshness contract · dominant channel (主导 channel 钱/健康) varies by day and by chart", () => {
+  const monthChannels = (ch: typeof A) =>
+    Array.from({ length: 30 }, (_, i) => todayVerdict(ch, new Date(Date.UTC(2026, 5, 1 + i, 12))).channel);
+
+  it("the channel actually FLIPS across the month — it is not a single frozen track all month", () => {
+    for (const ch of [A, B, C]) {
+      const seq = monthChannels(ch);
+      const flips = seq.slice(1).filter((c, i) => c !== seq[i]).length;
+      expect(flips, `channel flipped only ${flips} times in 30 days for a chart`).toBeGreaterThan(0);
+    }
+  });
+
+  it("two clearly-different charts produce a DIFFERENT month channel series (personalized, not.toBe)", () => {
+    expect(monthChannels(A).join(",")).not.toBe(monthChannels(B).join(","));
+    expect(monthChannels(B).join(",")).not.toBe(monthChannels(C).join(","));
+  });
+
+  it("channel is belief-INVARIANT — it is a pure function of the two tracks' (state,intensity), no calibration door", () => {
+    // 与 edge-preservation 同源：channel 由两轨 state/intensity 选，二者都是 (chart,date)
+    // 纯函数。重读同一 (chart,date) 的 channel 必须 byte-identical（没有藏 belief/mood）。
+    for (const ch of [A, B, C]) {
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(Date.UTC(2026, 5, 1 + i, 12));
+        expect(todayVerdict(ch, d).channel).toBe(todayVerdict(ch, d).channel);
+      }
+    }
+  });
+});
+
 describe("freshness contract · personalized surfaces differ between charts", () => {
   it("daily reading is personalized (different chart → different reading on the same day)", () => {
     const d = new Date(Date.UTC(2026, 5, 14, 12));
