@@ -9,6 +9,7 @@ import {
   monthBodyLevels,
   bodyMark,
   moonPhaseMark,
+  GOOD_CAP,
   type BodyLevel,
 } from "./body";
 
@@ -96,6 +97,17 @@ describe("身心轨 · 月度稀有配额（天定 + 保底，仿 wealth）", ()
       for (let m = 1; m <= 12; m++) {
         const low = monthBody(ch, 2026, m).days.filter((d) => d.level === "low").length;
         expect(low, `month ${m} 有 ${low} 个 low 日`).toBeLessThanOrEqual(4);
+      }
+    }
+  });
+
+  // 绿帽：有劲(good/green) 也封顶（≤ GOOD_CAP/月），镜像 low 的红帽，让强月不再满屏绿。
+  // 没这帽时 good 填满平稳-floor 的剩余额度，让「有劲」不再稀有（design/23：别天天有戏）。
+  it("每盘、2026 每月：有劲(good) 天数 ≤ GOOD_CAP", () => {
+    for (const ch of CHARTS) {
+      for (let m = 1; m <= 12; m++) {
+        const good = monthBody(ch, 2026, m).days.filter((d) => d.level === "good").length;
+        expect(good, `month ${m} 有 ${good} 个 good 日`).toBeLessThanOrEqual(GOOD_CAP);
       }
     }
   });
