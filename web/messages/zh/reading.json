@@ -1,0 +1,19 @@
+{
+  "loadingLine": "我看到你了。<br/>给我一点时间……",
+  "loadingSub": "正在解读你的盘…",
+  "srHeading": "你的首读",
+  "ascGuessed": "据描述推测 · 上升",
+  "ascKnown": "上升",
+  "thinking": {
+    "aligning": "正在对齐你的星盘…",
+    "moonNamed": "她在读你的月亮·{sign}…",
+    "moon": "她在读你的月亮…",
+    "matching": "把你的样子，和你的盘对上…",
+    "weighing": "在斟酌——怎么说，才不伤你、又够准…",
+    "almost": "快好了，她想把这一段，写得更像你…"
+  },
+  "sectionTime": "你的时辰",
+  "sectionPicked": "为你挑的",
+  "ctaChat": "想接着问 Molly？注册后开聊 →",
+  "ctaSave": "📤 把这段存成卡片"
+}

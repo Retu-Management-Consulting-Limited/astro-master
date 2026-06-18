@@ -35,6 +35,9 @@ import zhHistory from "../../messages/zh/history.json";
 import zhShare from "../../messages/zh/share.json";
 import zhAdmin from "../../messages/zh/admin.json";
 import zhComponents from "../../messages/zh/components.json";
+import zhReading from "../../messages/zh/reading.json";
+import zhTheme from "../../messages/zh/theme.json";
+import zhMoney from "../../messages/zh/money.json";
 
 import ruCommon from "../../messages/ru/common.json";
 import ruNav from "../../messages/ru/nav.json";
@@ -57,6 +60,9 @@ import ruHistory from "../../messages/ru/history.json";
 import ruShare from "../../messages/ru/share.json";
 import ruAdmin from "../../messages/ru/admin.json";
 import ruComponents from "../../messages/ru/components.json";
+import ruReading from "../../messages/ru/reading.json";
+import ruTheme from "../../messages/ru/theme.json";
+import ruMoney from "../../messages/ru/money.json";
 
 export const NAMESPACES = [
   "common",
@@ -80,6 +86,9 @@ export const NAMESPACES = [
   "share",
   "admin",
   "components",
+  "reading",
+  "theme",
+  "money",
 ] as const;
 
 export type Namespace = (typeof NAMESPACES)[number];
@@ -109,6 +118,9 @@ const BUNDLE: Record<AppLocale, Bundle> = {
     share: zhShare,
     admin: zhAdmin,
     components: zhComponents,
+    reading: zhReading,
+    theme: zhTheme,
+    money: zhMoney,
   },
   ru: {
     common: ruCommon,
@@ -132,6 +144,9 @@ const BUNDLE: Record<AppLocale, Bundle> = {
     share: ruShare,
     admin: ruAdmin,
     components: ruComponents,
+    reading: ruReading,
+    theme: ruTheme,
+    money: ruMoney,
   },
 };
 

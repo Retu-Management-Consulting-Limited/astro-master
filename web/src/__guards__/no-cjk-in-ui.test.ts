@@ -26,9 +26,9 @@ import { join, relative } from "node:path";
 
 const WEB_ROOT = join(__dirname, "..", "..");
 
-// 切到 true → 忽略 CLEANED_FILES 清单，对整个 app+components 全量断言无 CJK。
-// Task 10 收口时打开（或删清单参数）。
-const FULL_SCAN = process.env.I18N_FULL_SCAN === "1";
+// Task 10 收口：全量扫描成为永久默认。忽略 CLEANED_FILES，对整个 app+components
+// 全量断言无 CJK（C 区除外）。设 I18N_FULL_SCAN=0 可临时回退到清单模式（仅调试）。
+const FULL_SCAN = process.env.I18N_FULL_SCAN !== "0";
 
 // 已清理、必须保持无 CJK 的文件（相对 web/ 根）。后续任务往这里追加。
 const CLEANED_FILES: string[] = [

@@ -1,0 +1,24 @@
+{
+  "srHeading": "主题深读",
+  "locked": {
+    "title": "这个主题还没解锁",
+    "back": "← 回到我的星盘"
+  },
+  "memoryLabel": "我记得",
+  "thinking": {
+    "reading": "正在顺着「{title}」读你…",
+    "meaning": "她在看，这块对你意味着什么…",
+    "translating": "把你的星位，翻成你能用的话…",
+    "almost": "快好了，她想说得更贴你…"
+  },
+  "deep": {
+    "unlocked": "✦ 更深的一层 · 已解锁",
+    "locked": "🔒 更深的一层：{title}里，你到底卡在哪",
+    "unlockedNote": "✓ 我们够熟了——这层，我讲给你听。",
+    "progress": "越用越准 · 懂你度 <pct>{pctVal}%</pct> → {at} 我就免费讲给你<rem>（还差 {toGo}）</rem>",
+    "unlockNow": "✦ 立即解锁",
+    "chatMore": "多聊聊，更快 →",
+    "paidNote": "付费解锁马上开放 🤍 现在先靠多聊几句——懂你度到 {at}，我免费讲给你。"
+  },
+  "saveCard": "📤 把这段存成卡片"
+}

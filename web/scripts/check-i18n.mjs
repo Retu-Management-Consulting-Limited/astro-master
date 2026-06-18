@@ -25,9 +25,12 @@ const MESSAGES = join(ROOT, "messages");
 const CJK = /[一-鿿㐀-䶿]/;
 const ALLOW_MARKER = "i18n-allow-cjk";
 
-const FULL_SCAN = process.env.I18N_FULL_SCAN === "1";
+// Task 10 收口：全量扫描成为永久默认。所有 UI 文件已抽取，no-CJK 现对整个
+// src/app + src/components 强制（C 区除外）。设 I18N_FULL_SCAN=0 可临时回退到
+// 清单模式（仅用于调试）。
+const FULL_SCAN = process.env.I18N_FULL_SCAN !== "0";
 
-// Files already migrated to next-intl that must stay CJK-free (relative web/).
+// 渐进模式（已废弃，仅 I18N_FULL_SCAN=0 调试时用）的历史清单。
 const CLEANED_FILES = [
   "src/components/TabBar.tsx",
   "src/app/[locale]/layout.tsx",

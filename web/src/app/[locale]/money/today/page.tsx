@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useChartGuard } from "@/lib/guard";
 import { BackButton } from "@/components/BackButton";
 import { StoryCard } from "@/components/money/StoryCard";
@@ -29,6 +30,7 @@ function deviceId(): string {
 }
 
 export default function MoneyTodayPage() {
+  const t = useTranslations("money.today");
   const { chart, ready } = useChartGuard();
   const [data, setData] = useState<DayData | null>(null);
   const [rated, setRated] = useState(false);
@@ -70,7 +72,7 @@ export default function MoneyTodayPage() {
         <BackButton />
       </div>
       {!data ? (
-        <p className="py-20 text-center font-serif text-[17px] text-[#c2baa6]">Molly 正在翻你的故事……</p>
+        <p className="py-20 text-center font-serif text-[17px] text-[#c2baa6]">{t("loading")}</p>
       ) : (
         <>
           <StoryCard
@@ -83,9 +85,9 @@ export default function MoneyTodayPage() {
           />
           {!rated ? (
             <div className="mt-6">
-              <p className="mb-3 text-center text-[12px] text-[#7a8194]">这一页，准吗？</p>
+              <p className="mb-3 text-center text-[12px] text-[#7a8194]">{t("ratePrompt")}</p>
               <div className="flex gap-2">
-                {(["good", "meh", "off"] as const).map((r, i) => (
+                {(["good", "meh", "off"] as const).map((r) => (
                   <button
                     key={r}
                     onClick={() => {
@@ -94,13 +96,13 @@ export default function MoneyTodayPage() {
                     }}
                     className="flex-1 rounded-xl border border-[#262d3d] bg-[#0f1320] py-3 text-[13.5px] text-[#c2baa6]"
                   >
-                    {["好准", "一般", "不太像"][i]}
+                    {t(r === "good" ? "rateGood" : r === "meh" ? "rateMeh" : "rateOff")}
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="mt-6 text-center text-[12px] text-[#7fc99a]">收到——我记下了，明天讲得更贴你。</p>
+            <p className="mt-6 text-center text-[12px] text-[#7fc99a]">{t("rated")}</p>
           )}
         </>
       )}
