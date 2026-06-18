@@ -1,5 +1,6 @@
 import type { Chart } from "@/lib/astro/chart";
 import { interpretiveFacts } from "@/lib/astro/dignities";
+import type { AppLocale } from "@/i18n/routing";
 
 // Shared Molly voice + chart-fact serialization, used by /api/reading and
 // /api/chat so both speak with one persona over the same real placements.
@@ -11,7 +12,10 @@ export const PLANET_ZH: Record<string, string> = {
 
 export const HOUSE_ZH = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
 
-export function facts(chart: Chart): string {
+// M1：locale 形参串入管道（默认 zh 输出逐字不变）。ru 下的俄语星盘术语
+// （PLANET_RU/HOUSE_RU/SIGN_RU）由 M2 落地，本期签名先就位、行为不变。
+export function facts(chart: Chart, locale: AppLocale = "zh"): string {
+  void locale;
   const lines = chart.placements
     .filter((p) => PLANET_ZH[p.body])
     .map((p) => `${PLANET_ZH[p.body]}落${p.sign}，第${HOUSE_ZH[p.house] ?? p.house}宫`);
@@ -44,7 +48,10 @@ export const PERSONA_MALE = `你是 Molly——一位能「看穿本命」的占
 - 一定紧扣我给你的真实星盘事实来写，不要编造任何星位。
 - 简体中文。解读正文里不要出现任何免责声明。`;
 
-export function personaFor(gender?: Gender): string {
+// M1：locale 形参串入（默认 zh 行为不变）。ru 的 PERSONA_RU/PERSONA_RU_MALE
+// + SAFETY_RU 由 M2 落地，本期签名先就位、zh 输出逐字不变。
+export function personaFor(gender?: Gender, locale: AppLocale = "zh"): string {
+  void locale;
   return gender === "male" ? PERSONA_MALE : PERSONA;
 }
 // Third-person pronoun used inside the prose-writing instructions.

@@ -5,6 +5,8 @@ import type { Chart } from "@/lib/astro/chart";
 import { isFullChart } from "@/lib/astro/chart-validate";
 import { SAFETY, facts, personaFor, pronoun, type Gender } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
+import { hasLocale } from "next-intl";
+import { routing, type AppLocale } from "@/i18n/routing";
 import { cacheGet, cacheSet } from "@/lib/server/store";
 import { resolveIdentity } from "@/lib/server/identity";
 import { rateLimit, RULES } from "@/lib/server/ratelimit";
@@ -38,8 +40,8 @@ interface AiCommon {
   chips: string[];
 }
 
-function firstPrompt(chart: Chart, ta: string, nickname?: string): string {
-  return `${nickname ? `用户昵称：${nickname}。\n` : ""}这是${ta}的真实星盘事实：\n${facts(chart)}\n\n以 Molly 的口吻，为${ta}写一段「第一次见面就被看穿」的解读。只输出如下 JSON，不要任何额外文字或代码块标记：
+function firstPrompt(chart: Chart, ta: string, locale: AppLocale, nickname?: string): string {
+  return `${nickname ? `用户昵称：${nickname}。\n` : ""}这是${ta}的真实星盘事实：\n${facts(chart, locale)}\n\n以 Molly 的口吻，为${ta}写一段「第一次见面就被看穿」的解读。只输出如下 JSON，不要任何额外文字或代码块标记：
 {
   "lead": "一句话开场，第二人称，直接戳中${ta}（≤22字）",
   "paragraphs": [
@@ -52,8 +54,8 @@ function firstPrompt(chart: Chart, ta: string, nickname?: string): string {
 }`;
 }
 
-function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: string, ta: string, nickname?: string): string {
-  return `${nickname ? `用户昵称：${nickname}。\n` : ""}主题：${title}。关键星位：${label}。\n${ta}的整盘事实：\n${facts(chart)}\n\n围绕这个主题，以 Molly 的口吻写一段深度解读。只输出如下 JSON，不要任何额外文字或代码块标记：
+function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: string, ta: string, locale: AppLocale, nickname?: string): string {
+  return `${nickname ? `用户昵称：${nickname}。\n` : ""}主题：${title}。关键星位：${label}。\n${ta}的整盘事实：\n${facts(chart, locale)}\n\n围绕这个主题，以 Molly 的口吻写一段深度解读。只输出如下 JSON，不要任何额外文字或代码块标记：
 {
   "paragraphs": [
     {"text": "这个主题在${ta}身上怎么显现（≤55字）", "accent": false},
@@ -65,7 +67,8 @@ function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: strin
 }`;
 }
 
-const run = (prompt: string, system: string, ac: AbortController) => runLLM(prompt, system, ac);
+const run = (prompt: string, system: string, ac: AbortController, locale: AppLocale) =>
+  runLLM(prompt, system, ac, 1024, locale);
 
 // A chart's reading is stable → cache it (KV in cloud, in-memory locally) so
 // repeat taps / re-renders return instantly and don't re-bill.
@@ -94,13 +97,16 @@ function parseAi(text: string): AiCommon {
 }
 
 export async function POST(req: Request) {
-  let body: { kind?: string; themeId?: string; chart?: Chart; nickname?: string; gender?: Gender };
+  let body: { kind?: string; themeId?: string; chart?: Chart; nickname?: string; gender?: Gender; locale?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "bad body" }, { status: 400 });
   }
   const { kind, themeId, chart, nickname, gender } = body;
+  // API 路由拿不到 URL locale（Next16 proxy 不注入）→ 从 POST body 取，hasLocale
+  // 校验，非法回退 defaultLocale。这是 locale 管道的服务端入口。
+  const locale: AppLocale = hasLocale(routing.locales, body.locale) ? body.locale : routing.defaultLocale;
   if (!isFullChart(chart)) return NextResponse.json({ error: "invalid chart" }, { status: 400 });
 
   if (kind === "theme" && (!themeId || !(THEME_IDS as string[]).includes(themeId))) {
@@ -122,19 +128,19 @@ export async function POST(req: Request) {
   const ac = new AbortController();
   req.signal.addEventListener("abort", () => ac.abort());
 
-  const system = `${personaFor(gender)}\n\n${SAFETY}`;
+  const system = `${personaFor(gender, locale)}\n\n${SAFETY}`;
   const ta = pronoun(gender);
   try {
     let result: unknown;
     if (kind === "theme") {
       const scaffold = generateThemeRead(chart, themeId as ThemeId);
-      const r = await run(themePrompt(chart, themeId as ThemeId, scaffold.planetLabel, scaffold.title, ta, nickname), system, ac);
+      const r = await run(themePrompt(chart, themeId as ThemeId, scaffold.planetLabel, scaffold.title, ta, locale, nickname), system, ac, locale);
       if (r.usage) await logUsage({ route: "reading", ...r.usage }).catch(() => {});
       const ai = parseAi(r.text);
       // keep the deterministic structural facts, swap in Claude's prose
       result = { ...scaffold, paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips };
     } else {
-      const r = await run(firstPrompt(chart, ta, nickname), system, ac);
+      const r = await run(firstPrompt(chart, ta, locale, nickname), system, ac, locale);
       if (r.usage) await logUsage({ route: "reading", ...r.usage }).catch(() => {});
       const ai = parseAi(r.text);
       result = { ascSign: chart.ascSign, lead: ai.lead ?? "", paragraphs: ai.paragraphs, quote: ai.quote, chips: ai.chips };

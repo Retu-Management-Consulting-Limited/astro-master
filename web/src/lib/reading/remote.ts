@@ -5,10 +5,24 @@ import type { SynRead } from "./synastry";
 import type { RelType } from "@/lib/astro/synastry";
 import { fallbackFollowups, parseFollowups, type Followup } from "@/lib/ai/followups";
 import { useFunnel } from "@/lib/store";
+import { hasLocale } from "next-intl";
+import { routing, type AppLocale } from "@/i18n/routing";
 
 // Gender (for the persona variant) travels with every AI request, read from the
 // funnel so callers don't each have to thread it.
 const gender = () => useFunnel.getState().gender;
+
+// Locale travels with every AI request so Molly answers in the user's language.
+// API routes can't read the URL locale (Next16 proxy doesn't inject it into API
+// handlers), so the client puts it in the body. We read it from the URL prefix
+// (localePrefix: "as-needed" → "/ru/…" = ru, no prefix = zh) rather than threading
+// useLocale() through every caller page — that keeps the change inside the voice
+// layer (callers are UI .tsx, out of scope here). hasLocale validates; fallback zh.
+function currentLocale(): AppLocale {
+  if (typeof window === "undefined") return routing.defaultLocale;
+  const seg = window.location.pathname.split("/")[1];
+  return hasLocale(routing.locales, seg) ? seg : routing.defaultLocale;
+}
 
 // Real Molly readings via /api/reading (Agent SDK). Opt-in: set
 // NEXT_PUBLIC_MOLLY_AI=1 in .env.local. Off by default so tests/CI and a
@@ -41,12 +55,12 @@ async function post(body: unknown, ms = 120000): Promise<Record<string, unknown>
 
 export async function fetchFirstRead(chart: Chart, nickname?: string): Promise<FirstRead | null> {
   if (!AI_ON) return null;
-  return (await post({ kind: "first", chart, nickname, gender: gender() })) as FirstRead | null;
+  return (await post({ kind: "first", chart, nickname, gender: gender(), locale: currentLocale() })) as FirstRead | null;
 }
 
 export async function fetchThemeRead(chart: Chart, themeId: ThemeId, nickname?: string): Promise<ThemeRead | null> {
   if (!AI_ON) return null;
-  return (await post({ kind: "theme", themeId, chart, nickname, gender: gender() })) as ThemeRead | null;
+  return (await post({ kind: "theme", themeId, chart, nickname, gender: gender(), locale: currentLocale() })) as ThemeRead | null;
 }
 
 // #5 合盘分型解读. Progressive: callers render the deterministic synScaffold instantly,
@@ -68,7 +82,7 @@ export async function fetchSynastryRead(
     const r = await fetch("/api/synastry/reading", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ selfChart, otherChart, type, selfName, otherName, gender: gender() }),
+      body: JSON.stringify({ selfChart, otherChart, type, selfName, otherName, gender: gender(), locale: currentLocale() }),
       signal: ctrl.signal,
     });
     if (!r.ok) return null;
@@ -94,7 +108,7 @@ export async function fetchChatReply(chart: Chart, messages: ChatMsg[], nickname
     const r = await fetch("/api/chat", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ chart, nickname, messages, gender: gender() }),
+      body: JSON.stringify({ chart, nickname, messages, gender: gender(), locale: currentLocale() }),
       signal: ctrl.signal,
     });
     if (!r.ok) return null;
@@ -117,7 +131,7 @@ export async function fetchFollowups(chart: Chart, messages: ChatMsg[], tier: 0 
     const r = await fetch("/api/chat/followups", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ chart, messages, gender: gender(), tier }),
+      body: JSON.stringify({ chart, messages, gender: gender(), tier, locale: currentLocale() }),
       signal: ctrl.signal,
     });
     if (!r.ok) return fallbackFollowups(tier);

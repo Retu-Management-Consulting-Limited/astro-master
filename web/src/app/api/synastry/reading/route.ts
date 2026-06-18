@@ -5,6 +5,8 @@ import { synastry, type RelType, type SynResult } from "@/lib/astro/synastry";
 import { synScaffold, type SynRead } from "@/lib/reading/synastry";
 import { SAFETY, facts, personaFor, pronoun, type Gender } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
+import { hasLocale } from "next-intl";
+import { routing, type AppLocale } from "@/i18n/routing";
 import { cacheGet, cacheSet } from "@/lib/server/store";
 import { resolveIdentity } from "@/lib/server/identity";
 import { rateLimit, RULES } from "@/lib/server/ratelimit";
@@ -33,7 +35,8 @@ function chartSig(c: Chart): string {
 
 const TYPE_LABEL: Record<RelType, string> = { lover: "恋人", partner: "事业合伙", colleague: "共事", friend: "朋友", family: "家人" };
 
-function synPrompt(result: SynResult, selfFacts: string, otherFacts: string, otherName: string): string {
+function synPrompt(result: SynResult, selfFacts: string, otherFacts: string, otherName: string, locale: AppLocale): string {
+  void locale;
   const dims = result.dims.map((d) => `${strip(d.label)}：${d.value}`).join("；");
   const aspects = result.dims
     .flatMap((d) => d.aspects.map((x) => `「${strip(d.label)}」你的${ZH[x.a] ?? x.a} ${x.angle}° ${otherName}的${ZH[x.b] ?? x.b}（${x.kind === "harmony" ? "和谐" : "张力"}）`))
@@ -70,13 +73,15 @@ function parseSyn(text: string): SynRead {
 }
 
 export async function POST(req: Request) {
-  let body: { selfChart?: Chart; otherChart?: Chart; type?: string; selfName?: string; otherName?: string; gender?: Gender };
+  let body: { selfChart?: Chart; otherChart?: Chart; type?: string; selfName?: string; otherName?: string; gender?: Gender; locale?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "bad body" }, { status: 400 });
   }
   const { selfChart, otherChart, type, otherName, gender } = body;
+  // locale 从 POST body 取（proxy 不注入到 API），hasLocale 校验，非法回退默认。
+  const locale: AppLocale = hasLocale(routing.locales, body.locale) ? body.locale : routing.defaultLocale;
   if (!isFullChart(selfChart) || !isFullChart(otherChart)) return NextResponse.json({ error: "invalid chart" }, { status: 400 });
   if (!type || !REL_TYPES.includes(type as RelType)) return NextResponse.json({ error: "bad type" }, { status: 400 });
 
@@ -95,10 +100,10 @@ export async function POST(req: Request) {
   const ac = new AbortController();
   req.signal.addEventListener("abort", () => ac.abort());
 
-  const system = `${personaFor(gender)}\n\n${SAFETY}`;
+  const system = `${personaFor(gender, locale)}\n\n${SAFETY}`;
   void pronoun(gender); // persona already gender-aware; pronoun kept available for future copy
   try {
-    const r = await runLLM(synPrompt(result, facts(selfChart!), facts(otherChart!), otherName ?? "对方"), system, ac);
+    const r = await runLLM(synPrompt(result, facts(selfChart!, locale), facts(otherChart!, locale), otherName ?? "对方", locale), system, ac, 1024, locale);
     if (r.usage) await logUsage({ route: "synastry", ...r.usage }).catch(() => {});
     const ai = parseSyn(r.text);
     await cacheSet(cacheKey, ai).catch(() => {});

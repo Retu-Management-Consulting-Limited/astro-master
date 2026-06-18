@@ -1,3 +1,5 @@
+import type { AppLocale } from "@/i18n/routing";
+
 // #4 对话后续问题 —— after every Molly reply, offer 2–3 follow-ups so the user is
 // never left in silence at an emotionally open moment (the biggest retention leak).
 //
@@ -81,7 +83,15 @@ export function parseFollowups(raw: unknown): Followup[] {
 }
 
 // Build the LLM instruction for context-aware, trust-graded follow-ups.
-export function buildFollowupPrompt(factsText: string, history: string, ta: string, tier: 0 | 1 | 2): string {
+// M1：locale 形参串入（默认 zh 文案不变）；ru 的俄语指示语由 M2 落地。
+export function buildFollowupPrompt(
+  factsText: string,
+  history: string,
+  ta: string,
+  tier: 0 | 1 | 2,
+  locale: AppLocale = "zh",
+): string {
+  void locale;
   return `${ta}的星盘事实：
 ${factsText}
 
