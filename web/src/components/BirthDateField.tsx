@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 // month is 1-12; day 0 of the next month == last day of this month.
 export function daysInMonth(year: number, month: number): number {
@@ -39,6 +40,7 @@ export function BirthDateField({
   onChange: (v: string) => void;
   idPrefix?: string;
 }) {
+  const t = useTranslations("forms.birthDate");
   const parts = value ? value.split("-").map((n) => parseInt(n, 10)) : [];
   const [y, setY] = useState<number>(parts[0] || 0);
   const [m, setM] = useState<number>(parts[1] || 0);
@@ -59,17 +61,17 @@ export function BirthDateField({
   }
 
   return (
-    <div role="group" aria-label="出生日期" style={{ display: "flex", gap: 8 }}>
-      <select aria-label="出生年" id={`${idPrefix}-year`} value={y || ""} onChange={(e) => commit(parseInt(e.target.value, 10) || 0, m, d)} style={{ ...selStyle, flex: 1.3 }}>
-        <option value="" disabled>年</option>
+    <div role="group" aria-label={t("groupLabel")} style={{ display: "flex", gap: 8 }}>
+      <select aria-label={t("yearAria")} id={`${idPrefix}-year`} value={y || ""} onChange={(e) => commit(parseInt(e.target.value, 10) || 0, m, d)} style={{ ...selStyle, flex: 1.3 }}>
+        <option value="" disabled>{t("yearPlaceholder")}</option>
         {years.map((yy) => <option key={yy} value={yy}>{yy}</option>)}
       </select>
-      <select aria-label="出生月" id={`${idPrefix}-month`} value={m || ""} onChange={(e) => commit(y, parseInt(e.target.value, 10) || 0, d)} style={selStyle}>
-        <option value="" disabled>月</option>
+      <select aria-label={t("monthAria")} id={`${idPrefix}-month`} value={m || ""} onChange={(e) => commit(y, parseInt(e.target.value, 10) || 0, d)} style={selStyle}>
+        <option value="" disabled>{t("monthPlaceholder")}</option>
         {Array.from({ length: 12 }, (_, i) => i + 1).map((mm) => <option key={mm} value={mm}>{mm}</option>)}
       </select>
-      <select aria-label="出生日" id={`${idPrefix}-day`} value={d || ""} onChange={(e) => commit(y, m, parseInt(e.target.value, 10) || 0)} style={selStyle}>
-        <option value="" disabled>日</option>
+      <select aria-label={t("dayAria")} id={`${idPrefix}-day`} value={d || ""} onChange={(e) => commit(y, m, parseInt(e.target.value, 10) || 0)} style={selStyle}>
+        <option value="" disabled>{t("dayPlaceholder")}</option>
         {Array.from({ length: dmax }, (_, i) => i + 1).map((dd) => <option key={dd} value={dd}>{dd}</option>)}
       </select>
     </div>

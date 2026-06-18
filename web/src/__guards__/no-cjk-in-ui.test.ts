@@ -37,6 +37,9 @@ const CLEANED_FILES: string[] = [
   "src/app/[locale]/not-found.tsx",
   "src/app/[locale]/error.tsx",
   "src/app/layout.tsx",
+  // T2: input + forms
+  "src/app/[locale]/input/page.tsx",
+  "src/components/BirthDateField.tsx",
 ];
 
 // C 区前缀（即便将来扩大扫描面也绝不检查 —— 属子项目 C）。

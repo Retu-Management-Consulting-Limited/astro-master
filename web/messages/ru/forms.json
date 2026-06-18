@@ -1,0 +1,11 @@
+{
+  "birthDate": {
+    "groupLabel": "Дата рождения",
+    "yearAria": "Год рождения",
+    "monthAria": "Месяц рождения",
+    "dayAria": "День рождения",
+    "yearPlaceholder": "Год",
+    "monthPlaceholder": "Мес.",
+    "dayPlaceholder": "День"
+  }
+}
