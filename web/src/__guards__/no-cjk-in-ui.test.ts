@@ -57,6 +57,9 @@ const CLEANED_FILES: string[] = [
   // T7: wealth + body
   "src/app/[locale]/wealth/page.tsx",
   "src/app/[locale]/body/page.tsx",
+  // T8: register + calibration
+  "src/app/[locale]/register/page.tsx",
+  "src/app/[locale]/calibration/page.tsx",
 ];
 
 // C 区前缀（即便将来扩大扫描面也绝不检查 —— 属子项目 C）。

@@ -29,6 +29,8 @@ import zhChat from "../../messages/zh/chat.json";
 import zhSynastry from "../../messages/zh/synastry.json";
 import zhWealth from "../../messages/zh/wealth.json";
 import zhBody from "../../messages/zh/body.json";
+import zhRegister from "../../messages/zh/register.json";
+import zhCalibration from "../../messages/zh/calibration.json";
 
 import ruCommon from "../../messages/ru/common.json";
 import ruNav from "../../messages/ru/nav.json";
@@ -45,6 +47,8 @@ import ruChat from "../../messages/ru/chat.json";
 import ruSynastry from "../../messages/ru/synastry.json";
 import ruWealth from "../../messages/ru/wealth.json";
 import ruBody from "../../messages/ru/body.json";
+import ruRegister from "../../messages/ru/register.json";
+import ruCalibration from "../../messages/ru/calibration.json";
 
 export const NAMESPACES = [
   "common",
@@ -62,6 +66,8 @@ export const NAMESPACES = [
   "synastry",
   "wealth",
   "body",
+  "register",
+  "calibration",
 ] as const;
 
 export type Namespace = (typeof NAMESPACES)[number];
@@ -85,6 +91,8 @@ const BUNDLE: Record<AppLocale, Bundle> = {
     synastry: zhSynastry,
     wealth: zhWealth,
     body: zhBody,
+    register: zhRegister,
+    calibration: zhCalibration,
   },
   ru: {
     common: ruCommon,
@@ -102,6 +110,8 @@ const BUNDLE: Record<AppLocale, Bundle> = {
     synastry: ruSynastry,
     wealth: ruWealth,
     body: ruBody,
+    register: ruRegister,
+    calibration: ruCalibration,
   },
 };
 
