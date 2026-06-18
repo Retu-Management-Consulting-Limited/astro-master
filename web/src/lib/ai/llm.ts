@@ -9,6 +9,7 @@
 // the SDK is never imported → the serverless bundle stays lean.
 
 import { createSemaphore } from "@/lib/util/semaphore";
+import type { AppLocale } from "@/i18n/routing";
 
 const MODEL_ALIAS = (process.env.MOLLY_MODEL || "sonnet").toLowerCase();
 
@@ -76,7 +77,17 @@ async function viaSdk(prompt: string, system: string, ac: AbortController): Prom
   return out;
 }
 
-export async function runLLM(prompt: string, system: string, ac: AbortController, maxTokens = 1024): Promise<LLMResult> {
+// `locale` 不改变两条 backend 的请求本身（俄语指示已编进 prompt/system 由调用方
+// 按 locale 构建）；它在签名里串到底，是 M1 承重地基的契约点——确保每个调用点都显式
+// 携带 locale（guard 静态校验），并为未来按 locale 调 maxTokens / 计费归因留挂点。
+export async function runLLM(
+  prompt: string,
+  system: string,
+  ac: AbortController,
+  maxTokens = 1024,
+  locale: AppLocale = "zh",
+): Promise<LLMResult> {
+  void locale;
   if (USE_API) return viaApi(prompt, system, ac, maxTokens);
   return { text: await sdkGate.run(() => viaSdk(prompt, system, ac)) };
 }

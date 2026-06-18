@@ -1,3 +1,5 @@
+import type { AppLocale } from "@/i18n/routing";
+
 // #4 对话后续问题 —— after every Molly reply, offer 2–3 follow-ups so the user is
 // never left in silence at an emotionally open moment (the biggest retention leak).
 //
@@ -80,8 +82,38 @@ export function parseFollowups(raw: unknown): Followup[] {
   return DIR_ORDER.filter((d) => byDir.has(d)).map((d) => ({ dir: d, text: byDir.get(d)! }));
 }
 
+// Trust-tier tone in Russian (mirrors TIER_TONE; native polish deferred to D).
+export const TIER_TONE_RU = [
+  "тепло, сдержанно, будто только познакомились, но уже не всё равно",
+  "осмеливаешься мягко назвать суть, видишь раньше, чем она сама",
+  "осмеливаешься на резкую правду, прямо в то, что она прячет",
+] as const;
+
 // Build the LLM instruction for context-aware, trust-graded follow-ups.
-export function buildFollowupPrompt(factsText: string, history: string, ta: string, tier: 0 | 1 | 2): string {
+// M2：locale-aware. zh (default) byte-unchanged; ru produces a Russian-scaffolded
+// instruction so the model emits Russian follow-up text (keys dir/text unchanged).
+export function buildFollowupPrompt(
+  factsText: string,
+  history: string,
+  ta: string,
+  tier: 0 | 1 | 2,
+  locale: AppLocale = "zh",
+): string {
+  if (locale === "ru") {
+    return `Факты натальной карты человека:
+${factsText}
+
+Ваш недавний разговор:
+${history}
+
+Задача: на основе того, что он(а) только что сказал(а) и что ты ответила, напиши ровно 3 вопроса, которые он(а) скорее всего захочет задать дальше, чтобы разговор продолжался. Требования:
+- По одному в каждом направлении: ① deep = копнуть ещё на слой глубже ② meaning = что это значит для него(неё) прямо сейчас ③ act = что он(а) может с этим сделать (обязательно к действию, давай выход, не оставляй человека в ране).
+- Пиши от первого лица, как он(а) сам(а) выпалил(а) бы это, каждый до ~22 символов.
+- Тон: ${TIER_TONE_RU[tier]}.${tier === 2 ? " Вопрос deep может быть тем, что он(а) боится спросить, но больше всего хочет знать." : ""}
+- Держись конкретного содержания разговора, без общих гороскопных банальностей.
+- Пиши на русском языке.
+Выводи только JSON-массив, без какого-либо другого текста: [{"dir":"deep","text":"…"},{"dir":"meaning","text":"…"},{"dir":"act","text":"…"}]`;
+  }
   return `${ta}的星盘事实：
 ${factsText}
 

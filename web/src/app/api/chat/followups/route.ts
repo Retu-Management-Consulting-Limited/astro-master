@@ -4,6 +4,8 @@ import { isFullChart } from "@/lib/astro/chart-validate";
 import { facts, pronoun, type Gender } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
 import { buildFollowupPrompt, parseFollowups, fallbackFollowups, type Followup } from "@/lib/ai/followups";
+import { hasLocale } from "next-intl";
+import { routing, type AppLocale } from "@/i18n/routing";
 import { resolveIdentity } from "@/lib/server/identity";
 import { rateLimit, RULES } from "@/lib/server/ratelimit";
 import { logUsage } from "@/lib/server/cost";
@@ -23,13 +25,15 @@ function clampTier(t: unknown): 0 | 1 | 2 {
 }
 
 export async function POST(req: Request) {
-  let body: { chart?: Chart; messages?: Msg[]; gender?: Gender; tier?: number };
+  let body: { chart?: Chart; messages?: Msg[]; gender?: Gender; tier?: number; locale?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "bad body" }, { status: 400 });
   }
   const { chart, messages, gender } = body;
+  // locale 从 POST body 取（proxy 不注入到 API），hasLocale 校验，非法回退默认。
+  const locale: AppLocale = hasLocale(routing.locales, body.locale) ? body.locale : routing.defaultLocale;
   const tier = clampTier(body.tier);
   if (!isFullChart(chart)) return NextResponse.json({ error: "invalid chart" }, { status: 400 });
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -50,8 +54,8 @@ export async function POST(req: Request) {
     const ta = pronoun(gender);
     const recent = messages.slice(-8);
     const history = recent.map((m) => `${m.from === "me" ? ta : "你(Molly)"}：${stripHtml(m.text)}`).join("\n");
-    const prompt = buildFollowupPrompt(facts(chart), history, ta, tier);
-    const r = await runLLM(prompt, "你只输出严格的 JSON 数组，不要任何解释或前后缀。", ac, 220);
+    const prompt = buildFollowupPrompt(facts(chart, locale), history, ta, tier, locale);
+    const r = await runLLM(prompt, "你只输出严格的 JSON 数组，不要任何解释或前后缀。", ac, 220, locale);
     if (r.usage) await logUsage({ route: "chat-followups", ...r.usage }).catch(() => {});
     const parsed: Followup[] = parseFollowups(r.text);
     if (parsed.length === 3) return NextResponse.json({ followups: parsed });

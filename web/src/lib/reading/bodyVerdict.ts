@@ -5,6 +5,7 @@ import { dayBody, type BodyLevel } from "../astro/body";
 import { bodyLevelToState } from "../astro/body";
 import type { TodayState } from "./todayVerdict";
 import { dailyAspect } from "./daily";
+import type { AppLocale } from "@/i18n/routing";
 
 // ── 身心判词（bodyVerdict）· T4 Phase 2 ─────────────────────────────────────
 // 对称于 todayVerdict（财运判词），把身心评分引擎 body.ts 的三态翻成「该怎么待
@@ -79,10 +80,21 @@ const natalLon = (chart: Chart, b: BodyName): number | undefined =>
 function sixthCusp(chart: Chart): number {
   return houseSign(chart.ascSignIndex, 6) * 30;
 }
-function bodyWeather(chart: Chart, date: Date, state: TodayState, ord: number): string {
+function bodyWeather(chart: Chart, date: Date, state: TodayState, ord: number, locale: AppLocale): string {
   const moon = bodyLongitude("Moon", date);
   const cusp6 = sixthCusp(chart);
   const onSixth = sep(moon, cusp6) <= 8 || sep(moon, cusp6) >= 82; // 合/刑/冲六宫宫位
+  if (locale === "ru") {
+    if (state === "red") {
+      return onSixth
+        ? "Луна давит на твой шестой дом · тело устаёт за тебя"
+        : pick(["Луна сегодня тяжеловата · стоит сбавить ход", "Луна на спаде · запас сил невелик"], ord);
+    }
+    if (state === "green") {
+      return pick(["Луна сегодня даёт силы · в теле есть напор", "Луна теплеет · ты в форме"], ord);
+    }
+    return pick(["Луна сегодня спокойна · иди как обычно", "Луна ровная · ни шторма, ни волн"], ord);
+  }
   if (state === "red") {
     return onSixth
       ? "月亮压你六宫 · 身体在替你喊累"
@@ -162,8 +174,60 @@ function signIndexOf(lon: number): number {
   return Math.floor((((lon % 360) + 360) % 360) / 30) % 12;
 }
 
+// ── ru 文案 (i18n 子项目 C / M3)。与 zh 1:1 同构（同池、同 variant 数）→ 轮换/同态相邻日
+//    不复读/同态不同盘错开 的 freshness 契约在俄语下同样成立。安抚/permission 的声音，
+//    俄语原创。§6.4/§9：只点区域、必转专业，绝不断器官病种 (zone refer 保留就医指引)。──
+const LOW_LINE_RU = ["Сегодня энергии мало — не тащи через силу.", "Сегодня тело хочет отдохнуть — не спорь с ним.", "Сегодня заряд неполный — отстать на полтакта не страшно."];
+const LOW_WHY_RU = ["В эти дни ты склонна копить усталость и не замечать сигналы тела.", "Ты привыкла нести чужое первой, а себя ставить в конец.", "Ты в последнее время на износе — тело само нажало паузу за тебя."];
+const LOW_CARE_RU = ["Лечь спать пораньше — не лень, а способ подхватить себя.", "Оставить себе сегодня окно — не баловство, а восстановление.", "Сделать на одно дело меньше сегодня — это бережность к себе."];
+const LOW_QUOTE_RU = ["Заботиться о себе — это и есть важное дело.", "Тот, кто отдохнул, завтра уйдёт дальше.", "Ты достойна того, чтобы быть к себе нежной."];
+
+const GOOD_LINE_RU = ["Сегодня ты в форме — лови этот напор.", "Сегодня тело даёт силы — займись тем, чего хочется.", "Сегодня бодрость на месте — не растрачивай эту лёгкость зря."];
+const GOOD_WHY_RU = ["В эти дни ты неплохо о себе заботилась — тело отвечает тебе тем же.", "У тебя устойчивый режим в последнее время — потому сегодня и держит энергия.", "Накопленные силы сегодня можно немного потратить."];
+const GOOD_CARE_RU = ["Пока ты в форме, сделай то, что радует тебя.", "Подвигайся сегодня, побудь на солнце — удержи это хорошее состояние.", "Хорошее состояние достойно хорошего применения — сделай что-то питающее себя."];
+const GOOD_QUOTE_RU = ["Дни, когда тело в ладу, стоит как следует прожить.", "Когда есть силы, помни: это тело держит тебя.", "Форма на месте — это ты её выходила."];
+
+const CALM_LINE_RU = ["Сегодня тело и душа ровны — иди как обычно.", "Сегодня ничего особенного — проживи ровно и спокойно.", "Сегодня тело тихо и спокойно — не нужно особо напрягаться."];
+const CALM_WHY_RU = ["Ритм у тебя в последнее время довольно устойчив — и тело за ним устойчиво.", "В эти дни ты себя не трепала — тело это ценит.", "Ты в последнее время живёшь спокойно — и тело отвечает тебе спокойствием."];
+const CALM_CARE_RU = ["В ровные дни хорошо ещё немного наладить режим.", "Сегодня можно лечь пораньше — подкопить запас на будущее.", "В спокойную пору самое то подпитать основу тела."];
+const CALM_QUOTE_RU = ["Ровный день — это тело копит для тебя силы.", "В сегодняшнем штиле самое время подлатать себя.", "Спокойно — это уже очень хорошо."];
+
+const MOON_BODY_TAIL_RU: Record<MoodTarget, Record<MoodQuality, string>> = {
+  Sun: { harm: "Сегодня дух полон сил.", tense: "Сегодня легко расходуешь силы — экономь их." },
+  Moon: { harm: "Сегодня эмоции устойчивы, и тело за ними расслабляется.", tense: "Сегодня настроение качает — иди за ним, не против него." },
+  Mercury: { harm: "Сегодня голова ясная.", tense: "Сегодня легко передумать лишнего — дай голове отдохнуть." },
+  Venus: { harm: "Сегодня и тело, и душа теплеют.", tense: "Сегодня легко устать по мягкости — сперва позаботься о себе." },
+  Mars: { harm: "Сегодня сил через край.", tense: "Сегодня легко вспылить и спешить — придержи огонь." },
+  Saturn: { harm: "Сегодня держишься спокойно и устойчиво.", tense: "Сегодня будто давит ноша — не тяни в одиночку." },
+  ASC: { harm: "Сегодня тело в форме.", tense: "Сегодня тело немного зажато — не забудь расслабиться." },
+  MC: { harm: "Сегодня выдержишь нагрузку.", tense: "Сегодня не загоняй себя слишком." },
+};
+
+const SELFCHECK_ASKS_RU = [
+  "Может, сон или живот первыми сказали тебе, что ты устала?",
+  "Что сегодня сдало первым?",
+  "Где тело подаёт сигнал раньше всего — голова, плечи или живот?",
+];
+const SELFCHECK_OPTIONS_RU = ["сон", "живот", "шея и плечи", "голова", "эмоции"];
+
+// 部位映射 (ru)，与 SIGN_REGION 顺序同（白羊..双鱼）。
+const SIGN_REGION_RU = [
+  "голова / глаза",          // 0 白羊
+  "горло / шея",             // 1 金牛
+  "плечи / дыхание",         // 2 双子
+  "живот / пищеварение",     // 3 巨蟹
+  "сердце / спина",          // 4 狮子（高风险器官 → 必转专业）
+  "живот / пищеварение",     // 5 处女
+  "поясница / почки",        // 6 天秤
+  "обмен веществ / низ живота", // 7 天蝎
+  "печень / бёдра",          // 8 射手（高风险器官 → 必转专业）
+  "кости / зубы / колени",   // 9 摩羯
+  "кровообращение / голени", // 10 水瓶
+  "стопы / иммунитет",       // 11 双鱼
+] as const;
+
 // 找今天是否有一条「慢星长压六宫」的紧相位；有则给出留意区。返回 null = 不出（多数日子）。
-function detectZone(chart: Chart, date: Date, ord: number): BodyZone | null {
+function detectZone(chart: Chart, date: Date, ord: number, locale: AppLocale = "zh"): BodyZone | null {
   const cusp6 = sixthCusp(chart);
   const ruler6 = signRuler(houseSign(chart.ascSignIndex, 6));
   const ruler6Lon = natalLon(chart, ruler6);
@@ -188,9 +252,27 @@ function detectZone(chart: Chart, date: Date, ord: number): BodyZone | null {
   // 最紧的那条主导。
   hits.sort((a, b) => a.orb - b.orb);
   const top = hits[0];
-  const region = SIGN_REGION[signIndexOf(top.pointLon)];
-
+  const signIdx = signIndexOf(top.pointLon);
   const isSat = top.presser === "Saturn";
+
+  if (locale === "ru") {
+    const region = SIGN_REGION_RU[signIdx];
+    const why = isSat
+      ? "Сатурн давит на твой шестой дом уже не первый день — эта зона в его ведении."
+      : "Марс в эти дни напирает на твой шестой дом — в этой зоне легко перегреться и поспешить.";
+    const line = pick(
+      [`Эта зона — ${region} — просит внимания`, `${region} — в последнее время не тяни через силу`, `${region} — удели этой зоне заботу`],
+      ord,
+    );
+    const ask = `В последнее время ${region} подавали тебе сигнал (дискомфорт, зажатость, упадок сил)?`;
+    // 转专业兜底——必带就医指引（обследование/врач/специалист），且只是建议、不替医生下结论。
+    const refer = isSat
+      ? `Если эта зона не утихает, выбери время на обследование и загляни к профильному специалисту. Я указываю, что стоит присмотреться, и помогаю следить, но не ставлю за врача диагноз.`
+      : `Если эта зона держит дискомфорт, не тяни — сходи к врачу и проверься. Я лишь напоминаю присмотреться; ставить или не ставить диагноз — дело врача.`;
+    return { region, line, why, ask, refer };
+  }
+
+  const region = SIGN_REGION[signIdx];
   const why = isSat
     ? "土星压你六宫好些日子了——这块是它管的地方。"
     : "火星这阵子顶着你六宫——容易在这块上头、发急。";
@@ -208,7 +290,7 @@ function detectZone(chart: Chart, date: Date, ord: number): BodyZone | null {
   return { region, line, why, ask, refer };
 }
 
-export function bodyVerdict(chart: Chart, date: Date): BodyVerdict {
+export function bodyVerdict(chart: Chart, date: Date, locale: AppLocale = "zh"): BodyVerdict {
   const b = dayBody(
     chart,
     date.getUTCFullYear(),
@@ -217,33 +299,48 @@ export function bodyVerdict(chart: Chart, date: Date): BodyVerdict {
   );
   const state = bodyLevelToState(b.level);
   const ord = dayOrdinal(date) + natalSalt(chart);
+  const ru = locale === "ru";
 
   // 月亮天气依盘 + 依日（行运月亮对体感点的相位）——让同态不同盘也分开一层。
-  const weather = bodyWeather(chart, date, state, ord);
+  const weather = bodyWeather(chart, date, state, ord, locale);
   // 当天月亮 aspect (target×quality) 续在主句后——这层是真星象、依盘 + 依日而变，
   // 把「同态不同盘 / 同态相邻日」在 line 层拉开（对称于 todayVerdict 的 moonTail）。
   const moonAsp = dailyAspect(chart, date);
-  const moonTail = MOON_BODY_TAIL[moonAsp.target][moonAsp.quality];
+  const moonTail = (ru ? MOON_BODY_TAIL_RU : MOON_BODY_TAIL)[moonAsp.target][moonAsp.quality];
+
+  // ru 文案池（与 zh 1:1 同构）；zh 走原池、字节不变。
+  const LOW_L = ru ? LOW_LINE_RU : LOW_LINE;
+  const LOW_W = ru ? LOW_WHY_RU : LOW_WHY;
+  const LOW_C = ru ? LOW_CARE_RU : LOW_CARE;
+  const LOW_Q = ru ? LOW_QUOTE_RU : LOW_QUOTE;
+  const GOOD_L = ru ? GOOD_LINE_RU : GOOD_LINE;
+  const GOOD_W = ru ? GOOD_WHY_RU : GOOD_WHY;
+  const GOOD_C = ru ? GOOD_CARE_RU : GOOD_CARE;
+  const GOOD_Q = ru ? GOOD_QUOTE_RU : GOOD_QUOTE;
+  const CALM_L = ru ? CALM_LINE_RU : CALM_LINE;
+  const CALM_W = ru ? CALM_WHY_RU : CALM_WHY;
+  const CALM_C = ru ? CALM_CARE_RU : CALM_CARE;
+  const CALM_Q = ru ? CALM_QUOTE_RU : CALM_QUOTE;
 
   let base: string, why: string, care: string, quote: string;
   if (state === "red") {
-    base = pick(LOW_LINE, ord);
-    why = pick(LOW_WHY, ord);
-    care = pick(LOW_CARE, ord);
-    quote = pick(LOW_QUOTE, ord);
+    base = pick(LOW_L, ord);
+    why = pick(LOW_W, ord);
+    care = pick(LOW_C, ord);
+    quote = pick(LOW_Q, ord);
   } else if (state === "green") {
-    base = pick(GOOD_LINE, ord);
-    why = pick(GOOD_WHY, ord);
-    care = pick(GOOD_CARE, ord);
-    quote = pick(GOOD_QUOTE, ord);
+    base = pick(GOOD_L, ord);
+    why = pick(GOOD_W, ord);
+    care = pick(GOOD_C, ord);
+    quote = pick(GOOD_Q, ord);
   } else {
-    base = pick(CALM_LINE, ord);
-    why = pick(CALM_WHY, ord);
-    care = pick(CALM_CARE, ord);
-    quote = pick(CALM_QUOTE, ord);
+    base = pick(CALM_L, ord);
+    why = pick(CALM_W, ord);
+    care = pick(CALM_C, ord);
+    quote = pick(CALM_Q, ord);
   }
   // line = 态主句（按 ord 轮换，相邻日必换）+ 月亮态续句（依盘依日，错开同态不同盘）。
-  const line = `${base}${moonTail}`;
+  const line = ru ? `${base} ${moonTail}` : `${base}${moonTail}`;
 
   const out: BodyVerdict = {
     state,
@@ -258,17 +355,19 @@ export function bodyVerdict(chart: Chart, date: Date): BodyVerdict {
 
   // 症状自证：仅 red(该歇) 日——问她身体哪块先喊累（她自证得了的体感）。
   if (state === "red") {
-    const i0 = ((ord % SELFCHECK_OPTIONS.length) + SELFCHECK_OPTIONS.length) % SELFCHECK_OPTIONS.length;
-    const i1 = (i0 + 1) % SELFCHECK_OPTIONS.length;
+    const asks = ru ? SELFCHECK_ASKS_RU : SELFCHECK_ASKS;
+    const opts = ru ? SELFCHECK_OPTIONS_RU : SELFCHECK_OPTIONS;
+    const i0 = ((ord % opts.length) + opts.length) % opts.length;
+    const i1 = (i0 + 1) % opts.length;
     out.selfCheck = {
-      ask: pick(SELFCHECK_ASKS, ord),
-      options: [SELFCHECK_OPTIONS[i0], SELFCHECK_OPTIONS[i1]],
+      ask: pick(asks, ord),
+      options: [opts[i0], opts[i1]],
       target: moonAsp.target, // 驱动点：四角时她的"准"喂时辰，纯行星不喂（Phase 5）
     };
   }
 
   // 身体留意区：稀有，仅当慢星长压六宫时出（多数日子为 null）。
-  const zone = detectZone(chart, date, ord);
+  const zone = detectZone(chart, date, ord, locale);
   if (zone) out.zone = zone;
 
   return out;

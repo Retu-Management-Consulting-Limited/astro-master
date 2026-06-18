@@ -5,9 +5,11 @@ import { nextChapter } from "@/lib/money/narrative";
 import { validateMoneyCopy } from "@/lib/money/guardrail";
 import { MEANING_ZH } from "@/lib/money/types";
 import type { Chapter, Precision } from "@/lib/money/types";
-import { PERSONA, SAFETY, facts } from "@/lib/ai/molly";
+import { personaFor, safetyFor, facts, langDirective } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
 import { detectCrisis } from "@/lib/ai/safety";
+import { hasLocale } from "next-intl";
+import { routing, type AppLocale } from "@/i18n/routing";
 import { narrativeDayGet, narrativeDaySet, pushChapterLog, getChapterLog } from "@/lib/server/store";
 import { resolveIdentity } from "@/lib/server/identity";
 import { rateLimit, RULES } from "@/lib/server/ratelimit";
@@ -16,18 +18,32 @@ import { logUsage } from "@/lib/server/cost";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const SYSTEM = `${PERSONA}\n\n${SAFETY}`;
+// locale-aware system prompt (i18n 子项目 C / M2). Was a module-level zh constant
+// (承重风险 #1: easiest place for a stray Chinese reading to leak under ru).
+// Narrative has no gender input → default female-tuned persona, as before for zh.
+const systemFor = (locale: AppLocale) => `${personaFor(undefined, locale)}\n\n${safetyFor(locale)}`;
 
 type Variant = "personalized" | "barnum";
 
-function buildPrompt(chart: Chart, ch: Chapter, last: Chapter[], variant: Variant): string {
+function buildPrompt(chart: Chart, ch: Chapter, last: Chapter[], variant: Variant, locale: AppLocale): string {
   const facet = MEANING_ZH[ch.meaningFacet];
-  const recent = last.slice(0, 7).map((c) => c.hopeNote).join(" / ") || "（无）";
+  const recent = last.slice(0, 7).map((c) => c.hopeNote).join(" / ") || (locale === "ru" ? "(нет)" : "（无）");
+  if (locale === "ru") {
+    if (variant === "barnum") {
+      // H3 control: generic daily money note, NO meaning personalization.
+      return `Голосом Molly напиши одну фразу-напоминание о финансовой удаче на сегодня (общую, не про конкретного человека). Выводи только JSON, без блоков кода: {"hopeNote":"до ~55 символов","prophecy":"до ~30 символов"}${langDirective(locale)}`;
+    }
+    return `Вот реальные факты её натальной карты:\n${facts(chart, locale)}\n
+Её денежная личность: деньги для неё значат «${facet.label}» (${facet.register}). Тон сегодня: ${ch.tone} (рост/ровно/осторожно), угол повествования: ${ch.angle}, такт истории: ${ch.arc.beat}.
+За последние 7 дней я уже говорила: ${recent}
+Задача: напиши сегодняшнюю страницу сериала «денежная история», продолжи предыдущую, держись её «${facet.label}», основной тон — надежда. Никогда не называй конкретные суммы и даты. Не повторяй темы/метафоры последних 7 дней. Выводи только JSON, без блоков кода:
+{"hopeNote":"продолжение + сегодня, до ~55 символов","prophecy":"одно предсказание без цифр, до ~30 символов"}${langDirective(locale)}`;
+  }
   if (variant === "barnum") {
     // H3 control: generic 今日财运, NO meaning personalization.
     return `以 Molly 的口吻，写今天的一句财运提醒（泛泛的、不针对具体人）。只输出 JSON，不要代码块：{"hopeNote":"≤55字","prophecy":"≤30字"}`;
   }
-  return `这是她的真实星盘事实：\n${facts(chart)}\n
+  return `这是她的真实星盘事实：\n${facts(chart, locale)}\n
 她的金钱人格：钱对她意味着「${facet.label}」（${facet.register}）。今天基调：${ch.tone}（旺/平/慎），叙事角度：${ch.angle}，故事拍子：${ch.arc.beat}。
 近 7 天我已经说过：${recent}
 要求：写「金钱故事」连载的今天这一页，承前一句、贴她的「${facet.label}」、希望为主调。绝不出现具体金额+日期。不要重复近 7 天的主题/比喻。只输出 JSON，不要代码块：
@@ -43,13 +59,15 @@ function parse(text: string): { hopeNote: string; prophecy: string } {
 }
 
 export async function POST(req: Request) {
-  let body: { chart?: Chart; userId?: string; date?: string; variant?: Variant; precision?: Precision };
+  let body: { chart?: Chart; userId?: string; date?: string; variant?: Variant; precision?: Precision; locale?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "bad body" }, { status: 400 });
   }
   const { chart, precision } = body;
+  // locale 从 POST body 取（proxy 不注入到 API），hasLocale 校验，非法回退默认。
+  const locale: AppLocale = hasLocale(routing.locales, body.locale) ? body.locale : routing.defaultLocale;
   if (!chart?.placements) return NextResponse.json({ error: "missing chart" }, { status: 400 });
 
   const userId = body.userId || "anon";
@@ -101,11 +119,11 @@ export async function POST(req: Request) {
     const ac = new AbortController();
     req.signal.addEventListener("abort", () => ac.abort());
     try {
-      const r = await runLLM(buildPrompt(chart, skeleton, last, variant), SYSTEM, ac, 400);
+      const r = await runLLM(buildPrompt(chart, skeleton, last, variant, locale), systemFor(locale), ac, 400, locale);
       if (r.usage) await logUsage({ route: "narrative", ...r.usage }).catch(() => {});
       const ai = parse(r.text);
       const clean = validateMoneyCopy(ai.hopeNote).ok && validateMoneyCopy(ai.prophecy).ok;
-      const safe = !detectCrisis(ai.hopeNote) && !detectCrisis(ai.prophecy);
+      const safe = !detectCrisis(ai.hopeNote, locale) && !detectCrisis(ai.prophecy, locale);
       if (clean && safe && ai.hopeNote) {
         result = {
           ...result,

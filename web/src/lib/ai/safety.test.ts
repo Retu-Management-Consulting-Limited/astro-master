@@ -1,5 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { detectCrisis, CRISIS_RESPONSE, CRISIS_RESOURCES, CHAT_FALLBACK, isBrokenReply, safeReply } from "./safety";
+import {
+  detectCrisis,
+  crisisResponseFor,
+  CRISIS_RESPONSE,
+  CRISIS_RESPONSE_RU,
+  CRISIS_RESOURCES,
+  CRISIS_RESOURCES_RU,
+  CHAT_FALLBACK,
+  isBrokenReply,
+  safeReply,
+} from "./safety";
 
 describe("detectCrisis", () => {
   it("catches explicit Chinese ideation", () => {
@@ -20,6 +30,76 @@ describe("detectCrisis", () => {
   it("ignores empty / normal text", () => {
     expect(detectCrisis("")).toBe(false);
     expect(detectCrisis("今天我的财运怎么样")).toBe(false);
+  });
+
+  // §9 P0: native Russian crisis detection. 宁可假阳性不可假阴性。
+  it("catches ≥10 explicit Russian ideation expressions", () => {
+    const ru = [
+      "я не хочу жить",
+      "больше не хочу жить",
+      "не хочу больше жить",
+      "хочу умереть",
+      "я хочу покончить с собой",
+      "покончить с собой",
+      "хочу покончить жизнь самоубийством",
+      "думаю о самоубийстве",
+      "мысли о суициде",
+      "я хочу убить себя",
+      "хочу убить себя",
+      "хочу причинить себе вред",
+      "я режу себя",
+      "хочу свести счёты с жизнью",
+      "свести счеты с жизнью",
+      "жить больше нет смысла",
+      "не вижу смысла жить",
+      "лучше бы я умер",
+      "лучше бы меня не было",
+      "хочу уйти из жизни",
+      "хочу наложить на себя руки",
+    ];
+    for (const s of ru) {
+      expect(detectCrisis(s, "ru"), `should flag: ${s}`).toBe(true);
+    }
+    expect(ru.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it("catches Russian ideation regardless of locale arg (never miss)", () => {
+    // A Russian speaker on the zh default page must still be caught.
+    expect(detectCrisis("я не хочу жить", "zh")).toBe(true);
+    expect(detectCrisis("хочу умереть")).toBe(true);
+  });
+
+  it("still catches zh/en ideation when locale=ru (cross-language safety)", () => {
+    expect(detectCrisis("我想自杀", "ru")).toBe(true);
+    expect(detectCrisis("I want to kill myself", "ru")).toBe(true);
+  });
+
+  it("does NOT false-positive on casual Russian about death/tiredness", () => {
+    for (const s of [
+      "умираю как смешно",
+      "я так устал сегодня",
+      "до смерти хочу есть",
+      "как мои финансы сегодня",
+      "смертельно скучно на работе",
+    ]) {
+      expect(detectCrisis(s, "ru"), `should NOT flag: ${s}`).toBe(false);
+    }
+  });
+});
+
+describe("crisis response by locale", () => {
+  it("returns Chinese response for zh / default", () => {
+    expect(crisisResponseFor("zh")).toBe(CRISIS_RESPONSE);
+    expect(crisisResponseFor()).toBe(CRISIS_RESPONSE);
+  });
+  it("returns Russian response with verified hotlines for ru", () => {
+    const r = crisisResponseFor("ru");
+    expect(r).toBe(CRISIS_RESPONSE_RU);
+    expect(CRISIS_RESOURCES_RU.length).toBeGreaterThanOrEqual(4);
+    // verified hotline numbers must appear in the Russian response
+    expect(r).toContain("8-800-2000-122"); // Russia children/youth
+    expect(r).toContain("988"); // US fallback for diaspora
+    expect(r).toMatch(/[а-яё]/i); // is actually Russian text
   });
 });
 

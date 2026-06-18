@@ -3,6 +3,8 @@ import { dayWealth, type WealthLevel } from "../astro/wealth";
 import { dailyAspect } from "./daily";
 import type { TimeBelief } from "../astro/rectify";
 import { bodyVerdict, type BodyVerdict } from "./bodyVerdict";
+import type { AppLocale } from "@/i18n/routing";
+import { PLANETS, HOUSES } from "@/i18n/glossary";
 
 // 今日财运 → 一句"该怎么过今天"的笃定判词。纯逻辑、确定性、无 AI。
 //
@@ -183,6 +185,91 @@ const PLAIN_QUOTE = [
   "稳稳的一天，也是在替将来省力。",
 ];
 
+// ── ru 文案 (i18n 子项目 C / M3)。与 zh 1:1 同构（同池、同 variant 数）→ salted 轮换
+//    与「相邻同态日不复读 / 同 lean 不同盘错开」的 freshness 契约在俄语下同样成立。
+//    Molly 笃定带温度的声音，俄语原创。§8 红日是真实星象、不靠编造恐吓 (§8.2)。──
+const RED_LINE_RU: Record<MoneyLean, string[]> = {
+  push: ["Сегодня с деньгами стоит поберечься — ты из тех, кто любит действовать, и чем сильнее зудят руки, тем нужнее их придержать.", "Сегодня с деньгами легко рвануть; твой нрав — захотел и сделал, но сегодня сделай паузу."],
+  guard: ["Сегодня с деньгами стоит поберечься — ты и так держишься крепко, сегодня просто иди за этой устойчивостью, не давай себя подтолкнуть к тратам.", "Сегодня с деньгами придержись; ты и не из тех, кто рвётся, сегодня тем более не уступай ради кого-то."],
+  even: ["Сегодня с деньгами стоит поберечься — пусть та половина тебя, что хочет сохранить, сегодня победит ту, что хочет потратить.", "Сегодня с деньгами тебя тянет в обе стороны; «потратить» и «сдержаться» спорят в тебе — сегодня встань на сторону сдержанности."],
+};
+const RED_QUOTE_RU = [
+  "Осторожный день — не плохой; Вселенная просто просит сперва сберечь деньги.",
+  "Тот, кто сегодня придержит руку, через пару дней себе спасибо скажет.",
+  "Устоять не стыдно — ты просто не перевернулась на сегодняшней волне.",
+];
+
+const GREEN_LINE_RU: Record<MoneyLean, string[]> = {
+  push: ["Сегодня деньги в силе — ты и так смелая на руку, сегодня этот напор верный, иди и продвигай.", "Сегодня с деньгами попутный ветер, твоему нраву такой день в самый раз — не медли."],
+  guard: ["Сегодня деньги в силе — ты всегда осторожна, но сегодня можно шагнуть вперёд, возможность настоящая.", "Сегодня с деньгами скорее попутно; ты не рвёшься, но сегодня стоит спокойно протянуть руку."],
+  even: ["Сегодня деньги в силе — обычно ты хочешь действовать, но боишься ошибиться; сегодня дай попробовать той половине, что хочет.", "Сегодня с деньгами открылась щель; отложи внутренний спор и сделай шаг по течению."],
+};
+const GREEN_ACTION_RU = [
+  "То, что нужно получить, ту зарплату, что нужно обсудить, — сегодня заговори об этом.",
+  "Денежное дело, что висит необсуждённым, сегодня найди с кем довести до конца.",
+  "Прибавку, о которой думаешь, возврат, что хочешь поторопить, — сегодня подтолкни.",
+];
+const GREEN_ASK_RU = [
+  "Я говорила, что ты сегодня сдвинешь денежное дело — сдвинула?",
+  "То, за что сегодня стоило взяться, — ты это продвинула?",
+  "Я просила тебя сегодня заговорить об одном деле — сделала?",
+];
+const GREEN_QUOTE_RU = [
+  "Действовать, когда всё гладко, — это умение, а не удача.",
+  "Хороший день достоин действующего — соответствовала ли ты ему сегодня.",
+  "Ветер попутный — поймает его тот, кто поднял парус.",
+];
+
+const PLAIN_LINE_RU: Record<MoneyLean, string[]> = {
+  push: ["Сегодня с деньгами ничего крупного — ты любишь движение, прибереги напор для дня, когда стоит действовать.", "Сегодня деньги ровные, спрячь этот свой порыв в карман и иди по плану."],
+  guard: ["Сегодня с деньгами ничего крупного, и это в лад с твоей устойчивостью — просто иди в своём ритме.", "Сегодня деньги ровные, ты и так не паникуешь, сегодня достаточно прожить спокойно."],
+  even: ["Сегодня с деньгами ничего крупного — пусть спор «двигаться или сберечь» сегодня отдохнёт, иди по плану.", "Сегодня деньги ровные, не воюй сама с собой, проживи ровно и спокойно."],
+};
+const PLAIN_PREP_RU = [
+  "Сегодня можно разобрать счета этого месяца — постелить дорожку будущим хорошим дням.",
+  "Сегодня самое то заранее всё обдумать про денежное дело и заговорить о нём в сильный день.",
+  "Сегодня выпиши, что отдать и что получить, — будет ясность, и не будешь паниковать.",
+];
+const PLAIN_QUOTE_RU = [
+  "Ровный день копит запас для следующего сильного дня.",
+  "В сегодняшнем штиле самое время подлатать лодку.",
+  "Спокойный день тоже бережёт силы на будущее.",
+];
+
+// 月亮态续句 (ru)：当天月亮对本命点相位 (target×quality) 的"心情底色"，依盘依日。
+const MOON_TAIL_RU: Record<MoodTarget, Record<MoodQuality, string>> = {
+  Sun: { harm: "Сегодня твоё чутьё на своё ясно — иди за ним.", tense: "Сегодня легко сбиться с курса — просто держись за своё." },
+  Moon: { harm: "Сегодня эмоции устойчивы, как раз спокойно для этого.", tense: "Сегодня настроение качает — не спеши, можно на полтакта позже." },
+  Mercury: { harm: "Сегодня голова ясная, считать это в самый раз.", tense: "Сегодня мысли путаются — додумай, прежде чем записывать." },
+  Venus: { harm: "Сегодня на душе тепло и мягко, и делать это приятно.", tense: "Сегодня легко уступить по мягкости — придержи, не спеши соглашаться." },
+  Mars: { harm: "Сегодня сил через край — самое то направить их сюда.", tense: "Сегодня огня многовато — расходуй этот напор бережно." },
+  Saturn: { harm: "Сегодня держишься спокойно, основательно делать — в самый раз.", tense: "Сегодня будто давит ноша — не тяни в одиночку." },
+  ASC: { harm: "Сегодня ты в форме, и делать это увереннее.", tense: "Сегодня легко цепляться за чужие взгляды — не отвлекайся на это." },
+  MC: { harm: "Сегодня на тебя смотрят, делай поаккуратнее.", tense: "Сегодня не спеши раскрывать карты, оставь слова при себе." },
+};
+
+// 被点到本命点所在星座的一缕底色 (ru)，与 SIGN_FLAVOR 顺序同（白羊..双鱼）。
+const SIGN_FLAVOR_RU = [
+  "с задором.",          // 白羊 Aries
+  "основательно.",       // 金牛 Taurus
+  "с быстрым умом.",     // 双子 Gemini
+  "с тонким чутьём.",    // 巨蟹 Cancer
+  "открыто и ярко.",     // 狮子 Leo
+  "соблюдая меру.",      // 处女 Virgo
+  "ища равновесия.",     // 天秤 Libra
+  "с упорством внутри.", // 天蝎 Scorpio
+  "глядя дальше.",       // 射手 Sagittarius
+  "твёрдо вперёд.",      // 摩羯 Capricorn
+  "под новым углом.",    // 水瓶 Aquarius
+  "по наитию.",          // 双鱼 Pisces
+] as const;
+
+// 财运语境下各宫的"点名" (ru)——只在 house-mode（时辰已锁）时使用。
+const HOUSE_NAME_RU: Record<number, string> = {
+  1: "дом личности", 2: "дом денег", 3: "дом братьев", 4: "дом дома и корней", 5: "дом детей", 6: "дом труда",
+  7: "дом партнёрства", 8: "дом кризисов", 9: "дом странствий", 10: "дом карьеры", 11: "дом друзей", 12: "дом тайн",
+};
+
 // ── 月亮态续句：当天行运月亮对这张盘本命点结的相位(target×quality)映成一句"心情底色"。
 //    月亮每天移 ~13°、对每张盘的本命点相位都不同——这层是真星象、依盘而变，把同 lean
 //    不同盘在 cell 层拉开。纯情绪/陪伴，不报数字、不吓人，全过 money/guardrail。──
@@ -244,7 +331,18 @@ function natalPointHouse(chart: Chart, name: string): number | null {
 }
 // 默认 belief：宽·planet 模式——缺省调用（现有 today/page、guard 测）走这条，向后兼容。
 const PLANET_DEFAULT: Pick<TimeBelief, "mode"> = { mode: "planet" };
-function buildNatalHit(chart: Chart, target: string, mode: "planet" | "house"): string {
+function buildNatalHit(chart: Chart, target: string, mode: "planet" | "house", locale: AppLocale = "zh"): string {
+  if (locale === "ru") {
+    if (mode === "house") {
+      const h = natalPointHouse(chart, target);
+      if (h != null) return `Сегодня Луна касается твоего ${HOUSE_NAME_RU[h] ?? `дома ${h}`}`;
+      if (target === "ASC") return "Сегодня Луна касается твоего Асцендента";
+      if (target === "MC") return "Сегодня Луна касается твоей Середины неба";
+    }
+    const planetRu = PLANETS[target]?.ru;
+    if (planetRu) return `Сегодня Луна касается твоей планеты ${planetRu}`;
+    return "Сегодня Луна касается твоей карты"; // 四角在 planet 模式下的通用降级，绝不点宫
+  }
   if (mode === "house") {
     const h = natalPointHouse(chart, target);
     if (h != null) return `今天月亮照到你的${HOUSE_NAME_ZH[h] ?? `第${h}宫`}`;
@@ -258,32 +356,47 @@ function buildNatalHit(chart: Chart, target: string, mode: "planet" | "house"): 
   return "今天月亮照到你这张盘"; // 四角在 planet 模式下的通用降级，绝不点宫
 }
 
-export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief): TodayVerdict {
+export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief, locale: AppLocale = "zh"): TodayVerdict {
   const w = dayWealth(chart, date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
   const state = levelToState(w.level);
   const lean = moneyLean(chart);
   // belief 缺省 → planet 模式（头 2 周典型 + 现有调用）；只取 mode，别的字段不影响 verdict。
   const mode = (belief ?? PLANET_DEFAULT).mode;
+  const ru = locale === "ru";
 
   // 真实月亮态：行运月亮对这张盘的本命点结的相位（依盘 + 依日而变）。
   const moon = dailyAspect(chart, date);
   // belief 喂回来的个性化点名：house 模式点到宫位，planet 模式只到行星（不动 state）。
-  const natalHit = buildNatalHit(chart, moon.target, mode);
+  const natalHit = buildNatalHit(chart, moon.target, mode, locale);
   // 被点到的本命点落在哪个星座，再续一缕底色——让同 target×quality 的两盘也分开。
   const targetSign = signIndexOf(natalPointLon(chart, moon.target));
-  const moonTail = `${MOON_TAIL[moon.target as MoodTarget][moon.quality]}${SIGN_FLAVOR[targetSign]}`;
+  const moonTail = ru
+    ? `${MOON_TAIL_RU[moon.target as MoodTarget][moon.quality]} ${SIGN_FLAVOR_RU[targetSign]} `
+    : `${MOON_TAIL[moon.target as MoodTarget][moon.quality]}${SIGN_FLAVOR[targetSign]}`;
 
   // 轮换序号：日序（相邻日 +1，保证相邻日错开）+ 本命月亮 salt（同 lean 不同盘错开）。
   const dord = dayOrdinal(date);
   const sord = dord + natalSalt(chart);
   // line 取词用 salted 序号——同 lean 不同盘也会取到不同基句。月亮态(moonTail) + belief
-  // 喂回的个性化点名(natalHit) 一起续在主句后：natalHit 随 belief.mode 在 house/planet
-  // 间换具体性，所以 belief 收窄时这条 line 会更"点到你身上"——但 state 始终不动。
-  const line = (base: string) => `${base}${moonTail}${natalHit}。`;
+  // 喂回的个性化点名(natalHit) 一起续在主句后。ru 用拉丁标点/空格，zh 用中文句号。
+  const line = ru
+    ? (base: string) => `${base} ${moonTail}${natalHit}.`
+    : (base: string) => `${base}${moonTail}${natalHit}。`;
+
+  // ru 文案表（与 zh 1:1 同构）；zh 走原表，字节不变。
+  const RED_L = ru ? RED_LINE_RU : RED_LINE;
+  const RED_Q = ru ? RED_QUOTE_RU : RED_QUOTE;
+  const GREEN_L = ru ? GREEN_LINE_RU : GREEN_LINE;
+  const GREEN_A = ru ? GREEN_ACTION_RU : GREEN_ACTION;
+  const GREEN_ASK_T = ru ? GREEN_ASK_RU : GREEN_ASK;
+  const GREEN_Q = ru ? GREEN_QUOTE_RU : GREEN_QUOTE;
+  const PLAIN_L = ru ? PLAIN_LINE_RU : PLAIN_LINE;
+  const PLAIN_P = ru ? PLAIN_PREP_RU : PLAIN_PREP;
+  const PLAIN_Q = ru ? PLAIN_QUOTE_RU : PLAIN_QUOTE;
 
   // ── T4 双轨：身心判词 + 主导 channel。身心轨完全独立计算（同一 (chart,date) 纯函数、
   //    belief-无关），绝不回写财运的 state/line/intensity——财运字段与旧路径 byte-identical。──
-  const body = bodyVerdict(chart, date);
+  const body = bodyVerdict(chart, date, locale);
   const channel = dominantChannel(state, w.intensity, body.state, body.intensity);
   const dual = { bodyState: body.state, body, channel };
 
@@ -292,8 +405,8 @@ export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief): Tod
       state,
       intensity: w.intensity,
       lean,
-      line: line(pick(RED_LINE[lean], sord)),
-      quote: pick(RED_QUOTE, sord),
+      line: line(pick(RED_L[lean], sord)),
+      quote: pick(RED_Q, sord),
       natalHit,
       doorDate: ymd(date), // 红日必有门，指向当天的 /wealth
       ...dual,
@@ -304,11 +417,11 @@ export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief): Tod
       state,
       intensity: w.intensity,
       lean,
-      line: line(pick(GREEN_LINE[lean], sord)),
-      quote: pick(GREEN_QUOTE, sord),
+      line: line(pick(GREEN_L[lean], sord)),
+      quote: pick(GREEN_Q, sord),
       natalHit,
-      action: pick(GREEN_ACTION, sord),
-      askDidYouAct: pick(GREEN_ASK, sord),
+      action: pick(GREEN_A, sord),
+      askDidYouAct: pick(GREEN_ASK_T, sord),
       ...dual,
     };
   }
@@ -316,10 +429,10 @@ export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief): Tod
     state,
     intensity: w.intensity,
     lean,
-    line: line(pick(PLAIN_LINE[lean], sord)),
-    quote: pick(PLAIN_QUOTE, sord),
+    line: line(pick(PLAIN_L[lean], sord)),
+    quote: pick(PLAIN_Q, sord),
     natalHit,
-    prep: pick(PLAIN_PREP, sord),
+    prep: pick(PLAIN_P, sord),
     ...dual,
   };
 }

@@ -1,4 +1,4 @@
-import { detectCrisis, CRISIS_RESPONSE } from "./safety";
+import { detectCrisis, crisisResponseFor } from "./safety";
 
 // Pure routing for a user's chat message. The crisis branch is deterministic and
 // independent of the AI toggle — the safety net must fire whether AI is on, off,
@@ -13,9 +13,10 @@ const stripHtml = (s: string) => s.replace(/<[^>]+>/g, "").trim();
 
 export function routeUserMessage(
   text: string,
-  opts: { aiOn: boolean; hasChart: boolean },
+  opts: { aiOn: boolean; hasChart: boolean; locale?: string },
 ): ChatRoute {
-  if (detectCrisis(stripHtml(text))) return { kind: "crisis", text: CRISIS_RESPONSE };
+  if (detectCrisis(stripHtml(text), opts.locale))
+    return { kind: "crisis", text: crisisResponseFor(opts.locale) };
   if (opts.aiOn && opts.hasChart) return { kind: "ai" };
   return { kind: "scripted" };
 }

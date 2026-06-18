@@ -1,5 +1,11 @@
 import type { Chart, Placement } from "@/lib/astro/chart";
+import type { AppLocale } from "@/i18n/routing";
+import { SIGNS, HOUSES } from "@/i18n/glossary";
 import { detectHighlights, type Highlight, type Domain } from "@/lib/astro/highlights";
+
+const SIGN_ZH_TO_RU: Record<string, string> = Object.fromEntries(
+  Object.values(SIGNS).map((v) => [v.zh, v.ru]),
+);
 
 export interface FirstRead {
   ascSign: string;
@@ -33,10 +39,52 @@ const CHIPS: Record<Domain, string[]> = {
   shadow: ["我在害怕什么？", "我压抑了什么？", "怎么和自己的暗面和解？"],
 };
 
-export function generateFirstRead(chart: Chart, locale: "zh" | "en" = "zh"): FirstRead {
-  void locale; // TODO(i18n): en variant authored natively, not translated
+// ── ru variants (i18n 子项目 C / M3) — Molly's Russian voice, same real placements.
+// 宪法 §8「真 vs 编」: 照见真实月亮位置，不夸大/不编造。zh below is byte-unchanged.
+const QUOTE_RU: Record<Domain, string> = {
+  lonely: "За все эти годы вдали твой главный талант — заставить всех поверить, что тебе никто не нужен.",
+  love: "Тебе нужна не лёгкая симпатия, а полное слияние.",
+  career: "Дело не в честолюбии — ты от рождения создана стоять высоко.",
+  self: "Ответ, который ты всё ищешь, ты давно знаешь — просто не смеешь признать.",
+  mind: "Твой ум не желает останавливаться — а нужнее всего тебе позволить себе ни о чём не думать.",
+  shadow: "Та сторона, что ты прячешь, — не изъян, а сила, которой ты ещё не решилась воспользоваться.",
+};
+
+const CHIPS_RU: Record<Domain, string[]> = {
+  lonely: ["Почему я скорее вынесу всё сама, чем попрошу о помощи?", "Где же моё место?", "Будет ли тот, кто сможет меня подхватить?"],
+  love: ["Почему я всегда влюбляюсь в тех, в ком не уверена?", "Как не растратить себя в отношениях?", "Понимает ли он меня вообще?"],
+  career: ["Подходит ли мне сейчас сменить путь?", "В чём именно моя незаменимость?", "Стоит ли мне действовать в этом году?"],
+  self: ["Чего я на самом деле хочу в этой жизни?", "Почему я вечно в себе сомневаюсь?", "Как мне стать собой?"],
+  mind: ["Как остановить мою внутреннюю гонку?", "Я что, слишком много думаю?", "Чему верить — интуиции или логике?"],
+  shadow: ["Чего я боюсь?", "Что я в себе подавила?", "Как примириться со своей тёмной стороной?"],
+};
+
+function firstReadRu(chart: Chart, top: Domain): FirstRead {
+  const moon = find(chart, "Moon");
+  const ruSign = SIGN_ZH_TO_RU[moon.sign] ?? moon.sign;
+  const ruHouse = HOUSES[String(moon.house)]?.ru ?? `Дом ${moon.house}`;
+  const paragraphs: FirstRead["paragraphs"] = [
+    { text: `Со стороны у тебя «всё хорошо» — и друзья есть, и с людьми ладишь. Только ты сама знаешь, как это «хорошо» выматывает.`, accent: true },
+    { text: `Ты не сильная — у тебя просто не было выбора. Ты слишком рано поняла: просить бесполезно — и перестала просить.` },
+    {
+      text: `☽ Луна в твоём ${ruSign}, ${ruHouse} — ты запираешь чувства в самой дальней комнате и ключ не даёшь даже себе. Это не капризы, ты держала это слишком долго.`,
+    },
+    { text: `Поэтому ${top === "love" || top === "lonely" ? "в любви" : "при людях"} ты всегда первой понимаешь других. Потому что быть понятой ты давно перестала ждать.`, catch: false },
+  ];
+  return {
+    ascSign: chart.ascSign,
+    lead: "Давай для начала снимем эту скорлупу.",
+    paragraphs,
+    quote: QUOTE_RU[top] ?? QUOTE_RU.self,
+    chips: CHIPS_RU[top] ?? CHIPS_RU.self,
+  };
+}
+
+export function generateFirstRead(chart: Chart, locale: AppLocale = "zh"): FirstRead {
   const highlights = detectHighlights(chart);
   const top = (highlights[0]?.domain ?? "self") as Domain;
+  if (locale === "ru") return firstReadRu(chart, top);
+
   const moon = find(chart, "Moon");
   const sun = find(chart, "Sun");
 

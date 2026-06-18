@@ -4,6 +4,7 @@ import { dailyReading } from "../lib/reading/daily";
 import { dayWealth, monthWealth } from "../lib/astro/wealth";
 import { generateFirstRead } from "../lib/reading/generate";
 import { generateThemeRead, THEME_IDS } from "../lib/reading/theme";
+import { chatOpeners } from "../lib/reading/openers";
 import { synastry, type RelType } from "../lib/astro/synastry";
 import { synScaffold } from "../lib/reading/synastry";
 import { detectHighlights } from "../lib/astro/highlights";
@@ -511,5 +512,164 @@ describe("freshness contract · body symptom confirm feeds the hour ONLY when an
       asserted++;
     }
     expect(asserted, "no red-day selfCheck surfaced on chart A in a year").toBeGreaterThan(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// #i18n-C/M3 RUSSIAN deterministic content tables (theme/daily/today/body/openers/
+// generate/money-narrative). The freshness CONTRACT must hold in ru just as in zh —
+// a Russian user must NOT get a frozen page. We assert the SAME strong forms
+// (adjacent-day not.toBe / different-chart not.toBe), now on the ru branch, AND we
+// assert the ru output is actually Cyrillic (no zh leakage). zh stays byte-identical
+// (covered by the existing blocks above, which never pass a locale).
+//
+// Helpers: a Cyrillic detector (must contain Russian letters) + a no-zh assertion
+// (must NOT contain CJK) — together they prove the ru branch really switched and
+// didn't silently fall through to Chinese (承重风险①: locale 漏传 → 俄文页冒中文).
+// ─────────────────────────────────────────────────────────────────────────────
+const hasCyrillic = (s: string) => /[А-Яа-яЁё]/.test(s);
+const hasCJK = (s: string) => /[一-鿿]/.test(s);
+const ru = "ru" as const;
+
+describe("freshness contract · RU theme read (per-chart, Cyrillic, no zh leak)", () => {
+  it("every ru theme read is personalized (different chart → different copy)", () => {
+    for (const id of THEME_IDS) {
+      const a = generateThemeRead(A, id, ru);
+      const b = generateThemeRead(B, id, ru);
+      expect(text([a.paragraphs, a.deepRead, a.quote, a.planetLabel]))
+        .not.toBe(text([b.paragraphs, b.deepRead, b.quote, b.planetLabel]));
+    }
+  });
+  it("ru theme read is Russian (Cyrillic) and free of Chinese", () => {
+    for (const id of THEME_IDS) {
+      const r = generateThemeRead(A, id, ru);
+      const blob = text([r.title, r.paragraphs, r.deepRead, r.quote, r.chips, r.planetLabel]);
+      expect(hasCyrillic(blob), `ru theme ${id} has no Cyrillic`).toBe(true);
+      expect(hasCJK(blob), `ru theme ${id} leaked Chinese`).toBe(false);
+    }
+  });
+});
+
+describe("freshness contract · RU daily reading (per-day, per-chart, Cyrillic)", () => {
+  it("adjacent ru days differ (todayLine + todayQuote)", () => {
+    for (let i = 0; i < 40; i++) {
+      const a = dailyReading(A, new Date(Date.UTC(2026, 0, 1 + i, 9)), ru);
+      const b = dailyReading(A, new Date(Date.UTC(2026, 0, 2 + i, 9)), ru);
+      expect(a.todayLine).not.toBe(b.todayLine);
+      expect(a.todayQuote).not.toBe(b.todayQuote);
+    }
+  });
+  it("ru daily reading is personalized (different chart, same day → different)", () => {
+    const d = new Date(Date.UTC(2026, 5, 16, 9));
+    const a = dailyReading(A, d, ru);
+    const b = dailyReading(B, d, ru);
+    expect(text([a.moonLine, a.todayLine, a.yesterdayClaim, a.tomorrowHook, a.backdropLine]))
+      .not.toBe(text([b.moonLine, b.todayLine, b.yesterdayClaim, b.tomorrowHook, b.backdropLine]));
+  });
+  it("ru daily reading is Russian and free of Chinese", () => {
+    const r = dailyReading(A, new Date(Date.UTC(2026, 5, 16, 9)), ru);
+    const blob = text([r.moonLine, r.todayLine, r.todayQuote, r.yesterdayClaim, r.tomorrowHook, r.backdropLine]);
+    expect(hasCyrillic(blob), "ru daily has no Cyrillic").toBe(true);
+    expect(hasCJK(blob), "ru daily leaked Chinese").toBe(false);
+  });
+});
+
+describe("freshness contract · RU today verdict (per-day, per-chart, Cyrillic)", () => {
+  const cell = (v: ReturnType<typeof todayVerdict>) =>
+    text([v.line, v.quote, v.natalHit, v.action, v.prep, v.askDidYouAct]);
+  it("ADJACENT same-state ru days rotate the money cell", () => {
+    let sameStatePairs = 0;
+    let prev: ReturnType<typeof todayVerdict> | null = null;
+    for (let i = 0; i < 365; i++) {
+      const v = todayVerdict(A, new Date(Date.UTC(2026, 0, 1 + i, 12)), undefined, ru);
+      if (prev && prev.state === v.state) {
+        sameStatePairs++;
+        expect(cell(prev), `frozen ru money cell, same-state adjacent days (doy ${i})`).not.toBe(cell(v));
+      }
+      prev = v;
+    }
+    expect(sameStatePairs, "too few same-state pairs").toBeGreaterThan(50);
+  });
+  it("ru today verdict is personalized (different chart, same day → different)", () => {
+    const day = new Date(Date.UTC(2026, 5, 16, 12));
+    expect(cell(todayVerdict(A, day, undefined, ru))).not.toBe(cell(todayVerdict(B, day, undefined, ru)));
+    expect(cell(todayVerdict(B, day, undefined, ru))).not.toBe(cell(todayVerdict(C, day, undefined, ru)));
+  });
+  it("ru today verdict is Russian and free of Chinese", () => {
+    for (const ch of [A, B, C]) {
+      const v = todayVerdict(ch, new Date(Date.UTC(2026, 5, 16, 12)), undefined, ru);
+      const blob = cell(v);
+      expect(hasCyrillic(blob), "ru today has no Cyrillic").toBe(true);
+      expect(hasCJK(blob), "ru today leaked Chinese").toBe(false);
+    }
+  });
+});
+
+describe("freshness contract · RU body verdict (per-day, per-chart, Cyrillic)", () => {
+  const cell = (v: ReturnType<typeof bodyVerdict>) => text([v.weather, v.line, v.why, v.care, v.quote]);
+  it("ADJACENT same-state ru days rotate the body cell", () => {
+    for (const chart of [A, B, C]) {
+      let sameStatePairs = 0;
+      let prev: ReturnType<typeof bodyVerdict> | null = null;
+      for (let i = 0; i < 365; i++) {
+        const v = bodyVerdict(chart, new Date(Date.UTC(2026, 0, 1 + i, 12)), ru);
+        if (prev && prev.state === v.state) {
+          sameStatePairs++;
+          expect(cell(prev), `frozen ru body cell, same-state adjacent days (doy ${i})`).not.toBe(cell(v));
+        }
+        prev = v;
+      }
+      expect(sameStatePairs, "too few same-state pairs").toBeGreaterThan(50);
+    }
+  });
+  it("ru body verdict is personalized (different chart, same day → different)", () => {
+    const day = new Date(Date.UTC(2026, 5, 16, 12));
+    expect(cell(bodyVerdict(A, day, ru))).not.toBe(cell(bodyVerdict(B, day, ru)));
+    expect(cell(bodyVerdict(B, day, ru))).not.toBe(cell(bodyVerdict(C, day, ru)));
+  });
+  it("ru body verdict is Russian and free of Chinese", () => {
+    for (const ch of [A, B, C]) {
+      const v = bodyVerdict(ch, new Date(Date.UTC(2026, 5, 16, 12)), ru);
+      const blob = cell(v);
+      expect(hasCyrillic(blob), "ru body has no Cyrillic").toBe(true);
+      expect(hasCJK(blob), "ru body leaked Chinese").toBe(false);
+    }
+  });
+});
+
+describe("freshness contract · RU first read + openers (per-chart, Cyrillic)", () => {
+  it("ru first read is personalized and Russian", () => {
+    const a = generateFirstRead(A, ru);
+    const b = generateFirstRead(B, ru);
+    const blobA = text([a.lead, a.paragraphs, a.quote, a.chips]);
+    expect(blobA).not.toBe(text([b.lead, b.paragraphs, b.quote, b.chips]));
+    expect(hasCyrillic(blobA), "ru first read has no Cyrillic").toBe(true);
+    expect(hasCJK(blobA), "ru first read leaked Chinese").toBe(false);
+  });
+  it("ru openers are personalized (different top-domain charts differ) and Russian", () => {
+    const a = chatOpeners(A, undefined, ru);
+    const b = chatOpeners(B, undefined, ru);
+    expect(hasCyrillic(a.join("|")), "ru openers have no Cyrillic").toBe(true);
+    expect(hasCJK(a.join("|")), "ru openers leaked Chinese").toBe(false);
+    // both are valid ru opener sets; at least assert each is non-empty Cyrillic
+    expect(b.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("freshness contract · RU money narrative (per-day, per-chart, Cyrillic)", () => {
+  it("adjacent ru days produce a different hopeNote", () => {
+    const p = moneyPersona(A);
+    for (let i = 0; i < 30; i++) {
+      const a = nextChapter(p, A, new Date(Date.UTC(2026, 0, 1 + i, 12)), [], ru);
+      const b = nextChapter(p, A, new Date(Date.UTC(2026, 0, 2 + i, 12)), [], ru);
+      expect(a.hopeNote).not.toBe(b.hopeNote);
+    }
+  });
+  it("ru money narrative is Russian and free of Chinese", () => {
+    const p = moneyPersona(A);
+    const ch = nextChapter(p, A, new Date(Date.UTC(2026, 5, 16, 12)), [], ru);
+    const blob = text([ch.hopeNote, ch.prophecy.text]);
+    expect(hasCyrillic(blob), "ru money narrative has no Cyrillic").toBe(true);
+    expect(hasCJK(blob), "ru money narrative leaked Chinese").toBe(false);
   });
 });

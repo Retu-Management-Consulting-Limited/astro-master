@@ -1,7 +1,8 @@
 import { bodyLongitude, type Chart } from "@/lib/astro/chart";
 import { wealthScore, wealthLevel } from "@/lib/astro/wealth";
-import { MEANING_ZH, type MeaningKey, type MoneyPersona } from "./types";
+import { MEANING_ZH, MEANING_RU, type MeaningKey, type MoneyPersona } from "./types";
 import type { Angle, Beat, Chapter, Prophecy, ProphecyType, Tone, Weight } from "./types";
+import type { AppLocale } from "@/i18n/routing";
 
 const ANGLES: Angle[] = ["opportunity", "caution", "recap", "contrast", "identity"];
 
@@ -66,7 +67,28 @@ function composeProphecy(type: ProphecyType, facet: MeaningKey): Prophecy {
   return { type, text: text[type] };
 }
 
-export function nextChapter(persona: MoneyPersona, chart: Chart, date: Date, lastChapters: Chapter[] = []): Chapter {
+// ── ru variants (i18n 子项目 C / M3) — Molly's Russian money voice. Same
+// deterministic structure (meaning register × tone × prophecy type); 不报数字
+// (guardrail-clean), §8 不编后果. zh composers above are byte-unchanged.
+function composeHopeRu(facet: MeaningKey, tone: Tone): string {
+  const m = MEANING_RU[facet];
+  if (tone === "wang") return `Сегодня попутный ветер — для того, кто видит деньги как «${m.label}», самое время сделать ещё шаг к «${m.register}».`;
+  if (tone === "shen") return `Сегодня сперва придержись. Твои деньги легко идут за настроением — я прикрою тебя: «${m.register}» не горит именно сегодня.`;
+  return `Обычный день. Держи «${m.register}» в сердце и будь к себе чуть добрее в мелочах — этого довольно.`;
+}
+
+function composeProphecyRu(type: ProphecyType, facet: MeaningKey): Prophecy {
+  const label = MEANING_RU[facet].label;
+  const text: Record<ProphecyType, string> = {
+    window: `В эти дни у тебя открыто самое удобное окно, чтобы приблизиться к «${label}».`,
+    destiny: `Твои деньги в этой жизни идут не от твёрдого оклада, а от одного смелого поворота — в сторону «${label}».`,
+    conditional: `Если в эту пору ты удержишь себя, ты понемногу увидишь, как «${label}» прорастает.`,
+    texture: `Не мелочь — а та сумма, что даст тебе выдохнуть и стать ближе к «${label}».`,
+  };
+  return { type, text: text[type] };
+}
+
+export function nextChapter(persona: MoneyPersona, chart: Chart, date: Date, lastChapters: Chapter[] = [], locale: AppLocale = "zh"): Chapter {
   const score = wealthScore(chart, date);
   const tone = wealthLevel(score) as Tone;
   const beat = beatFor(date);
@@ -92,7 +114,7 @@ export function nextChapter(persona: MoneyPersona, chart: Chart, date: Date, las
     themeKey,
     weight: weightFor(tone, beat),
     arc: { seasonKey: seasonKeyFor(date), beat },
-    hopeNote: composeHope(facet, tone),
-    prophecy: composeProphecy(prophecyType, facet),
+    hopeNote: locale === "ru" ? composeHopeRu(facet, tone) : composeHope(facet, tone),
+    prophecy: locale === "ru" ? composeProphecyRu(prophecyType, facet) : composeProphecy(prophecyType, facet),
   };
 }
