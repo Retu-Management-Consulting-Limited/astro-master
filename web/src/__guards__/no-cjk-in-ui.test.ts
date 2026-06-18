@@ -51,6 +51,9 @@ const CLEANED_FILES: string[] = [
   // T5: chat + MollyThinking
   "src/app/[locale]/chat/page.tsx",
   "src/components/MollyThinking.tsx",
+  // T6: synastry
+  "src/app/[locale]/synastry/page.tsx",
+  "src/app/[locale]/synastry/invite/[token]/page.tsx",
 ];
 
 // C 区前缀（即便将来扩大扫描面也绝不检查 —— 属子项目 C）。
