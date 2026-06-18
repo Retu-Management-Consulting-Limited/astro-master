@@ -27,17 +27,26 @@
 
 ---
 
-## Task 1（serial · 地基）: messages 重构为 per-namespace + 术语表 + 硬化 guard
+## Task 1（serial · 地基）: messages 重构 + 术语表 + 硬化 guard + RU_PUBLIC 开关
 
 **Files:**
 - 重构: `web/messages/zh.json` → `web/messages/zh/{common,nav,landing,meta,notFound,error}.json`（ru 同）
 - Modify: `web/src/i18n/request.ts`（合并加载所有 namespace 文件）
 - Create: `web/src/i18n/glossary.ts`（占星/产品术语 zh↔ru 共享表，~90-100 词，供并行任务引用）
+- Create: `web/src/i18n/exposure.ts`（`RU_PUBLIC` 开关：读 `process.env.NEXT_PUBLIC_RU_PUBLIC === "1"`；导出 `ruEnabled()` 与 `publicLocales()`）
+- Modify: `web/src/components/LocaleSwitcher.tsx`（`!ruEnabled()` 时不列 ru）、`web/src/proxy.ts`（关时 `/ru` 段重定向回默认 locale，剥前缀）
 - Create: `web/src/__guards__/no-cjk-in-ui.test.ts`、`web/src/__guards__/message-key-parity.test.ts`
-- Create: `web/scripts/check-i18n.mjs`（CI 用）；Modify: `web/package.json`（prebuild 挂 check）、`.github/workflows/ci.yml`
+- Create: `web/scripts/check-i18n.mjs`（CI 用）；Modify: `web/package.json`（prebuild 挂 check）、`.github/workflows/ci.yml`、`web/.env.example`（记 `NEXT_PUBLIC_RU_PUBLIC`，生产默认不设=关）
+
+**RU_PUBLIC 设计（承接 Kevin「俄语暂不对用户开」决策）:**
+- 生产默认**关**：用户在 UI 看不到俄语、手动访问 `/ru/*` 被 proxy 重定向回默认 locale（剥前缀）。俄语全建好但不暴露。
+- **测试/CI 环境开**：`playwright.config.ts` 与 vitest 设 `NEXT_PUBLIC_RU_PUBLIC=1`，使现有 + 新增 ru e2e（i18n-slice 等）仍能测 `/ru`。
+- Kevin 母语复核通过后，生产置 `NEXT_PUBLIC_RU_PUBLIC=1` 即开放，无需改码。
+- proxy 改动**不破 A 的 as-needed 路由**：仅在 flag 关且路径带 `/ru` 前缀时重定向；其余逻辑（mid cookie、locale 检测）原样。
 
 **AC:**
-- request.ts 合并加载 per-ns 文件后，A 的 landing/nav 竖切仍渲染（zh `/` + ru `/ru`）。
+- request.ts 合并加载 per-ns 文件后，A 的 landing/nav 竖切仍渲染（zh `/` + ru `/ru`，测试环境 flag 开）。
+- flag 关时：LocaleSwitcher 无 ru 选项；`/ru` 重定向回 `/`。flag 开时：ru 正常。两态各有测试。
 - `no-cjk-in-ui` guard：扫 `src/app`+`src/components` 的 `.tsx`（排除注释、排除 C 区路径），**断言无 CJK**；当前应**预期失败**（还没抽），故本任务先把 guard 写成「允许清单递减」模式或标 `.skip` 留到 Task N 收口启用 —— **实现方式**：guard 接受一个「已清理文件」清单，Task 1 清单含已 i18n 的 landing/TabBar，后续任务往清单加；Task N 时清单=全部、删清单参数变全量断言。
 - `message-key-parity` guard：`messages/zh/**` 与 `messages/ru/**` 的 key 路径集合完全相等（diff 空）。
 - glossary.ts 导出 `PLANETS/SIGNS/HOUSES/ASPECTS/TERMS`（zh+ru），含侦察列出的 ~90 词。
