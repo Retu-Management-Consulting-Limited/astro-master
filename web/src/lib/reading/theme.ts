@@ -1,4 +1,12 @@
 import type { Chart, BodyName, Placement } from "@/lib/astro/chart";
+import type { AppLocale } from "@/i18n/routing";
+import { PLANETS, SIGNS, HOUSES } from "@/i18n/glossary";
+
+// zh sign name (what chart.ts emits, e.g. "天蝎") → ru ("Скорпион"). Single-source
+// glossary so星盘术语 never drifts across the i18n tasks.
+const SIGN_ZH_TO_RU: Record<string, string> = Object.fromEntries(
+  Object.values(SIGNS).map((v) => [v.zh, v.ru]),
+);
 
 // 主题深度解读 — deterministic baseline woven with the user's real placements.
 // Instant render + fallback; real readings come from /api/reading, which keeps
@@ -42,6 +50,90 @@ const CFG: Record<ThemeId, { title: string; glyph: string; planet: BodyName; cnP
   lonely: { title: "孤独与归属", glyph: "☽", planet: "Moon", cnPlanet: "月亮" },
   self: { title: "自我与方向", glyph: "☉", planet: "Sun", cnPlanet: "太阳" },
 };
+
+// ── ru variants (i18n 子项目 C / M3) ──────────────────────────────────────────
+// Russian deterministic baseline — NOT a machine translation but Molly's voice
+// authored in Russian, woven with the SAME real placements (sign/house) as zh.
+// 宪法 §8「真 vs 编」: 不夸大、不编造负面，仍是「照见」不是「算命」。
+// zh tables above are byte-unchanged; ru is a new branch selected by locale.
+const TITLE_RU: Record<ThemeId, string> = {
+  love: "Любовь и отношения",
+  wealth: "Богатство и время",
+  lonely: "Одиночество и принадлежность",
+  self: "Я и направление",
+};
+
+const ESSENCE_RU: Record<string, string> = {
+  白羊: "прямой и пылкий, не любишь ходить вокруг да около",
+  金牛: "основательный — если уж решил, не отпускаешь легко",
+  双子: "лёгкий и переменчивый, боишься скуки",
+  巨蟹: "мягкий и привязчивый, помнишь каждую мелочь",
+  狮子: "пылкий, жаждешь, чтобы тебя по-настоящему увидели",
+  处女: "тонкий, вечно хочешь всё довести до идеала",
+  天秤: "ценишь меру и достоинство, боишься потерять равновесие",
+  天蝎: "глубокий и решительный — либо всё, либо ничего",
+  射手: "тянешься к свободе, взгляд всегда устремлён вдаль",
+  摩羯: "сдержанный, умеешь терпеть, прячешь уязвимость глубоко",
+  水瓶: "отстранённый и ясный, привык отходить в сторону и наблюдать",
+  双鱼: "чувствительный и сопереживающий, границы часто размыты",
+};
+
+const QUOTE_RU: Record<ThemeId, string> = {
+  love: "Тебе нужна не лёгкая симпатия, а полное слияние.",
+  wealth: "Твои деньги идут за твоей смелостью — не за удачей.",
+  lonely: "Твой главный талант — заставить всех поверить, что тебе никто не нужен.",
+  self: "Ответ, который ты всё ищешь, ты давно знаешь — просто не смеешь признать.",
+};
+
+const CHIPS_RU: Record<ThemeId, string[]> = {
+  love: ["Почему я всегда влюбляюсь в тех, в ком не уверена?", "Как не растратить себя в отношениях?"],
+  wealth: ["Стоит ли мне действовать в этом году?", "Почему деньги у меня не задерживаются?"],
+  lonely: ["Почему я скорее вынесу всё сама, чем попрошу о помощи?", "Будет ли тот, кто сможет меня подхватить?"],
+  self: ["Чего я на самом деле хочу в этой жизни?", "Как мне стать собой?"],
+};
+
+function paragraphsRu(id: ThemeId, house: number, essence: string): ThemeRead["paragraphs"] {
+  const dom = HOUSES[String(house)]?.ru ?? `Дом ${house}`;
+  switch (id) {
+    case "love":
+      return [
+        { text: `В любви ты ${essence}. Эта сила ложится в твой ${dom} — значит, отношения для тебя никогда не украшение, а способ убедиться, что ты существуешь.` },
+        { text: `Поэтому ты боишься не отказа, а «неопределённости». Размытость мучит тебя сильнее, чем разрыв.`, accent: true },
+        { text: `Это не каприз — это значит, что ты любишь по-настоящему. Не делай себя меньше ради удобного мира.`, catch: true },
+      ];
+    case "wealth":
+      return [
+        { text: `Твоё чутьё на деньги и возможности ${essence}. Оно ложится в твой ${dom} — твои деньги приходят оттого, решишься ли ты в нужный миг поставить на себя, а не от того, насколько крепко держишься.` },
+        { text: `Твой настоящий риск — не потерять деньги, а из-за желания быть слишком надёжной упустить окно, которое было создано для тебя.`, accent: true },
+        { text: `Когда время действовать — не медли, но домашнюю работу сделай: твоя удача всегда награждает подготовленную смелость.`, catch: true },
+      ];
+    case "lonely":
+      return [
+        { text: `То, как ты укладываешь свои чувства, ${essence}. Луна в твоём ${dom} — ты давно научилась тихо прятать саму нужду в других.` },
+        { text: `Так ты стала той, кто вечно подхватывает других, но редко спрашивает: а кто подхватит меня?`, accent: true },
+        { text: `Независимость — твои доспехи, но снять их иногда не слабость — это шанс для тех, кто хочет подойти ближе.`, catch: true },
+      ];
+    case "self":
+      return [
+        { text: `Основа твоего ядра ${essence}. Солнце в твоём ${dom} — настоящая задача этой жизни в том, чтобы прожить эту энергию, а не спрятать её.` },
+        { text: `Ты часто сомневаешься в себе — не потому что недостаточно хороша, а потому что меряешь свой путь чужой меркой.`, accent: true },
+        { text: `Направление ты давно знаешь — просто ещё не решилась признать. Позволить себе хотеть — это первый шаг.`, catch: true },
+      ];
+  }
+}
+
+function deepReadOfRu(id: ThemeId, dom: string): string {
+  switch (id) {
+    case "love":
+      return `Ещё на слой глубже: ты боишься не одиночества, а «оказаться недостаточной, когда тебя разглядят». Тот, у кого Венера в ${dom}, ещё до настоящего сближения протягивает испытание — отдаёт каждым отношениям ответ на вопрос «достойна ли я любви». По-настоящему держит тебя то, что ты сама ни разу не решилась ответить на него первой.`;
+    case "wealth":
+      return `Ещё на слой глубже: твоя тревога о деньгах корнями не в деньгах — ты не веришь, что «спокойное благополучие» достанется именно тебе. Юпитер в ${dom} — твоя денежная сила в тот миг, когда ты «ставишь на себя»; но ты застреваешь на «а вдруг ошибусь — это докажет, что я не справляюсь». Ты бережёшь не деньги, а ту себя, что боится быть отвергнутой.`;
+    case "lonely":
+      return `Ещё на слой глубже: ты не то чтобы не нуждаешься в людях — ты слишком рано усвоила, что «нуждаться = опасно». Луна в ${dom} — ты спаяла просьбу о помощи с «меня отвергнут». Держит тебя не отсутствие близких, а то, что при их приближении ты первой закрываешь дверь — боль закрытой двери ты контролируешь, боль отвержения — нет.`;
+    case "self":
+      return `Ещё на слой глубже: ты долго не решаешься выбрать не потому, что нет направления, а потому что боишься «выбрать то, чего по-настоящему хочешь, и не справиться». Солнце в ${dom} — твоя задача прожить эту энергию; но ты застреваешь на «а вдруг это и есть весь я — и всё равно недостаточно ярок». Ты знаешь, чего хочешь, — просто не смеешь признать, что достойна этого.`;
+  }
+}
 
 const QUOTE: Record<ThemeId, string> = {
   love: "你要的从不是浅浅的喜欢，是彻底的交融。",
@@ -105,11 +197,31 @@ function deepReadOf(id: ThemeId, houseZh: string): string {
   }
 }
 
-export function generateThemeRead(chart: Chart, id: ThemeId): ThemeRead {
+export function generateThemeRead(chart: Chart, id: ThemeId, locale: AppLocale = "zh"): ThemeRead {
   const cfg = CFG[id];
   const p = find(chart, cfg.planet);
   const sign = p?.sign ?? "—";
   const house = p?.house ?? 1;
+
+  if (locale === "ru") {
+    // Same real placements (sign/house), rendered with Russian astrology terms +
+    // Molly's Russian voice. zh path below is byte-unchanged.
+    const essenceRu = ESSENCE_RU[sign] ?? "со своим собственным ритмом";
+    const ruPlanet = PLANETS[cfg.planet]?.ru ?? cfg.planet;
+    const ruSign = SIGN_ZH_TO_RU[sign] ?? sign;
+    const ruHouse = HOUSES[String(house)]?.ru ?? `Дом ${house}`;
+    return {
+      id,
+      title: TITLE_RU[id],
+      glyph: cfg.glyph,
+      planetLabel: `${cfg.glyph}${ruPlanet} в ${ruSign} · ${ruHouse}`,
+      paragraphs: paragraphsRu(id, house, essenceRu),
+      chips: CHIPS_RU[id],
+      quote: QUOTE_RU[id],
+      deepRead: deepReadOfRu(id, ruHouse),
+    };
+  }
+
   const essence = ESSENCE[sign] ?? "有你自己的节奏";
   return {
     id,

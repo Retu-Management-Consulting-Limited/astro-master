@@ -13,6 +13,17 @@ export const MEANING_ZH: Record<MeaningKey, { label: string; register: string }>
   care: { label: "护住所爱", register: "照顾家人、被爱、安顿" },
 };
 
+// ru label + register (i18n 子项目 C / M3) — same meaning facets in Russian.
+// 宪法 §8「真 vs 编」: register 是真实情感映射，不报数字/不编后果。
+export const MEANING_RU: Record<MeaningKey, { label: string; register: string }> = {
+  security: { label: "безопасность", register: "опора, спокойствие, твёрдая почва под ногами" },
+  status: { label: "положение", register: "быть уважаемой, не отставать, держать дистанцию" },
+  freedom: { label: "свобода", register: "не быть в клетке, иметь выбор, сметь повернуть" },
+  worth: { label: "я этого достойна", register: "я ценна, я могу быть к себе добра" },
+  control: { label: "контроль", register: "инициатива в руках, власть над своей судьбой" },
+  care: { label: "забота о близких", register: "беречь родных, быть любимой, устроенность" },
+};
+
 export type Precision = "exact" | "approx" | "no-time";
 export type MeaningRelation = "tension" | "reinforce";
 

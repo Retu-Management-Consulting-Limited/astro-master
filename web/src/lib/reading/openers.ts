@@ -8,6 +8,7 @@
 // §4 first-person intimate voice. R18②: it's the user's own question, not a verdict.
 import { detectHighlights, type Domain } from "@/lib/astro/highlights";
 import type { Chart } from "@/lib/astro/chart";
+import type { AppLocale } from "@/i18n/routing";
 
 // wound/curiosity questions per life-area — the thing this person actually lies awake on
 const OPENERS_BY_DOMAIN: Record<Domain, string[]> = {
@@ -19,6 +20,17 @@ const OPENERS_BY_DOMAIN: Record<Domain, string[]> = {
   shadow: ["我到底，在害怕什么？", "我压抑了什么，没敢说出口？", "怎么和自己的暗面，和解？"],
 };
 
+// ru variants (i18n 子项目 C / M3) — same wound/curiosity questions in Molly's
+// Russian voice (§6.5 curiosity/identity triggers, never fear). zh byte-unchanged.
+const OPENERS_BY_DOMAIN_RU: Record<Domain, string[]> = {
+  love: ["Почему я в любви вечно опустошаю себя первой?", "Понимает ли он меня вообще?", "Решусь ли я поверить ещё раз?"],
+  lonely: ["Почему я скорее вынесу всё сама, чем попрошу о помощи?", "Где же моё место?", "Будет ли тот, кто сможет меня подхватить?"],
+  career: ["Не пора ли мне сменить путь?", "В чём именно моя незаменимость?", "Стоит ли мне действовать в этом году?"],
+  self: ["Чего я на самом деле хочу в этой жизни?", "Почему я вечно в себе сомневаюсь?", "Как мне стать собой?"],
+  mind: ["Как остановить мою внутреннюю гонку?", "Я что, слишком много думаю?", "Чему верить — интуиции или логике?"],
+  shadow: ["Чего же я боюсь?", "Что я подавила и не решилась сказать вслух?", "Как примириться со своей тёмной стороной?"],
+};
+
 // The chart's strongest life-area (the highest-scored highlight), defaulting to self.
 export function topDomain(chart: Chart): Domain {
   return detectHighlights(chart)[0]?.domain ?? "self";
@@ -27,10 +39,11 @@ export function topDomain(chart: Chart): Domain {
 // 3 opener questions for THIS user. Prefer their own first-read chips (already
 // personalized — AI-bespoke when the model is on); otherwise derive from the chart's
 // strongest domain. Never the old one-size-fits-all list.
-export function chatOpeners(chart: Chart, firstReadChips?: string[]): string[] {
+export function chatOpeners(chart: Chart, firstReadChips?: string[], locale: AppLocale = "zh"): string[] {
   if (firstReadChips && firstReadChips.length >= 2) return firstReadChips.slice(0, 3);
-  return OPENERS_BY_DOMAIN[topDomain(chart)] ?? OPENERS_BY_DOMAIN.self;
+  const table = locale === "ru" ? OPENERS_BY_DOMAIN_RU : OPENERS_BY_DOMAIN;
+  return table[topDomain(chart)] ?? table.self;
 }
 
 // exported for tests / reuse
-export { OPENERS_BY_DOMAIN };
+export { OPENERS_BY_DOMAIN, OPENERS_BY_DOMAIN_RU };

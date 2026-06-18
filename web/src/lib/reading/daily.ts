@@ -1,4 +1,12 @@
 import { bodyLongitude, SIGNS_ZH, type Chart, type BodyName } from "../astro/chart";
+import type { AppLocale } from "@/i18n/routing";
+import { SIGNS } from "@/i18n/glossary";
+
+// ru sign names in zodiac order (Aries..Pisces), drawn from the single-source glossary.
+const SIGNS_RU = [
+  SIGNS.Aries, SIGNS.Taurus, SIGNS.Gemini, SIGNS.Cancer, SIGNS.Leo, SIGNS.Virgo,
+  SIGNS.Libra, SIGNS.Scorpio, SIGNS.Sagittarius, SIGNS.Capricorn, SIGNS.Aquarius, SIGNS.Pisces,
+].map((s) => s.ru);
 
 // Deterministic daily reading from REAL transits — replaces the hardcoded
 // 昨/今/明 copy on /today (bug TD-3). Same chart+date → same output; different
@@ -202,6 +210,102 @@ const BACKDROP_LINES: Record<Target, Record<Quality, string>> = {
   MC: { harm: "这阵子事业上有上升的暗流。", tense: "这阵子职业方向上有压力在推你调整。" },
 };
 
+// ── ru copy (i18n 子项目 C / M3). Mirrors the zh structure 1:1 (same pools, same
+// variant counts) so the per-day rotation + adjacent-day-differ contract holds
+// identically in Russian. Molly's voice, authored in ru — not machine-translated.
+// 宪法 §8「真 vs 编」: tomorrow-hook 是真实相位的中性提醒，不编造坏后果/愧疚 (§8.2)。──
+const TODAY_LINES_RU: Record<Target, Record<Quality, string[]>> = {
+  Sun: {
+    harm: ["Сегодня легче всего быть собой — не меняй курс ради кого-то.", "Сегодня площадка твоя — иди в своём ритме, никому не подстраиваясь."],
+    tense: ["Кто-то хочет решить за тебя — сегодня удержи своё направление.", "Сегодня легко поддаться чужому темпу, не отпускай свою позицию."],
+  },
+  Moon: {
+    harm: ["Эмоции сегодня на редкость устойчивы — самое время заняться давно отложенным на сердце.", "Сегодня на душе спокойно, можно коснуться того, что долго откладывала."],
+    tense: ["Чувства легко вспыхивают — сегодня не принимай решений на эмоциях.", "Сегодня настроение качает, важные решения отложи, пока не уляжется."],
+  },
+  Mercury: {
+    harm: ["Сегодня речь ясна — переговоры и заявления тебе на руку.", "Сегодня и голова, и язык послушны — что нужно обсудить и сказать, делай сейчас."],
+    tense: ["Сегодня легко недопонять или сказать лишнее — важное запиши, прежде чем отправлять.", "Сегодня общение буксует — подумай лишнюю секунду, прежде чем сказать."],
+  },
+  Venus: {
+    harm: ["Чувства и деньги сегодня теплеют — сближайся с кем нужно, обсуждай что нужно.", "Сегодня и в людях, и в деньгах попутный ветер — в отношениях и финансах можно шагнуть вперёд."],
+    tense: ["Сегодня легко уступить ради чувств или денег — не спеши соглашаться.", "Сегодня сердце смягчается в любви и деньгах — придержи, не отвечай сразу «да»."],
+  },
+  Mars: {
+    harm: ["Сегодня много действия — то, что хотела продвинуть, продвигай сейчас.", "Сегодня есть напор — за дело, что давно стоит на месте, берись на этой волне."],
+    tense: ["Огня многовато — сегодня сдержи слово, не воюй из-за мелочей.", "Сегодня легко вскипеть — при стычке сделай полшага назад."],
+  },
+  Saturn: {
+    harm: ["То, что долго тащила, сегодня даёт выдохнуть — просто удержи стабильность.", "Сегодня давление чуть отпустило — спокойно подведи итог, этого хватит."],
+    tense: ["Груз на плечах — сегодня не тяни в одиночку, часть отдай.", "Сегодня ноша тяжеловата — не неси одна, попроси подставить плечо."],
+  },
+  ASC: {
+    harm: ["Сегодня ты в форме, первое впечатление работает на тебя.", "Сегодня твоё поле хорошо — показываться и встречаться людям к лицу."],
+    tense: ["Сегодня тебя легко прочесть неверно — не принимай близко чужие оценки.", "Сегодня твой образ легко искажается — не стоит из-за этого спорить."],
+  },
+  MC: {
+    harm: ["В делах сегодня тебя замечают — не прячься.", "Сегодня на работе легко обратить на себя внимание — где можно блеснуть, блесни."],
+    tense: ["Сегодня не спеши заявлять позицию в работе — оставь слова при себе.", "Сегодня на работе сперва понаблюдай, позицию раскрывать не торопись."],
+  },
+};
+
+const CLAIMS_RU: Record<Target, Record<Quality, string[]>> = {
+  Sun: { harm: ["особенно хотелось делать по-своему", "не очень хотелось под кого-то подстраиваться"], tense: ["кто-то подталкивал к нежеланному решению", "твою позицию кто-то перекрыл"] },
+  Moon: { harm: ["хотелось разобраться с отложенным на сердце", "на душе было спокойнее обычного"], tense: ["накатили эмоции, говорить не хотелось", "на душе было немного смутно"] },
+  Mercury: { harm: ["хотелось проговорить и выложить всё начистоту", "особенно тянуло выразиться, пообщаться"], tense: ["с кем-то не сходились во мнениях", "чуть не сказала лишнего или была неверно понята"] },
+  Venus: { harm: ["хотелось сблизиться с кем-то или обсудить деньги", "в отношениях или деньгах хотелось шагнуть вперёд"], tense: ["в любви или деньгах хотелось уступить", "чуть не согласилась на что-то по мягкости"] },
+  Mars: { harm: ["очень хотелось взяться и продвинуть дело", "энергии было через край"], tense: ["легко вспыхивала, тянуло спорить", "чуть не сорвалась из-за мелочи"] },
+  Saturn: { harm: ["наконец-то выдохнула", "довела до конца тяжёлое дело"], tense: ["давление давило так, что трудно дышать", "от ответственности немного устала"] },
+  ASC: { harm: ["была в форме, хотелось вперёд", "чувствовала уверенность в себе"], tense: ["беспокоило, как тебя видят другие", "казалось, что тебя не так поняли"] },
+  MC: { harm: ["хотелось, чтобы заметили на работе", "хотелось проявить себя в деле"], tense: ["хотелось заявить позицию в работе, но колебалась", "на работе слова застревали"] },
+};
+
+const QUOTES_RU: Record<Quality, string[]> = {
+  harm: [
+    "Когда всё гладко, не забывай, как ты выстояла в негладкие дни.",
+    "Сегодня ветер попутный — поднимай парус, но не теряй направление из виду.",
+    "Когда приходит удача, удержит её лишь тот, кто её достоин.",
+    "Иди по течению, но не отдавай всю заслугу удаче.",
+  ],
+  tense: [
+    "Это не плохой день — Вселенная просто просит сначала устоять самой.",
+    "Заминка — не шаг назад, а возможность яснее увидеть, куда идти.",
+    "Сегодняшнее сопротивление помогает тебе отсеять неважное.",
+    "Замедлиться не стыдно — дальше уходит тот, кто умеет устоять.",
+  ],
+};
+
+const TOMORROW_HOOK_RU: Record<Quality, string[]> = {
+  harm: [
+    "Завтра тебя ждёт мягкий аспект — возвращайся, мне есть что тебе сказать.",
+    "Завтра небо благосклонно — загляни, хочу напомнить тебе об одной хорошей вещи.",
+    "Завтра будет полегче — возвращайся, я оставила для тебя пару слов.",
+  ],
+  tense: [
+    "Завтра небольшое испытание — возвращайся, пройдём его вместе.",
+    "Завтра небо чуть напряжённое — возвращайся, я загляну вперёд за тебя.",
+    "Завтра нужно будет устоять — возвращайся, подхватим это вместе.",
+  ],
+};
+
+const WEATHER_RU: Record<(typeof ELEMENTS)[number], string[]> = {
+  火: ["Эмоции рвутся вперёд — действуй, не зажимайся", "Дух на подъёме — самое то двигаться вперёд, не копи в себе"],
+  土: ["Эмоции устойчивы — стой твёрдо, без рывков", "На душе спокойнее обычного — самое то не спешить"],
+  风: ["Мысли оживлены — общайся, не зацикливайся на одном", "Голова работает быстро — больше говори, меньше копайся в одиночку"],
+  水: ["Эмоции глубоки — побудь одна, не тяни через силу", "Мысли тонкие — самое то тишина, не дави на себя"],
+};
+
+const BACKDROP_LINES_RU: Record<Target, Record<Quality, string>> = {
+  Sun: { harm: "В эти дни у тебя проясняется чувство направления.", tense: "В эти дни некая сила испытывает твой внутренний стержень." },
+  Moon: { harm: "В эти дни эмоциональный фон скорее тёплый.", tense: "В эти дни на сердце есть нечто не до конца отпущенное." },
+  Mercury: { harm: "В эти дни хочется додумать кое-что до конца.", tense: "В эти дни мысли путаются, тянет всё пережёвывать." },
+  Venus: { harm: "В эти дни в любви или деньгах теплеет.", tense: "В эти дни в отношениях или деньгах есть задача, которую надо решить." },
+  Mars: { harm: "В эти дни у тебя больше пробивной силы в делах.", tense: "В эти дни напряжение огня и конфликтов высоко — полегче." },
+  Saturn: { harm: "В эти дни ты понемногу удерживаешь долгое тяжёлое дело.", tense: "В эти дни давит одна ноша — это долгая работа." },
+  ASC: { harm: "В эти дни твой образ для внешнего мира держится крепче.", tense: "В эти дни притирка с внешним миром даётся непросто." },
+  MC: { harm: "В эти дни в делах есть восходящее течение.", tense: "В эти дни в карьерном направлении есть давление, толкающее к перестройке." },
+};
+
 const DAY_MS = 86_400_000;
 
 // integer that increments by 1 each LOCAL calendar day (consecutive days differ),
@@ -213,10 +317,12 @@ function pick<T>(pool: T[], ordinal: number): T {
   return pool[((ordinal % pool.length) + pool.length) % pool.length];
 }
 
-function moonWeather(date: Date, ordinal: number): { sign: string; line: string } {
+function moonWeather(date: Date, ordinal: number, locale: AppLocale): { sign: string; line: string } {
   const idx = signIndexOf(bodyLongitude("Moon", date));
   const el = ELEMENTS[idx % 4]; // 0白羊→火,1金牛→土,2双子→风,3巨蟹→水, repeats
-  return { sign: SIGNS_ZH[idx], line: pick(WEATHER[el], ordinal) };
+  const signs = locale === "ru" ? SIGNS_RU : SIGNS_ZH;
+  const weather = locale === "ru" ? WEATHER_RU : WEATHER;
+  return { sign: signs[idx], line: pick(weather[el], ordinal) };
 }
 
 export interface DailyReading {
@@ -230,7 +336,7 @@ export interface DailyReading {
   quality: Quality;
 }
 
-export function dailyReading(chart: Chart, date: Date): DailyReading {
+export function dailyReading(chart: Chart, date: Date, locale: AppLocale = "zh"): DailyReading {
   const ord = dayOrdinal(date);
   const today = moonAspect(chart, date);
 
@@ -239,17 +345,26 @@ export function dailyReading(chart: Chart, date: Date): DailyReading {
   const tDate = new Date(date.getTime() + DAY_MS);
   const tom = moonAspect(chart, tDate);
 
-  const w = moonWeather(date, ord);
+  const w = moonWeather(date, ord, locale);
   const bd = backdropAspect(chart, date);
+
+  // locale=ru selects the parallel ru tables (1:1 with zh structure → identical
+  // rotation, freshness contract holds in ru). zh (default) is byte-unchanged.
+  const ru = locale === "ru";
+  const TODAY = ru ? TODAY_LINES_RU : TODAY_LINES;
+  const CLAIM = ru ? CLAIMS_RU : CLAIMS;
+  const QUOTE = ru ? QUOTES_RU : QUOTES;
+  const HOOK = ru ? TOMORROW_HOOK_RU : TOMORROW_HOOK;
+  const BACKDROP = ru ? BACKDROP_LINES_RU : BACKDROP_LINES;
 
   return {
     moonSign: w.sign,
     moonLine: w.line,
-    yesterdayClaim: pick(CLAIMS[yest.target][yest.quality], dayOrdinal(yDate)),
-    todayLine: pick(TODAY_LINES[today.target][today.quality], ord),
-    todayQuote: pick(QUOTES[today.quality], ord),
-    tomorrowHook: pick(TOMORROW_HOOK[tom.quality], dayOrdinal(tDate)),
-    backdropLine: bd ? BACKDROP_LINES[bd.target][bd.quality] : null,
+    yesterdayClaim: pick(CLAIM[yest.target][yest.quality], dayOrdinal(yDate)),
+    todayLine: pick(TODAY[today.target][today.quality], ord),
+    todayQuote: pick(QUOTE[today.quality], ord),
+    tomorrowHook: pick(HOOK[tom.quality], dayOrdinal(tDate)),
+    backdropLine: bd ? BACKDROP[bd.target][bd.quality] : null,
     quality: today.quality,
   };
 }
