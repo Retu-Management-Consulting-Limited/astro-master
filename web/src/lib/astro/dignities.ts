@@ -82,6 +82,22 @@ const STATUS_ZH: Record<DignityStatus, string> = {
 const COMBUST_ZH: Record<CombustState, string> = {
   cazimi: "日心(cazimi)", combust: "焦伤", "under-beams": "在日光下", free: "",
 };
+
+// Russian renderings of the classical interpretive vocabulary (i18n 子项目 C / M2).
+// Standard traditional-astrology Russian terms — domain vocabulary, not marketing copy
+// (native polish deferred to D). Exported so the Molly ru fact-serializer (molly.ts)
+// can render the SAME structured InterpretiveFacts in Russian instead of re-translating
+// the zh prose. zh maps stay private + byte-unchanged.
+export const STATUS_RU: Record<DignityStatus, string> = {
+  domicile: "в обители", exaltation: "в экзальтации", triplicity: "в тригоне",
+  detriment: "в изгнании", fall: "в падении", peregrine: "перегрин", none: "",
+};
+export const COMBUST_RU: Record<CombustState, string> = {
+  cazimi: "казими", combust: "под сожжением", "under-beams": "под лучами Солнца", free: "",
+};
+export const SECT_RU: Record<Sect, string> = {
+  diurnal: "дневная карта", nocturnal: "ночная карта",
+};
 const PLANET_ZH: Record<string, string> = {
   Sun: "太阳", Moon: "月亮", Mercury: "水星", Venus: "金星", Mars: "火星",
   Jupiter: "木星", Saturn: "土星", Uranus: "天王星", Neptune: "海王星", Pluto: "冥王星",

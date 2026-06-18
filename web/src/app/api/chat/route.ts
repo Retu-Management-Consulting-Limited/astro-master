@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Chart } from "@/lib/astro/chart";
 import { isFullChart } from "@/lib/astro/chart-validate";
-import { SAFETY, facts, personaFor, pronoun, type Gender } from "@/lib/ai/molly";
+import { safetyFor, facts, personaFor, pronoun, type Gender } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
 import { detectCrisis, CRISIS_RESPONSE, CHAT_FALLBACK } from "@/lib/ai/safety";
 import { hasLocale } from "next-intl";
@@ -24,6 +24,17 @@ interface Msg {
 }
 
 function chatSystem(gender: Gender | undefined, ta: string, locale: AppLocale): string {
+  if (locale === "ru") {
+    return `${personaFor(gender, locale)}
+
+Сейчас ты в личной переписке с человеком (как в мессенджере). Требования к ответу:
+- Коротко: 2–4 фразы, до ~120 символов, разговорно, тепло, как живой человек; без длинных монологов и списков.
+- Строго по её/его натальной карте и по тому, что он/она только что сказал(а); при необходимости мягко называй суть, но сначала прими чувства.
+- Никаких дисклеймеров, никаких префиксов/суффиксов. Выводи только сам текст ответа.
+- Пиши на русском языке.
+
+${safetyFor(locale)}`;
+  }
   return `${personaFor(gender, locale)}
 
 现在你在和${ta}私聊（像微信对话）。回应要求：
@@ -31,7 +42,7 @@ function chatSystem(gender: Gender | undefined, ta: string, locale: AppLocale): 
 - 紧扣${ta}的星盘和${ta}刚说的话；必要时温柔地点破，但先接住情绪。
 - 不要任何免责声明、不要前后缀。只输出你要回${ta}的那段话本身。
 
-${SAFETY}`;
+${safetyFor(locale)}`;
 }
 
 const stripHtml = (s: string) => s.replace(/<[^>]+>/g, "").trim();

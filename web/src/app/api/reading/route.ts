@@ -3,7 +3,7 @@ import { generateThemeRead, type ThemeId, THEME_IDS } from "@/lib/reading/theme"
 import { generateFirstRead } from "@/lib/reading/generate";
 import type { Chart } from "@/lib/astro/chart";
 import { isFullChart } from "@/lib/astro/chart-validate";
-import { SAFETY, facts, personaFor, pronoun, type Gender } from "@/lib/ai/molly";
+import { safetyFor, facts, personaFor, pronoun, langDirective, type Gender } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
 import { hasLocale } from "next-intl";
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -51,7 +51,7 @@ function firstPrompt(chart: Chart, ta: string, locale: AppLocale, nickname?: str
   ],
   "quote": "一句能让${ta}想截图发朋友圈的金句（≤30字）",
   "chips": ["${ta}此刻最想问的问题1", "问题2", "问题3"]
-}`;
+}${langDirective(locale)}`;
 }
 
 function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: string, ta: string, locale: AppLocale, nickname?: string): string {
@@ -64,7 +64,7 @@ function themePrompt(chart: Chart, themeId: ThemeId, label: string, title: strin
   ],
   "quote": "一句金句（≤30字）",
   "chips": ["顺着这个主题${ta}最想问的1", "问题2"]
-}`;
+}${langDirective(locale)}`;
 }
 
 const run = (prompt: string, system: string, ac: AbortController, locale: AppLocale) =>
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
   const ac = new AbortController();
   req.signal.addEventListener("abort", () => ac.abort());
 
-  const system = `${personaFor(gender, locale)}\n\n${SAFETY}`;
+  const system = `${personaFor(gender, locale)}\n\n${safetyFor(locale)}`;
   const ta = pronoun(gender);
   try {
     let result: unknown;

@@ -5,7 +5,7 @@ import { nextChapter } from "@/lib/money/narrative";
 import { validateMoneyCopy } from "@/lib/money/guardrail";
 import { MEANING_ZH } from "@/lib/money/types";
 import type { Chapter, Precision } from "@/lib/money/types";
-import { PERSONA, SAFETY, facts } from "@/lib/ai/molly";
+import { personaFor, safetyFor, facts, langDirective } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
 import { detectCrisis } from "@/lib/ai/safety";
 import { hasLocale } from "next-intl";
@@ -18,14 +18,27 @@ import { logUsage } from "@/lib/server/cost";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const SYSTEM = `${PERSONA}\n\n${SAFETY}`;
+// locale-aware system prompt (i18n 子项目 C / M2). Was a module-level zh constant
+// (承重风险 #1: easiest place for a stray Chinese reading to leak under ru).
+// Narrative has no gender input → default female-tuned persona, as before for zh.
+const systemFor = (locale: AppLocale) => `${personaFor(undefined, locale)}\n\n${safetyFor(locale)}`;
 
 type Variant = "personalized" | "barnum";
 
 function buildPrompt(chart: Chart, ch: Chapter, last: Chapter[], variant: Variant, locale: AppLocale): string {
-  void locale;
   const facet = MEANING_ZH[ch.meaningFacet];
-  const recent = last.slice(0, 7).map((c) => c.hopeNote).join(" / ") || "（无）";
+  const recent = last.slice(0, 7).map((c) => c.hopeNote).join(" / ") || (locale === "ru" ? "(нет)" : "（无）");
+  if (locale === "ru") {
+    if (variant === "barnum") {
+      // H3 control: generic daily money note, NO meaning personalization.
+      return `Голосом Molly напиши одну фразу-напоминание о финансовой удаче на сегодня (общую, не про конкретного человека). Выводи только JSON, без блоков кода: {"hopeNote":"до ~55 символов","prophecy":"до ~30 символов"}${langDirective(locale)}`;
+    }
+    return `Вот реальные факты её натальной карты:\n${facts(chart, locale)}\n
+Её денежная личность: деньги для неё значат «${facet.label}» (${facet.register}). Тон сегодня: ${ch.tone} (рост/ровно/осторожно), угол повествования: ${ch.angle}, такт истории: ${ch.arc.beat}.
+За последние 7 дней я уже говорила: ${recent}
+Задача: напиши сегодняшнюю страницу сериала «денежная история», продолжи предыдущую, держись её «${facet.label}», основной тон — надежда. Никогда не называй конкретные суммы и даты. Не повторяй темы/метафоры последних 7 дней. Выводи только JSON, без блоков кода:
+{"hopeNote":"продолжение + сегодня, до ~55 символов","prophecy":"одно предсказание без цифр, до ~30 символов"}${langDirective(locale)}`;
+  }
   if (variant === "barnum") {
     // H3 control: generic 今日财运, NO meaning personalization.
     return `以 Molly 的口吻，写今天的一句财运提醒（泛泛的、不针对具体人）。只输出 JSON，不要代码块：{"hopeNote":"≤55字","prophecy":"≤30字"}`;
@@ -106,7 +119,7 @@ export async function POST(req: Request) {
     const ac = new AbortController();
     req.signal.addEventListener("abort", () => ac.abort());
     try {
-      const r = await runLLM(buildPrompt(chart, skeleton, last, variant, locale), SYSTEM, ac, 400, locale);
+      const r = await runLLM(buildPrompt(chart, skeleton, last, variant, locale), systemFor(locale), ac, 400, locale);
       if (r.usage) await logUsage({ route: "narrative", ...r.usage }).catch(() => {});
       const ai = parse(r.text);
       const clean = validateMoneyCopy(ai.hopeNote).ok && validateMoneyCopy(ai.prophecy).ok;
