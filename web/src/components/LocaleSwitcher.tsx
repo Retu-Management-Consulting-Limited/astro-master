@@ -3,7 +3,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { publicLocales } from "@/i18n/exposure";
 
-const LABELS: Record<string, string> = { zh: "中文", ru: "Русский" };
+// 语言名按惯例用该语言自身书写（中文 / Русский），故 zh 自名「中文」是合法
+// native-script 字面量，非待抽取 UI 文案。标记豁免 no-cjk guard。
+const LABELS: Record<string, string> = { zh: "中文", ru: "Русский" }; /* i18n-allow-cjk */
 
 export function LocaleSwitcher() {
   const locale = useLocale();

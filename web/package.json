@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "check:css": "node scripts/check-css-layers.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "test:e2e": "playwright test",
-    "prebuild": "node scripts/check-css-layers.mjs",
+    "prebuild": "node scripts/check-css-layers.mjs && node scripts/check-i18n.mjs",
     "build": "next build",
     "start": "next start",
     "postinstall": "git -C .. config core.hooksPath .githooks 2>/dev/null || true"
