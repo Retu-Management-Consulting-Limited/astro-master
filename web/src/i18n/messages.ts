@@ -22,6 +22,8 @@ import zhNotFound from "../../messages/zh/notFound.json";
 import zhError from "../../messages/zh/error.json";
 import zhInput from "../../messages/zh/input.json";
 import zhForms from "../../messages/zh/forms.json";
+import zhChart from "../../messages/zh/chart.json";
+import zhMe from "../../messages/zh/me.json";
 
 import ruCommon from "../../messages/ru/common.json";
 import ruNav from "../../messages/ru/nav.json";
@@ -31,6 +33,8 @@ import ruNotFound from "../../messages/ru/notFound.json";
 import ruError from "../../messages/ru/error.json";
 import ruInput from "../../messages/ru/input.json";
 import ruForms from "../../messages/ru/forms.json";
+import ruChart from "../../messages/ru/chart.json";
+import ruMe from "../../messages/ru/me.json";
 
 export const NAMESPACES = [
   "common",
@@ -41,6 +45,8 @@ export const NAMESPACES = [
   "error",
   "input",
   "forms",
+  "chart",
+  "me",
 ] as const;
 
 export type Namespace = (typeof NAMESPACES)[number];
@@ -57,6 +63,8 @@ const BUNDLE: Record<AppLocale, Bundle> = {
     error: zhError,
     input: zhInput,
     forms: zhForms,
+    chart: zhChart,
+    me: zhMe,
   },
   ru: {
     common: ruCommon,
@@ -67,6 +75,8 @@ const BUNDLE: Record<AppLocale, Bundle> = {
     error: ruError,
     input: ruInput,
     forms: ruForms,
+    chart: ruChart,
+    me: ruMe,
   },
 };
 

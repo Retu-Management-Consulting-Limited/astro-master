@@ -40,6 +40,11 @@ const CLEANED_FILES: string[] = [
   // T2: input + forms
   "src/app/[locale]/input/page.tsx",
   "src/components/BirthDateField.tsx",
+  // T3: chart + me
+  "src/app/[locale]/chart/page.tsx",
+  "src/app/[locale]/me/page.tsx",
+  "src/app/[locale]/me/birth/page.tsx",
+  "src/app/[locale]/me/settings/page.tsx",
 ];
 
 // C 区前缀（即便将来扩大扫描面也绝不检查 —— 属子项目 C）。
