@@ -2,13 +2,15 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
-import zh from "../../messages/zh.json";
+import { loadMessages } from "@/i18n/messages";
 import { TabBar } from "./TabBar";
 
 afterEach(cleanup);
 
 // TabBar 文案现在走 next-intl 翻译，需要 provider 注入 messages。默认 locale 是 zh，
 // 故这里用 zh 字典渲染——既有「今日/本命/对话/我的」断言因此原样保留。
+// messages 已重构为 per-namespace（Task 1），通过合并 loader 取整包。
+const zh = loadMessages("zh");
 function renderTab(active: string) {
   return render(
     <NextIntlClientProvider locale="zh" messages={zh}>
