@@ -1,5 +1,6 @@
 "use client";
 import { Suspense, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useChartGuard } from "@/lib/guard";
@@ -32,8 +33,7 @@ function cellColor(level: DayBody["level"]): { bg: string; fg: string } {
   if (level === "low") return RED;
   return PLAIN;
 }
-// 格子 aria-label 的态文案——稍长于 bodyMark.label（包含「留意」）。
-const LEVEL_LABEL: Record<DayBody["level"], string> = { good: "有劲", low: "该歇/留意", calm: "平稳" };
+// 格子 aria-label 的态文案——稍长于 bodyMark.label（包含「留意」），走 t("levelLabel.<level>")。
 
 // useSearchParams() opts the subtree out of static prerender → 必须包在 Suspense 下
 // （Next app-router 要求，同 /wealth）。
@@ -46,6 +46,7 @@ export default function BodyPage() {
 }
 
 function BodyView() {
+  const t = useTranslations("body");
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const now = useNow(); // 本地时间，app resume 时刷新（跨天滚动）
@@ -85,15 +86,15 @@ function BodyView() {
 
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "6px 20px 18px" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "10px 2px 4px" }}>
-          <h1 style={{ fontFamily: "var(--serif)", fontSize: 25, color: "var(--teal-soft)", fontWeight: 600 }}>🌙 身心日历</h1>
-          <span style={{ fontSize: 13, color: "var(--mute)" }}>{year} · {month}月</span>
+          <h1 style={{ fontFamily: "var(--serif)", fontSize: 25, color: "var(--teal-soft)", fontWeight: 600 }}>{t("title")}</h1>
+          <span style={{ fontSize: 13, color: "var(--mute)" }}>{t("monthLabel", { year, month })}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(111,194,192,.09)", border: "1px solid rgba(111,194,192,.28)", borderRadius: 11, padding: "8px 12px", margin: "12px 0 16px", fontSize: 12.5, color: "var(--teal)" }}>
-          🌑 大多数日子平稳——别天天有戏。<b style={{ color: "var(--teal-soft)" }}>新月 / 满月</b>情绪最满，点未来某天看那天身心态。
+          {t("bannerBefore")}<b style={{ color: "var(--teal-soft)" }}>{t("bannerEmphasis")}</b>{t("bannerAfter")}
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 7 }}>
-          {["一", "二", "三", "四", "五", "六", "日"].map((w) => <span key={w} style={{ textAlign: "center", fontSize: 10, color: "#5a6173" }}>{w}</span>)}
+          {(["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const).map((w) => <span key={w} style={{ textAlign: "center", fontSize: 10, color: "#5a6173" }}>{t(`weekdays.${w}`)}</span>)}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
           {Array.from({ length: (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7 }).map((_, i) => <div key={`e${i}`} />)}
@@ -105,9 +106,9 @@ function BodyView() {
             const phase = moonPhaseMark(new Date(Date.UTC(year, month - 1, d.day, 12, 0)));
             return (
               <button type="button" key={d.day} data-testid="body-day" onClick={() => setSelDay(d.day)} aria-pressed={isSel}
-                aria-label={`${month}月${d.day}日 · 身心${LEVEL_LABEL[d.level]}${phase === "🌑" ? " · 新月" : phase === "🌕" ? " · 满月" : ""}${isToday ? " · 今天" : ""}`}
+                aria-label={`${t("dayAriaBase", { month, day: d.day, level: t(`levelLabel.${d.level}`) })}${phase === "🌑" ? t("dayAriaNew") : phase === "🌕" ? t("dayAriaFull") : ""}${isToday ? t("dayAriaToday") : ""}`}
                 style={{ aspectRatio: "1", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", lineHeight: 1, fontSize: 12.5, fontWeight: 500, position: "relative", padding: 0, cursor: "pointer", background: c.bg, color: c.fg, boxShadow: isToday ? "0 0 0 2px var(--gold),0 0 12px rgba(201,168,97,.5)" : "none", outline: isSel && !isToday ? "2px solid var(--cream)" : "none", outlineOffset: isSel && !isToday ? 1 : 0 }}>
-                <span style={{ fontSize: 14, fontWeight: 600 }}>{isToday ? "今" : d.day}</span>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{isToday ? t("todayCellLabel") : d.day}</span>
                 <span aria-hidden="true" style={{ fontSize: 13, fontWeight: 700, lineHeight: 1, opacity: 1 }}>{mark.glyph}</span>
                 {phase && <span aria-hidden="true" style={{ position: "absolute", top: 1, right: 3, fontSize: 9, opacity: 0.9 }}>{phase}</span>}
               </button>
@@ -116,31 +117,31 @@ function BodyView() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, margin: "16px 0 6px", fontSize: 10.5, color: "var(--mute)" }}>
-          <span><i style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: GREEN.bg, marginRight: 4, verticalAlign: "middle" }} aria-hidden="true" />有劲</span>
-          <span><i style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: RED.bg, marginRight: 4, verticalAlign: "middle" }} aria-hidden="true" />该歇/留意</span>
-          <span><i style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: PLAIN.bg, marginRight: 4, verticalAlign: "middle" }} aria-hidden="true" />平稳</span>
+          <span><i style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: GREEN.bg, marginRight: 4, verticalAlign: "middle" }} aria-hidden="true" />{t("legendGood")}</span>
+          <span><i style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: RED.bg, marginRight: 4, verticalAlign: "middle" }} aria-hidden="true" />{t("legendLow")}</span>
+          <span><i style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: PLAIN.bg, marginRight: 4, verticalAlign: "middle" }} aria-hidden="true" />{t("legendCalm")}</span>
         </div>
 
         {(() => {
-          const when = isTodaySel ? `今天 · ${selData.day} 号` : `${month}月${selData.day}日`;
+          const when = isTodaySel ? t("whenToday", { day: selData.day }) : t("whenDate", { month, day: selData.day });
           if (selData.level === "low") return (
             <div data-testid="body-detail" style={{ marginTop: 14, borderRadius: 16, padding: "15px 16px", borderLeft: "3px solid #d44a46", border: "1px solid rgba(212,74,70,.28)", background: "linear-gradient(180deg,rgba(212,74,70,.08),rgba(212,74,70,.02))" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#e8736f" }}>{when} · 身心 · 该歇 🔴</div>
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#e8736f" }}>{t("lowHeader", { when })}</div>
               <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}><b style={{ color: "var(--cream)" }}>{bv.line}</b> {bv.why}</div>
               <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 14, lineHeight: 1.5, color: "var(--cream-dim)", marginTop: 8 }}>{bv.care}</div>
             </div>
           );
           if (selData.level === "good") return (
             <div data-testid="body-detail" style={{ marginTop: 14, borderRadius: 16, padding: "15px 16px", borderLeft: "3px solid #3fa860", border: "1px solid rgba(63,168,96,.3)", background: "linear-gradient(180deg,rgba(63,168,96,.1),rgba(63,168,96,.03))" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#7fd99a" }}>{when} · 身心 · 有劲 🟢</div>
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#7fd99a" }}>{t("goodHeader", { when })}</div>
               <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}><b style={{ color: "var(--cream)" }}>{bv.line}</b> {bv.why}</div>
               <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 14, lineHeight: 1.5, color: "var(--cream-dim)", marginTop: 8 }}>{bv.care}</div>
             </div>
           );
           return (
             <div data-testid="body-detail" style={{ marginTop: 14, borderRadius: 16, padding: "15px 16px", borderLeft: "3px solid #6b7384", border: "1px solid rgba(217,222,231,.18)", background: "linear-gradient(180deg,rgba(217,222,231,.06),rgba(217,222,231,.02))" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#aab2c0" }}>{when} · 身心 · 平稳 ⚪</div>
-              <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}><b style={{ color: "var(--cream)" }}>{bv.line}</b> {bv.why}{nextLow ? <> 下一个该顾一下自己的是 <b style={{ color: "var(--teal-soft)" }}>{nextLow.day} 号</b>。</> : null}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#aab2c0" }}>{t("calmHeader", { when })}</div>
+              <div style={{ fontSize: 14.5, lineHeight: 1.68, color: "var(--cream-dim)" }}><b style={{ color: "var(--cream)" }}>{bv.line}</b> {bv.why}{nextLow ? <>{t("nextLowBefore")}<b style={{ color: "var(--teal-soft)" }}>{t("nextLowDay", { day: nextLow.day })}</b>{t("nextLowAfter")}</> : null}</div>
               <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 14, lineHeight: 1.5, color: "var(--cream-dim)", marginTop: 8 }}>{bv.care}</div>
             </div>
           );
@@ -149,10 +150,10 @@ function BodyView() {
         {/* "看更深" — 日历告诉你 WHEN，身心深度告诉你能量周期 / 怎么照顾自己。对称于
             /wealth 的「钱对你意味着什么」看更深入口。落到对话深谈身心（/chat）。*/}
         <button type="button" data-testid="body-deeper" onClick={() => router.push("/chat")} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 8, marginTop: 18, padding: "11px 13px", borderRadius: 12, background: "rgba(111,194,192,.07)", border: "1px solid rgba(111,194,192,.34)", fontSize: 13, color: "var(--teal-soft)", cursor: "pointer" }}>
-          <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--teal)", boxShadow: "0 0 8px var(--teal)" }} aria-hidden="true" /><span>你的<b style={{ color: "var(--cream)" }}>能量周期 / 自我照顾</b></span><span style={{ marginLeft: "auto", color: "var(--teal-soft)" }}>看更深 →</span>
+          <span style={{ width: 9, height: 9, borderRadius: "50%", background: "var(--teal)", boxShadow: "0 0 8px var(--teal)" }} aria-hidden="true" /><span>{t("deeperBefore")}<b style={{ color: "var(--cream)" }}>{t("deeperEmphasis")}</b></span><span style={{ marginLeft: "auto", color: "var(--teal-soft)" }}>{t("deeperCta")}</span>
         </button>
 
-        <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "16px 0 4px" }}>身心仅供参考 · 我说倾向不说病——身体真有信号，请去看医生</div>
+        <div style={{ textAlign: "center", fontSize: 11, color: "#566073", margin: "16px 0 4px" }}>{t("disclaimer")}</div>
       </div>
 
       {/* 身心降 chip 后，/body 不再有自己的 active tab——传不匹配任何 tab 的值，

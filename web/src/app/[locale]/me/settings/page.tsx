@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
@@ -22,6 +23,7 @@ function Toggle({ on, onClick, label, disabled }: { on: boolean; onClick: () => 
 }
 
 export default function SettingsPage() {
+  const t = useTranslations("me");
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
@@ -52,17 +54,17 @@ export default function SettingsPage() {
   // The daily toggle drives the real Web Push subscription.
   const toggleDaily = async () => {
     if (!pushAvailable()) {
-      flash("这台设备暂不支持推送（iOS 需先「添加到主屏幕」）");
+      flash(t("toastPushUnsupported"));
       return;
     }
     if (notif.daily) {
       await disablePush();
       setNotif((n) => ({ ...n, daily: false }));
-      flash("已关闭每日提醒");
+      flash(t("toastDailyOff"));
     } else {
       const ok = await enablePush({ daily: true });
       setNotif((n) => ({ ...n, daily: ok }));
-      flash(ok ? "每日提醒已开启 ✓" : "没能开启——请在系统里允许通知");
+      flash(ok ? t("toastDailyOn") : t("toastDailyFail"));
     }
   };
 
@@ -72,10 +74,10 @@ export default function SettingsPage() {
   };
 
   const editNick = () => {
-    const v = window.prompt("改个名字，Molly 怎么称呼你？", nickname ?? "");
+    const v = window.prompt(t("promptNickname"), nickname ?? "");
     if (v && v.trim()) {
       setNickname(v.trim());
-      flash("改好了 ✓");
+      flash(t("toastNickSaved"));
     }
   };
 
@@ -90,7 +92,7 @@ export default function SettingsPage() {
     a.download = "molly-my-data.json";
     a.click();
     URL.revokeObjectURL(url);
-    flash("已导出 molly-my-data.json");
+    flash(t("toastExported"));
   };
 
   const logout = async () => {
@@ -108,7 +110,7 @@ export default function SettingsPage() {
 
   // Real deletion — wipes the chart and ALL persisted data, server + local.
   const deleteAll = async () => {
-    if (!window.confirm("这会删掉你的本命盘和 Molly 对你的全部记忆，且无法恢复。确定吗？")) return;
+    if (!window.confirm(t("confirmDelete"))) return;
     await apiDeleteAccount(); // remove the account + server-side data too
     useFunnel.getState().reset();
     try {
@@ -132,46 +134,46 @@ export default function SettingsPage() {
 
   return (
     <main className="phone" data-testid="settings">
-      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>设置</h1>
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{t("settingsSrTitle")}</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 6px" }}>
         <BackButton />
-        <span style={{ fontWeight: 500, letterSpacing: ".32em", fontSize: 13, color: "var(--cream)" }}>设置</span>
+        <span style={{ fontWeight: 500, letterSpacing: ".32em", fontSize: 13, color: "var(--cream)" }}>{t("settingsHeader")}</span>
       </div>
 
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "16px 22px 24px" }}>
-        <Group label="账户">
-          {row("昵称", <span style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>{nickname ?? "未设置"} ›</span>, editNick)}
+        <Group label={t("groupAccount")}>
+          {row(t("rowNickname"), <span style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>{nickname ?? t("nicknameUnset")} ›</span>, editNick)}
           {me
-            ? row("登录方式", <span data-testid="account-email" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180, minWidth: 0 }}>{me.email} ›</span>, undefined, false, false)
-            : row("登录方式", <span style={{ marginLeft: "auto", color: "var(--gold-soft)", fontSize: 13 }}>本机 · 未绑定，去登录 ›</span>, () => router.push("/register"), false, true)}
-          {me && row("退出登录", <span data-testid="logout" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>›</span>, logout, false, true)}
+            ? row(t("rowLoginMethod"), <span data-testid="account-email" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180, minWidth: 0 }}>{me.email} ›</span>, undefined, false, false)
+            : row(t("rowLoginMethod"), <span style={{ marginLeft: "auto", color: "var(--gold-soft)", fontSize: 13 }}>{t("loginLocalUnbound")}</span>, () => router.push("/register"), false, true)}
+          {me && row(t("rowLogout"), <span data-testid="logout" style={{ marginLeft: "auto", color: "var(--mute)", fontSize: 13 }}>›</span>, logout, false, true)}
         </Group>
 
-        <Group label="语言">
+        <Group label={t("groupLanguage")}>
           <LocaleSwitcher />
         </Group>
 
-        <Group label="通知">
-          {row("每日星象提醒", <Toggle on={notif.daily} onClick={toggleDaily} label="每日星象提醒" />)}
-          {row(<>财运黄金日提醒 <span style={{ fontSize: 11, color: "var(--mute)" }}>· 即将开放</span></>, <Toggle on={false} onClick={() => {}} label="财运黄金日提醒（即将开放）" disabled />)}
-          {row(<>合盘 · 对方测好了 <span style={{ fontSize: 11, color: "var(--mute)" }}>· 即将开放</span></>, <Toggle on={false} onClick={() => {}} label="合盘 · 对方测好了提醒（即将开放）" disabled />, undefined, false, true)}
-          <div style={{ padding: "8px 15px 12px", fontSize: 11, color: "var(--mute)", lineHeight: 1.6 }}>🔔 <b style={{ color: "var(--cream-dim)" }}>每日提醒</b>已开放（开了会收到每天的推送）。财运黄金日 / 合盘提醒<b style={{ color: "var(--cream-dim)" }}>即将开放</b>——先帮你把偏好记着。</div>
+        <Group label={t("groupNotif")}>
+          {row(t("notifDaily"), <Toggle on={notif.daily} onClick={toggleDaily} label={t("notifDaily")} />)}
+          {row(<>{t("notifWealth")} <span style={{ fontSize: 11, color: "var(--mute)" }}>{t("comingSoon")}</span></>, <Toggle on={false} onClick={() => {}} label={t("notifWealthAria")} disabled />)}
+          {row(<>{t("notifSynastry")} <span style={{ fontSize: 11, color: "var(--mute)" }}>{t("comingSoon")}</span></>, <Toggle on={false} onClick={() => {}} label={t("notifSynastryAria")} disabled />, undefined, false, true)}
+          <div style={{ padding: "8px 15px 12px", fontSize: 11, color: "var(--mute)", lineHeight: 1.6 }}>{t("notifHintBefore")}<b style={{ color: "var(--cream-dim)" }}>{t("notifHintDailyBold")}</b>{t("notifHintMid")}<b style={{ color: "var(--cream-dim)" }}>{t("notifHintComingBold")}</b>{t("notifHintAfter")}</div>
         </Group>
 
-        <Group label="隐私与数据">
-          {row("查看 Molly 对我的了解", <span style={{ marginLeft: "auto", color: "#4f5666" }}>›</span>, () => router.push("/chat"))}
-          {row("导出我的数据", <span data-testid="export-data" style={{ marginLeft: "auto", color: "#4f5666" }}>›</span>, exportData)}
-          {row("删除我的盘与全部数据", <span data-testid="delete-data" style={{ marginLeft: "auto", color: "var(--red)" }}>›</span>, deleteAll, true, true)}
+        <Group label={t("groupPrivacy")}>
+          {row(t("rowKnowMe"), <span style={{ marginLeft: "auto", color: "#4f5666" }}>›</span>, () => router.push("/chat"))}
+          {row(t("rowExport"), <span data-testid="export-data" style={{ marginLeft: "auto", color: "#4f5666" }}>›</span>, exportData)}
+          {row(t("rowDelete"), <span data-testid="delete-data" style={{ marginLeft: "auto", color: "var(--red)" }}>›</span>, deleteAll, true, true)}
         </Group>
 
         <div style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)", margin: "0 2px 9px" }}>关于</div>
+          <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)", margin: "0 2px 9px" }}>{t("groupAbout")}</div>
           <div style={{ background: "rgba(143,182,216,.06)", border: "1px solid rgba(143,182,216,.2)", borderRadius: 12, padding: "12px 14px", fontSize: 12.5, color: "#9fb6cf", lineHeight: 1.7 }}>
-            ✦ Molly 是一位<strong style={{ color: "#cfe0f0" }}>由 AI 驱动</strong>的占星向导。她的解读基于占星模型与算法生成，用于自我探索与陪伴，<strong style={{ color: "#cfe0f0" }}>不构成医疗、法律或投资建议</strong>。你的出生数据只用来为你排盘，你可以随时导出或彻底删除。
+            {t("aboutBefore")}<strong style={{ color: "#cfe0f0" }}>{t("aboutAiBold")}</strong>{t("aboutMid")}<strong style={{ color: "#cfe0f0" }}>{t("aboutDisclaimerBold")}</strong>{t("aboutAfter")}
           </div>
-          <div style={{ textAlign: "center", fontSize: 11, color: "#566073", marginTop: 14 }}>Molly · v0.1 · 看穿你的本命</div>
+          <div style={{ textAlign: "center", fontSize: 11, color: "#566073", marginTop: 14 }}>{t("version")}</div>
         </div>
       </div>
 

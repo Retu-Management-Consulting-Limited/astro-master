@@ -1,0 +1,68 @@
+{
+  "srTitle": "今日",
+  "understand": "懂你",
+  "greetingSuffix": "，",
+  "greetingFallbackName": "你",
+  "greetingEmphasis": "我有三句话",
+  "greetingAfter": "给你。",
+  "moonPrefix": "月亮入",
+  "yesterdayLabel": "昨天 · 你说中了吗",
+  "yesterdayCalibrated": "+2% 校准 ✓",
+  "yesterdayClaimBefore": "我说你昨天会",
+  "yesterdayClaimAfter": "——对吗？",
+  "verdictHit": "嗯，是这样 ✓",
+  "verdictMiss": "其实没有",
+  "verdictMissNote": "记下了——我会再调，慢慢更懂你。",
+  "moneyEntryBefore": "钱，对你",
+  "moneyEntryEmphasis": "不只是钱",
+  "moneyEntryCta": "让 Molly 看穿 →",
+  "tomorrowLabel": "明天",
+  "moodPrompt": "此刻的你，是哪一种？",
+  "moodCount": "· 今天记了 {count} 次，可以再记一次",
+  "moods": {
+    "calm": "平静",
+    "breathe": "喘口气",
+    "down": "低落",
+    "energized": "有劲",
+    "lowTide": "低潮"
+  },
+  "rhythms": {
+    "physical": "体力",
+    "emotional": "情绪",
+    "intellectual": "智力"
+  },
+  "biorhythm": {
+    "title": "你的节律 · 体力 / 情绪 / 智力",
+    "subtitle": "从你出生那天起算的三条周期，给你一个自我觉察的参照 · 今天前后各两周",
+    "curveAlt": "体力情绪智力节律曲线",
+    "todayMarker": "今天",
+    "criticalTag": "· 临界",
+    "criticalNoteBefore": "今天",
+    "criticalNoteSep": "、",
+    "criticalNoteAfter": "正处临界点——状态容易起伏，对自己温柔一点。"
+  },
+  "cell": {
+    "moneyLabel": {
+      "red": "慎",
+      "green": "旺",
+      "plain": "平"
+    },
+    "bodyLabel": {
+      "red": "累",
+      "green": "有劲",
+      "plain": "稳"
+    },
+    "fortuneChipBefore": "财运 ",
+    "fortuneChipAfter": " · 看财运日历",
+    "bodyChipBefore": "身心 ",
+    "bodyChipAfter": " · 看身心日历",
+    "greenTag": "今天 · 宜",
+    "wangBadge": "✦ 财运旺 · 搞钱黄金日",
+    "wangCaveat": "旺的是时机，不是保证",
+    "redTag": "今天 · 慎",
+    "redDoorBefore": "▸ 想动的，先去日历看看",
+    "redDoorEmphasis": "今天为什么慎",
+    "redDoorAfter": "——看明白了，再决定。",
+    "plainTag": "今天 · 天清"
+  }
+}

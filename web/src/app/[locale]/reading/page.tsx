@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
@@ -12,6 +13,7 @@ import { sanitizeRichText } from "@/lib/sanitize";
 import { track } from "@/lib/track";
 
 export default function ReadingPage() {
+  const t = useTranslations("reading");
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const ascCandidate = useFunnel((s) => s.ascCandidate);
@@ -62,31 +64,31 @@ export default function ReadingPage() {
 
   if (!ready || !chart) return null; // wait for rehydration; guard redirects if truly no chart (P1-1)
   if (loading || !read)
-    return <LoadingRitual line="我看到你了。<br/>给我一点时间……" sub="正在解读你的盘…" ms={9_999_999} onDone={() => {}} />;
+    return <LoadingRitual line={t("loadingLine")} sub={t("loadingSub")} ms={9_999_999} onDone={() => {}} />;
 
   const gate = () => router.push("/register");
 
   return (
     <main className="phone" data-testid="firstread">
-      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>你的首读</h1>
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{t("srHeading")}</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "26px 26px 14px", borderBottom: "1px solid rgba(255,255,255,.04)" }}>
         <div className="eye-mini" />
         <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
-        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>{timeUnknown ? <>据描述推测 · 上升 <b style={{ color: "var(--gold)" }}>{ascCandidate ?? read.ascSign}</b></> : <>上升 <b style={{ color: "var(--gold)" }}>{read.ascSign}</b></>}</span>
+        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>{timeUnknown ? <>{t("ascGuessed")} <b style={{ color: "var(--gold)" }}>{ascCandidate ?? read.ascSign}</b></> : <>{t("ascKnown")} <b style={{ color: "var(--gold)" }}>{read.ascSign}</b></>}</span>
       </div>
       {refining && (
         <div style={{ position: "relative", zIndex: 3, padding: "10px 24px 0" }}>
           <MollyThinking
             phrases={[
-              "正在对齐你的星盘…",
+              t("thinking.aligning"),
               chart?.placements.find((p) => p.body === "Moon")?.sign
-                ? `她在读你的月亮·${chart.placements.find((p) => p.body === "Moon")!.sign}…`
-                : "她在读你的月亮…",
-              "把你的样子，和你的盘对上…",
-              "在斟酌——怎么说，才不伤你、又够准…",
-              "快好了，她想把这一段，写得更像你…",
+                ? t("thinking.moonNamed", { sign: chart.placements.find((p) => p.body === "Moon")!.sign })
+                : t("thinking.moon"),
+              t("thinking.matching"),
+              t("thinking.weighing"),
+              t("thinking.almost"),
             ]}
           />
         </div>
@@ -106,13 +108,13 @@ export default function ReadingPage() {
 
         {timeBelief && (
           <div className="reveal" style={{ marginTop: 30, animationDelay: "3.7s" }}>
-            <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 12 }}>✦ <span style={{ color: "var(--gold)" }}>你的时辰</span></div>
+            <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 12 }}>✦ <span style={{ color: "var(--gold)" }}>{t("sectionTime")}</span></div>
             <TimeDetective belief={timeBelief} />
           </div>
         )}
 
         <div className="reveal" style={{ marginTop: 30, animationDelay: "3.9s" }}>
-          <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 12 }}>✦ <span style={{ color: "var(--gold)" }}>为你挑的</span></div>
+          <div style={{ fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--mute)", marginBottom: 12 }}>✦ <span style={{ color: "var(--gold)" }}>{t("sectionPicked")}</span></div>
           {read.chips.map((c, i) => (
             <button key={i} data-testid="chip" onClick={gate}
               style={{ display: "block", width: "100%", textAlign: "left", background: "rgba(124,150,170,.08)", border: "1px solid #2b3a4e", borderRadius: 13, padding: "13px 15px", color: "#a9c4dd", fontSize: 14.5, marginBottom: 9, cursor: "pointer" }}>
@@ -123,8 +125,8 @@ export default function ReadingPage() {
       </div>
 
       <div style={{ position: "relative", zIndex: 3, padding: "12px 22px 20px", borderTop: "1px solid rgba(255,255,255,.05)" }}>
-        <button type="button" onClick={gate} className="gold-btn" style={{ marginBottom: 11, fontSize: 15 }}>想接着问 Molly？注册后开聊 →</button>
-        <button type="button" onClick={gate} data-testid="save-card" style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这段存成卡片</button>
+        <button type="button" onClick={gate} className="gold-btn" style={{ marginBottom: 11, fontSize: 15 }}>{t("ctaChat")}</button>
+        <button type="button" onClick={gate} data-testid="save-card" style={{ display: "block", width: "100%", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>{t("ctaSave")}</button>
       </div>
     </main>
   );

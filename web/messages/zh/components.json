@@ -1,0 +1,60 @@
+{
+  "backButton": {
+    "back": "返回",
+    "close": "关闭"
+  },
+  "installPrompt": {
+    "close": "关闭",
+    "titleInfo": "想把 Molly 加到桌面？",
+    "titleInstall": "把 Molly 放进你的口袋",
+    "descIosInapp": "这里加不了——换个浏览器就行",
+    "descAndroidWebview": "这个窗口加不了——换浏览器就行",
+    "descInstall": "加到桌面 · 每早一句话，不用每次找我",
+    "addToHomeBtn": "一键添加到桌面",
+    "iosSafariBefore": "点底部 ",
+    "iosSafariShare": "分享 ⬆️",
+    "iosSafariMid": " → 选 ",
+    "iosSafariAdd": "添加到主屏幕",
+    "iosSafariAfter": "，Molly 就住进你的手机了。",
+    "iosOtherStep1Before": "点右上 ",
+    "iosOtherStep1Menu": "⋯",
+    "iosOtherStep1After": " 菜单",
+    "iosOtherStep2Before": "选 ",
+    "iosOtherStep2Add": "添加到主屏幕",
+    "iosOtherTip": "想要最顺的体验？用 Safari 打开本页更稳。",
+    "androidMenuBefore": "点浏览器 ",
+    "androidMenuMenu": "菜单 ⋮",
+    "androidMenuMid": " → 选 ",
+    "androidMenuAdd": "安装应用 / 添加到主屏幕",
+    "androidMenuAfter": "，Molly 就住进你的手机了。",
+    "webviewBefore": "点右上 ",
+    "webviewDots": "···",
+    "webviewMid": " → 选 ",
+    "webviewOpenIosSafari": "在 Safari 中打开",
+    "webviewOpenBrowser": "在浏览器打开",
+    "webviewAfter": "，到那边就能加到桌面。",
+    "copyLinkBtn": "复制链接，去浏览器打开",
+    "copyLinkDone": "已复制 ✓ 去浏览器粘贴"
+  },
+  "timeDetective": {
+    "heading": "我在帮你找回出生时刻",
+    "lockWide": "还很宽 · 多补一件大事能更准",
+    "lockNarrow": "已锁到 {hours} 小时内",
+    "bandAriaWide": "出生时辰还很宽，覆盖大半天",
+    "bandAriaNarrow": "出生时辰锁定在 {hours} 小时内",
+    "footnote": "我不是算命——是用你真实经历对天象，反推时辰。"
+  },
+  "feedbackButton": {
+    "fabAria": "反馈",
+    "close": "关闭",
+    "panelTitle": "内测反馈",
+    "sent": "收到了，谢谢你 ✓",
+    "placeholder": "这一屏哪里好 / 哪里怪 / 卡住了？一句话就行",
+    "failed": "没发出去，网络出了点问题——再试一次。",
+    "send": "发送"
+  },
+  "loadingRitual": {
+    "line": "让我看看，你是谁……",
+    "sub": "正在读取你出生那一刻的星空…"
+  }
+}

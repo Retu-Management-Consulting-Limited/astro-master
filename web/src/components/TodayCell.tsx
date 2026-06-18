@@ -1,3 +1,5 @@
+"use client";
+import { useTranslations } from "next-intl";
 import type { TodayVerdict, TodayState } from "@/lib/reading/todayVerdict";
 import type { DailyReading } from "@/lib/reading/daily";
 
@@ -29,9 +31,8 @@ const STATE_STYLE: Record<TodayState, { accent: string; soft: string; bg: string
   green: { accent: "var(--green)", soft: "#a8e0bf", bg: "rgba(127,201,154,.08)", bd: "rgba(127,201,154,.3)" },
   plain: { accent: "var(--cream-dim)", soft: "#c2baa6", bg: "rgba(122,129,148,.08)", bd: "rgba(122,129,148,.28)" },
 };
-// 各轨 × 各态的短 label（说倾向、不诊断）。财运沿用旧词；身心安抚口吻。
-const MONEY_LABEL: Record<TodayState, string> = { red: "慎", green: "旺", plain: "平" };
-const BODY_LABEL: Record<TodayState, string> = { red: "累", green: "有劲", plain: "稳" };
+// 各轨 × 各态的短 label（说倾向、不诊断）走 messages（today.cell.moneyLabel /
+// today.cell.bodyLabel），财运沿用旧词、身心安抚口吻；译文逐字保留。
 
 export function TodayCell({
   verdict, daily, onWealth, onBody,
@@ -41,10 +42,11 @@ export function TodayCell({
   onWealth: (selDay?: number) => void;
   onBody: () => void;
 }) {
+  const t = useTranslations("today.cell");
   // 双 chip（财运 + 身心，恒在，主导加亮）→ 各进 /wealth 与 /body。两条都用与财运同一套
   // 红/绿/平语义着色（身心不另起 teal 配色，见 design/23）。主导那条(verdict.channel)
   // 加亮领头：data-lead='true' + 内描边(box-shadow inset) + 不透明；另一条略降透明。
-  const moneyLead = verdict.channel === "钱";
+  const moneyLead = verdict.channel === "钱"; // i18n-allow-cjk: C 区 Channel 枚举值比较，非 UI 文案
   const fortuneStyle = STATE_STYLE[verdict.state];
   const bodyStyle = STATE_STYLE[verdict.bodyState];
 
@@ -64,7 +66,7 @@ export function TodayCell({
         }}
       >
         <span data-testid="fortune-chip-dot" aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: fortuneStyle.accent, boxShadow: `0 0 8px ${fortuneStyle.accent}` }} />
-        <span>财运 <b style={{ color: fortuneStyle.soft }}>{MONEY_LABEL[verdict.state]}</b> · 看财运日历</span>
+        <span>{t("fortuneChipBefore")}<b style={{ color: fortuneStyle.soft }}>{t(`moneyLabel.${verdict.state}`)}</b>{t("fortuneChipAfter")}</span>
         <span style={{ marginLeft: "auto", opacity: 0.7 }}>→</span>
       </button>
       <button
@@ -81,7 +83,7 @@ export function TodayCell({
         }}
       >
         <span data-testid="body-chip-dot" aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: bodyStyle.accent, boxShadow: `0 0 8px ${bodyStyle.accent}` }} />
-        <span>身心 <b style={{ color: bodyStyle.soft }}>{BODY_LABEL[verdict.bodyState]}</b> · 看身心日历</span>
+        <span>{t("bodyChipBefore")}<b style={{ color: bodyStyle.soft }}>{t(`bodyLabel.${verdict.bodyState}`)}</b>{t("bodyChipAfter")}</span>
         <span style={{ marginLeft: "auto", opacity: 0.7 }}>→</span>
       </button>
     </div>
@@ -100,14 +102,14 @@ export function TodayCell({
         }}
       >
         <div style={{ ...TAG, color: "var(--green)" }}>
-          <span style={DOT("var(--green)", true)} aria-hidden="true" />今天 · 宜
+          <span style={DOT("var(--green)", true)} aria-hidden="true" />{t("greenTag")}
         </div>
         <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 9 }}>
           <span data-testid="today-wang-badge" style={{
             display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: "#1a1206",
             background: "linear-gradient(90deg,var(--gold-soft),var(--gold))", padding: "3px 9px", borderRadius: 20, fontWeight: 600,
-          }}>✦ 财运旺 · 搞钱黄金日</span>
-          <span style={{ fontSize: 11, color: "var(--gold-deep)" }}>旺的是时机，不是保证</span>
+          }}>{t("wangBadge")}</span>
+          <span style={{ fontSize: 11, color: "var(--gold-deep)" }}>{t("wangCaveat")}</span>
         </div>
         <div style={{ fontFamily: "var(--serif)", fontSize: 22, fontWeight: 600, lineHeight: 1.3, color: "#b6e8c8" }}>{verdict.line}</div>
         <div style={{ marginTop: 9, fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 16.5, lineHeight: 1.5, color: "var(--gold-soft)" }}>{verdict.quote}</div>
@@ -134,7 +136,7 @@ export function TodayCell({
         }}
       >
         <div style={{ ...TAG, color: "var(--red)" }}>
-          <span style={DOT("var(--red)", true)} aria-hidden="true" />今天 · 慎
+          <span style={DOT("var(--red)", true)} aria-hidden="true" />{t("redTag")}
         </div>
         <div style={{ fontFamily: "var(--serif)", fontSize: 25, fontWeight: 600, lineHeight: 1.25, marginBottom: 8, color: "#f0b6ab" }}>{verdict.line}</div>
         {/* 内在 why — 把"为什么慎"指回星象/自身节律，不是外部坏后果（§8 不靠编造恐吓）*/}
@@ -151,7 +153,7 @@ export function TodayCell({
             fontSize: 12.5, color: "#dbe6f2", lineHeight: 1.55,
           }}
         >
-          ▸ 想动的，先去日历看看<b style={{ color: "var(--gold-soft)", textDecoration: "underline", textUnderlineOffset: 3 }}>今天为什么慎</b>——看明白了，再决定。
+          {t("redDoorBefore")}<b style={{ color: "var(--gold-soft)", textDecoration: "underline", textUnderlineOffset: 3 }}>{t("redDoorEmphasis")}</b>{t("redDoorAfter")}
         </button>
         {chips()}
       </div>
@@ -168,7 +170,7 @@ export function TodayCell({
       }}
     >
       <div style={{ ...TAG, color: "var(--mute)" }}>
-        <span style={DOT("var(--mute)")} aria-hidden="true" />今天 · 天清
+        <span style={DOT("var(--mute)")} aria-hidden="true" />{t("plainTag")}
       </div>
       <div style={{ fontFamily: "var(--serif)", fontSize: 20, lineHeight: 1.4, marginBottom: 7, color: "var(--cream)" }}>{verdict.line}</div>
       <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 15.5, lineHeight: 1.5, color: "var(--cream-dim)" }}>{verdict.quote}</div>

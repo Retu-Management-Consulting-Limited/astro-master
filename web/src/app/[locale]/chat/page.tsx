@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { fetchChatReply, fetchFollowups, AI_ON } from "@/lib/reading/remote";
@@ -24,15 +25,15 @@ const DIR_STYLE: Record<FollowupDir, { bd: string; bg: string; c: string }> = {
   act: { bd: "rgba(127,201,154,.34)", bg: "rgba(127,201,154,.05)", c: "#a8e0bf" },
 };
 
-const CHAT_THINKING = ["Molly 在想…", "她把这句话，放进你的盘里看…", "在你的月亮里，找一个只对你说的答案…", "在斟酌——怎么说，才对你…"];
-
-const FALLBACK_REPLY = "我听见了。给我一点时间，把这个跟你的盘对上——你这种问法，本身就说明你已经知道答案了。";
-
 export default function ChatPage() {
+  const t = useTranslations("chat");
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
   const firstRead = useFunnel((s) => s.firstRead);
   const understand = useUnderstanding();
+
+  const CHAT_THINKING = [t("thinking.phrase1"), t("thinking.phrase2"), t("thinking.phrase3"), t("thinking.phrase4")];
+  const FALLBACK_REPLY = t("fallbackReply");
 
   // Real first-time opener derived from the user's own chart — not a fabricated
   // past conversation. No「她记得」recall until a real memory layer exists.
@@ -84,15 +85,15 @@ export default function ChatPage() {
     // check-ins). Warm + ally + lands on care (R18 ②⑥), never pressure.
     let moodDays: ReturnType<typeof collectMoodHistory> = [];
     try { moodDays = collectMoodHistory(localStorage); } catch {}
-    const nick = nickname ? `${nickname}，` : "";
+    const nick = nickname ? t("nickPrefix", { name: nickname }) : "";
     const low = lowStreak(moodDays);
     const trend = moodTrend(moodDays);
     const opener =
       low >= 2
-        ? `${nick}我在。这几天你的心情，好像一直往下沉——我都看在眼里。不用急着好起来，先跟我说说，今天是哪一种沉？`
+        ? t("openerLowStreak", { nick })
         : trend === "up"
-        ? `${nick}我在。这几天你像是慢慢缓过来了，我替你高兴。今天想聊点什么？`
-        : `${nick}我在。你的月亮在${moon?.sign ?? "—"}——情绪比你表现出来的更深。今天想跟我说点什么？开心的、烦的，都行。`;
+        ? t("openerUp", { nick })
+        : t("openerDefault", { nick, moon: moon?.sign ?? "—" });
     const base: Msg[] = [{ from: "molly", text: opener }];
     setMsgs(base);
     let ask: string | null = null;
@@ -148,13 +149,13 @@ export default function ChatPage() {
   if (!ready || !chart) return null;
   return (
     <main className="phone" data-testid="chat">
-      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>对话</h1>
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{t("srTitle")}</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 12px", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
         <div className="eye-mini" style={{ width: 34, height: 34 }} />
         <span style={{ fontWeight: 500, letterSpacing: ".34em", fontSize: 13, color: "var(--gold)" }}>MOLLY</span>
-        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>懂你 <b style={{ color: "var(--gold)" }}>{understand}%</b></span>
+        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>{t("understand")} <b style={{ color: "var(--gold)" }}>{understand}%</b></span>
       </div>
 
       <div aria-live="polite" style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "18px 18px 10px" }}>
@@ -174,7 +175,7 @@ export default function ChatPage() {
         {/* #4 follow-ups under the latest reply — three directions, never silence */}
         {!typing && followups.length > 0 && msgs.length > 1 && msgs[msgs.length - 1].from === "molly" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, margin: "2px 2px 4px" }}>
-            <div style={{ fontSize: 11, color: "var(--mute)", margin: "2px 2px" }}>你想往哪边走？↓</div>
+            <div style={{ fontSize: 11, color: "var(--mute)", margin: "2px 2px" }}>{t("followupPrompt")}</div>
             {followups.map((f) => {
               const s = DIR_STYLE[f.dir];
               return (
@@ -190,8 +191,8 @@ export default function ChatPage() {
 
       <div style={{ position: "relative", zIndex: 3, padding: "12px 16px 14px", borderTop: "1px solid rgba(255,255,255,.05)" }}>
         <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
-          <input data-testid="chat-input" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) send(); }} placeholder="跟 Molly 说说……" style={{ flex: 1, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 22, padding: "12px 16px", color: "var(--cream)", fontSize: 14, outline: "none" }} />
-          <button type="button" onClick={() => send()} aria-label="发送" disabled={typing || !input.trim()} style={{ width: 44, height: 44, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))", cursor: typing || !input.trim() ? "default" : "pointer", opacity: typing || !input.trim() ? 0.45 : 1 }}>➤</button>
+          <input data-testid="chat-input" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) send(); }} placeholder={t("inputPlaceholder")} style={{ flex: 1, background: "var(--field)", border: "1px solid var(--field-bd)", borderRadius: 22, padding: "12px 16px", color: "var(--cream)", fontSize: 14, outline: "none" }} />
+          <button type="button" onClick={() => send()} aria-label={t("sendAria")} disabled={typing || !input.trim()} style={{ width: 44, height: 44, borderRadius: "50%", flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", background: "linear-gradient(135deg,var(--gold),var(--gold-soft))", cursor: typing || !input.trim() ? "default" : "pointer", opacity: typing || !input.trim() ? 0.45 : 1 }}>➤</button>
         </div>
       </div>
       <TabBar active="chat" />

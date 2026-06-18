@@ -43,9 +43,9 @@ export default function Landing() {
             {t("line2")}
           </div>
           <p className="reveal" style={{ marginTop: 22, fontWeight: 300, fontSize: 15, lineHeight: 1.8, color: "var(--cream-dim)", maxWidth: 300, animationDelay: "1.5s" }}>
-            告诉我你出生的那一刻，
+            {t("introLine1")}
             <br />
-            <b style={{ color: "var(--cream)", fontWeight: 500 }}>剩下的，交给我。</b>
+            <b style={{ color: "var(--cream)", fontWeight: 500 }}>{t("introLine2")}</b>
           </p>
         </div>
 
@@ -54,10 +54,10 @@ export default function Landing() {
             {t("cta")}
           </Link>
           <div style={{ marginTop: 16, fontSize: 11.5, color: "var(--mute)", letterSpacing: ".04em" }}>
-            内测中 · <b style={{ color: "var(--cream-dim)" }}>说穿你</b>，而不是说你的星座
+            {t.rich("betaNote", { b: (chunks) => <b style={{ color: "var(--cream-dim)" }}>{chunks}</b> })}
           </div>
           <div style={{ marginTop: 7, fontSize: 11, color: "#5a6173" }}>
-            — 一个<i style={{ color: "var(--irisc)", fontStyle: "normal" }}>不问你星座</i>的占星师 —
+            {t.rich("tagline", { i: (chunks) => <i style={{ color: "var(--irisc)", fontStyle: "normal" }}>{chunks}</i> })}
           </div>
         </div>
       </div>

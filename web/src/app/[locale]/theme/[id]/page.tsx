@@ -1,5 +1,6 @@
 "use client";
 import { use, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
@@ -16,6 +17,7 @@ import { track } from "@/lib/track";
 
 export default function ThemePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const t = useTranslations("theme");
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
@@ -59,11 +61,11 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
   if (!themeId) {
     return (
       <main className="phone" data-testid="theme">
-      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>主题深读</h1>
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{t("srHeading")}</h1>
         <div className="starfield" />
         <div style={{ position: "relative", zIndex: 2, flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 32, textAlign: "center" }}>
-          <div style={{ fontFamily: "var(--serif)", fontSize: 22, color: "var(--cream)" }}>这个主题还没解锁</div>
-          <button type="button" onClick={() => router.replace("/chart")} style={{ color: "var(--gold-soft)", fontSize: 14, cursor: "pointer" }}>← 回到我的星盘</button>
+          <div style={{ fontFamily: "var(--serif)", fontSize: 22, color: "var(--cream)" }}>{t("locked.title")}</div>
+          <button type="button" onClick={() => router.replace("/chart")} style={{ color: "var(--gold-soft)", fontSize: 14, cursor: "pointer" }}>{t("locked.back")}</button>
         </div>
       </main>
     );
@@ -89,13 +91,13 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
         {memoryPreface(mood) && (
           <div data-testid="theme-memory" style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12.5, color: "#bfe0f5", background: "rgba(143,194,232,.08)", border: "1px solid rgba(143,194,232,.22)", borderRadius: 12, padding: "10px 12px", marginBottom: 16, lineHeight: 1.6 }}>
             <span aria-hidden="true">🕯</span>
-            <span><b style={{ color: "#dff0fc", fontWeight: 500 }}>我记得</b> · {memoryPreface(mood)}</span>
+            <span><b style={{ color: "#dff0fc", fontWeight: 500 }}>{t("memoryLabel")}</b> · {memoryPreface(mood)}</span>
           </div>
         )}
 
         {refining && (
           <MollyThinking
-            phrases={[`正在顺着「${r.title}」读你…`, "她在看，这块对你意味着什么…", "把你的星位，翻成你能用的话…", "快好了，她想说得更贴你…"]}
+            phrases={[t("thinking.reading", { title: r.title }), t("thinking.meaning"), t("thinking.translating"), t("thinking.almost")]}
             style={{ marginBottom: 16 }}
           />
         )}
@@ -121,31 +123,31 @@ export default function ThemePage({ params }: { params: Promise<{ id: string }> 
           return (
             <div data-testid="deep-gate" style={{ marginTop: 18, borderRadius: 16, padding: "15px 16px", border: `1px solid ${u.unlocked ? "rgba(201,168,97,.4)" : "rgba(143,194,232,.3)"}`, background: u.unlocked ? "linear-gradient(180deg, rgba(201,168,97,.08), rgba(201,168,97,.02))" : "rgba(143,194,232,.05)" }}>
               <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: u.unlocked ? "var(--gold)" : "#bfe0f5", marginBottom: 9 }}>
-                {u.unlocked ? "✦ 更深的一层 · 已解锁" : `🔒 更深的一层：${r.title}里，你到底卡在哪`}
+                {u.unlocked ? t("deep.unlocked") : t("deep.locked", { title: r.title })}
               </div>
               <p style={{ fontFamily: "var(--serif)", fontSize: 16.5, lineHeight: 1.75, color: "var(--cream)", filter: u.unlocked ? "none" : "blur(5px)", userSelect: u.unlocked ? "auto" : "none", transition: "filter .3s", margin: 0 }} aria-hidden={u.unlocked ? undefined : true}>
                 {r.deepRead}
               </p>
               {u.unlocked ? (
-                <div style={{ fontSize: 12, color: "var(--gold-soft)", marginTop: 8 }}>✓ 我们够熟了——这层，我讲给你听。</div>
+                <div style={{ fontSize: 12, color: "var(--gold-soft)", marginTop: 8 }}>{t("deep.unlockedNote")}</div>
               ) : (
                 <div style={{ marginTop: 13 }}>
-                  <div style={{ fontSize: 12, color: "var(--cream-dim)", marginBottom: 7 }}>越用越准 · 懂你度 <b style={{ color: "var(--blue)" }}>{understand}%</b> → {DEEP_UNLOCK_AT} 我就免费讲给你<span style={{ color: "var(--mute)" }}>（还差 {u.toGo}）</span></div>
+                  <div style={{ fontSize: 12, color: "var(--cream-dim)", marginBottom: 7 }}>{t.rich("deep.progress", { pct: (c) => <b style={{ color: "var(--blue)" }}>{c}</b>, rem: (c) => <span style={{ color: "var(--mute)" }}>{c}</span>, pctVal: understand, at: DEEP_UNLOCK_AT, toGo: u.toGo })}</div>
                   <div style={{ height: 6, borderRadius: 4, background: "#1d2333", overflow: "hidden", marginBottom: 12 }}>
                     <i style={{ display: "block", height: "100%", width: `${Math.min(100, Math.round((understand / DEEP_UNLOCK_AT) * 100))}%`, background: "linear-gradient(90deg,var(--gold-deep),var(--gold-soft))" }} />
                   </div>
                   <div style={{ display: "flex", gap: 9 }}>
-                    <button type="button" data-testid="deep-pay" onClick={() => setShowPaidNote(true)} style={{ flex: 1, borderRadius: 11, padding: "10px 0", fontSize: 13, fontWeight: 600, color: "#1a1408", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", border: "none", cursor: "pointer" }}>✦ 立即解锁</button>
-                    <button type="button" onClick={() => router.push("/chat")} style={{ flex: 1, borderRadius: 11, padding: "10px 0", fontSize: 13, color: "#bfe0f5", background: "rgba(143,194,232,.08)", border: "1px solid rgba(143,194,232,.3)", cursor: "pointer" }}>多聊聊，更快 →</button>
+                    <button type="button" data-testid="deep-pay" onClick={() => setShowPaidNote(true)} style={{ flex: 1, borderRadius: 11, padding: "10px 0", fontSize: 13, fontWeight: 600, color: "#1a1408", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", border: "none", cursor: "pointer" }}>{t("deep.unlockNow")}</button>
+                    <button type="button" onClick={() => router.push("/chat")} style={{ flex: 1, borderRadius: 11, padding: "10px 0", fontSize: 13, color: "#bfe0f5", background: "rgba(143,194,232,.08)", border: "1px solid rgba(143,194,232,.3)", cursor: "pointer" }}>{t("deep.chatMore")}</button>
                   </div>
-                  {showPaidNote && <div data-testid="paid-note" style={{ fontSize: 11.5, color: "var(--mute)", marginTop: 10, lineHeight: 1.6 }}>付费解锁马上开放 🤍 现在先靠多聊几句——懂你度到 {DEEP_UNLOCK_AT}，我免费讲给你。</div>}
+                  {showPaidNote && <div data-testid="paid-note" style={{ fontSize: 11.5, color: "var(--mute)", marginTop: 10, lineHeight: 1.6 }}>{t("deep.paidNote", { at: DEEP_UNLOCK_AT })}</div>}
                 </div>
               )}
             </div>
           );
         })()}
 
-        <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "18px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>📤 把这段存成卡片</button>
+        <button type="button" onClick={() => router.push("/share")} style={{ display: "block", width: "100%", margin: "18px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", cursor: "pointer" }}>{t("saveCard")}</button>
       </div>
     </main>
   );

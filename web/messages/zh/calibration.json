@@ -1,0 +1,51 @@
+{
+  "srTitle": "校准",
+  "loadingLine": "让我先看看，<br/>你这张盘……",
+  "loadingSub": "正在为你排盘…",
+  "backToInput": "返回",
+  "backPrev": "上一题",
+  "progress": "第 {n} 题 / 共 {total} 题",
+  "progressEventsSuffix": " · 这题让我校准你的时辰",
+  "traits": {
+    "q1": {
+      "line1": "别人第一次见到你，",
+      "line2": "最常用哪个词形容你？",
+      "hint": "凭第一直觉——第一个念头，最接近真的你。",
+      "opt1": "沉稳内敛，不太外露",
+      "opt2": "神秘，让人看不太透",
+      "opt3": "热情，有股冲劲",
+      "opt4": "亲切，很好相处"
+    },
+    "q2": {
+      "line1": "走进一个陌生场合，",
+      "line2": "你的第一反应是？",
+      "hint": "别想太多，身体比脑子诚实。",
+      "opt1": "先观察全场再行动",
+      "opt2": "马上找人攀谈",
+      "opt3": "安静待在角落",
+      "opt4": "找个熟人黏着"
+    }
+  },
+  "eventsHeading1": "你身上发生过哪几件",
+  "eventsHeading2": "「大事」？挑你记得的。",
+  "eventsSubBefore": "这些大事会在你盘的「四角」上留印——我用它",
+  "eventsSubEmphasis": "反推你的出生时刻",
+  "eventsSubAfter": "。多挑几件，我能把你的时辰收得更准。",
+  "eventLabels": {
+    "move": "搬到新城市",
+    "career": "换了行业",
+    "relationship": "一段重要感情",
+    "health": "大病 / 手术",
+    "family": "结婚 / 生子"
+  },
+  "ageQuestion": "「{label}」那年，你几岁？ <b>{age}</b> 岁",
+  "ageSliderAria": "{label} 发生时的年龄",
+  "ageMinLabel": "{age} 岁",
+  "ageMaxLabel": "{age} 岁",
+  "finishWithEvents": "{count, plural, other {就这 # 件 · 帮我反推时辰}}",
+  "finishSkip": "实在想不起 · 跳过这步",
+  "eventsFootnoteEmphasis": "多件事交叉，比单点准得多",
+  "eventsFootnoteAfter": " · 我不是算命，是用你真实经历对天象",
+  "traitFootnoteBefore": "每答一题，",
+  "traitFootnoteEmphasis": "我就更看清你一点"
+}

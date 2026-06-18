@@ -1,0 +1,32 @@
+{
+  "title": "分享卡片",
+  "headerLabel": "分享这一句",
+  "dedicationWithCity": "致 · 漂在{city}，假装很好的你",
+  "dedication": "致 · 假装很好的你",
+  "signsFmt": "☉ {sun}　☽ {moon}·{house}　↑ {asc}",
+  "houseOrdinals": {
+    "1": "一宫",
+    "2": "二宫",
+    "3": "三宫",
+    "4": "四宫",
+    "5": "五宫",
+    "6": "六宫",
+    "7": "七宫",
+    "8": "八宫",
+    "9": "九宫",
+    "10": "十宫",
+    "11": "十一宫",
+    "12": "十二宫"
+  },
+  "defaultQuote": "你最大的本事，是让所有人都以为你不需要任何人。",
+  "tplAria": "样式 {tpl}",
+  "shareText": "我的本命金句 · Molly 看穿你的本命",
+  "shareFileName": "molly-card.png",
+  "channels": {
+    "share": "分享",
+    "save": "保存图片"
+  },
+  "toastShared": "已唤起分享",
+  "toastSaved": "已保存图片 ✓",
+  "toastFailed": "生成失败，再试一次"
+}

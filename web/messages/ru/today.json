@@ -1,0 +1,68 @@
+{
+  "srTitle": "Сегодня",
+  "understand": "Понимаю тебя",
+  "greetingSuffix": ", ",
+  "greetingFallbackName": "ты",
+  "greetingEmphasis": "у меня есть три фразы",
+  "greetingAfter": " для тебя.",
+  "moonPrefix": "Луна входит в знак ",
+  "yesterdayLabel": "Вчера · я угадала?",
+  "yesterdayCalibrated": "+2% калибровка ✓",
+  "yesterdayClaimBefore": "Я сказала, что вчера ты ",
+  "yesterdayClaimAfter": " — верно?",
+  "verdictHit": "Да, так и было ✓",
+  "verdictMiss": "На самом деле нет",
+  "verdictMissNote": "Запомнила — я подстроюсь и буду понимать тебя всё лучше.",
+  "moneyEntryBefore": "Деньги для тебя",
+  "moneyEntryEmphasis": "не только деньги",
+  "moneyEntryCta": "Пусть Molly разглядит →",
+  "tomorrowLabel": "Завтра",
+  "moodPrompt": "Какой ты сейчас?",
+  "moodCount": "· сегодня отмечено {count, plural, one {# раз} few {# раза} other {# раз}}, можно отметить ещё",
+  "moods": {
+    "calm": "Спокойствие",
+    "breathe": "Передышка",
+    "down": "Уныние",
+    "energized": "Бодрость",
+    "lowTide": "Спад"
+  },
+  "rhythms": {
+    "physical": "Тело",
+    "emotional": "Эмоции",
+    "intellectual": "Интеллект"
+  },
+  "biorhythm": {
+    "title": "Твои ритмы · тело / эмоции / интеллект",
+    "subtitle": "Три цикла от дня твоего рождения — ориентир для самонаблюдения · по две недели до и после сегодня",
+    "curveAlt": "Кривая ритмов тела, эмоций и интеллекта",
+    "todayMarker": "Сегодня",
+    "criticalTag": "· критическая точка",
+    "criticalNoteBefore": "Сегодня ",
+    "criticalNoteSep": ", ",
+    "criticalNoteAfter": " в критической точке — состояние легко колеблется, будь к себе мягче."
+  },
+  "cell": {
+    "moneyLabel": {
+      "red": "осторожно",
+      "green": "на подъёме",
+      "plain": "ровно"
+    },
+    "bodyLabel": {
+      "red": "усталость",
+      "green": "бодрость",
+      "plain": "стабильно"
+    },
+    "fortuneChipBefore": "Финансовая удача ",
+    "fortuneChipAfter": " · смотреть календарь финансов",
+    "bodyChipBefore": "Тело и разум ",
+    "bodyChipAfter": " · смотреть календарь тела и разума",
+    "greenTag": "Сегодня · благоприятно",
+    "wangBadge": "✦ Финансовый подъём · золотой день для денег",
+    "wangCaveat": "На подъёме момент, а не гарантия",
+    "redTag": "Сегодня · осторожно",
+    "redDoorBefore": "▸ Хочешь действовать — сначала загляни в календарь",
+    "redDoorEmphasis": "почему сегодня осторожно",
+    "redDoorAfter": " — разберись, а потом решай.",
+    "plainTag": "Сегодня · ясно"
+  }
+}

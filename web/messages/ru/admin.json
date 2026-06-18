@@ -1,0 +1,42 @@
+{
+  "title": "Molly · Панель бета-теста",
+  "subtitle": "Воронка в реальном времени / охват ИИ / отзывы",
+  "checkingLogin": "Проверка входа…",
+  "passwordPrompt": "Введите пароль администратора",
+  "passwordPlaceholder": "Пароль",
+  "loginBtn": "Войти",
+  "loginBtnLoading": "…",
+  "errNetwork": "Ошибка сети",
+  "errWrongPassword": "Неверный пароль",
+  "sessionHint": "Вход сохраняется на 30 дней, повторно вводить не нужно.",
+  "statTesters": "Тестеры",
+  "statActivated": "Активации",
+  "hideTestData": "Скрыть тестовые данные",
+  "refresh": "Обновить",
+  "logout": "Выйти",
+  "funnelHeading": "Воронка активации",
+  "funnelPrevStep": " · с прошлого шага→{pct}%",
+  "steps": {
+    "enter": "Вход",
+    "input": "Заполнил данные рождения",
+    "calibration": "Прошёл калибровку",
+    "firstRead": "Увидел первое прочтение",
+    "activated": "Активация (регистрация)"
+  },
+  "aiCoverageHeading": "Охват настоящего мастера",
+  "aiCoverageNote": "{real}/{total} из увидевших первое прочтение получили настоящую интерпретацию (остальные — резервный stub)",
+  "featuresHeading": "Использование функций (человек)",
+  "features": {
+    "themeView": "Глубокое чтение темы",
+    "chat": "Чат",
+    "share": "Карточка для друзей"
+  },
+  "feedbackHeading": "Отзывы ({count})",
+  "feedbackEmpty": "Пока нет отзывов",
+  "testersHeading": "Тестеры",
+  "unnamed": "(без имени)",
+  "ascPrefix": "Асцендент {sign}",
+  "activated": "Активирован",
+  "notActivated": "Не активирован",
+  "eventCount": "{count, plural, one {# событие} few {# события} other {# событий}}"
+}

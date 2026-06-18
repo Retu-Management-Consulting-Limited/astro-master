@@ -1,0 +1,62 @@
+{
+  "title": "💰 财运日历",
+  "monthLabel": "{year} · {month}月",
+  "retro": {
+    "Mercury": "水逆",
+    "Venus": "金逆"
+  },
+  "goldenBefore": "✨ 本月搞钱黄金日：",
+  "goldenAfter": " —— 别错过这几天",
+  "eventsHeading": "本月大事件",
+  "weekdays": {
+    "mon": "一",
+    "tue": "二",
+    "wed": "三",
+    "thu": "四",
+    "fri": "五",
+    "sat": "六",
+    "sun": "日"
+  },
+  "dayAriaBase": "{month}月{day}日 · {mark}",
+  "dayAriaGolden": " · 搞钱黄金日",
+  "dayAriaRetro": " · {retro}，缓签约大额",
+  "dayAriaToday": " · 今天",
+  "todayCellLabel": "今",
+  "legendCaution": "慎",
+  "legendProsper": "旺",
+  "whenToday": "今天 · {day} 号",
+  "whenDate": "{month}月{day}日",
+  "wang": {
+    "header": "{when} · 财运旺 🟢",
+    "bodyBefore": "财气在你这边——",
+    "bodyEmphasisToday": "今天你开口要钱赢面最大",
+    "bodyEmphasisOther": "这天你开口要钱赢面最大",
+    "bodyMid": "。该谈的薪、该收的款挑这天去推；",
+    "bodyInvest": "投资的胜率也偏高",
+    "bodyEnd": "。",
+    "footnote": "旺的是时机，不是保证——功课别省，决定你来做。"
+  },
+  "shen": {
+    "header": "{when} · 慎 🔴",
+    "bodyEmphasis": "不适合大额投资和消费决定。",
+    "bodyToday": "今天你容易为情绪买单——想下单的，先睡一觉。",
+    "bodyOther": "这天你容易为情绪买单——想下单的，先睡一觉。"
+  },
+  "ping": {
+    "header": "{when} · 平 ⚪",
+    "bodyBefore": "财运平稳——没有特别的顺风，也没坑。按计划走就好，",
+    "bodyEmphasis": "不必勉强出手",
+    "bodyEnd": "。"
+  },
+  "driverLabel": "今日主导：",
+  "retroHeader": "☿ {retro}中",
+  "retroVenus": "金钱与关系都容易反复——",
+  "retroOther": "沟通、合约、付款容易反复——",
+  "retroEmphasis": "重要签约、大额消费先缓一缓",
+  "retroEnd": "，能等就等过这阵；旧账复盘、退款、谈回头单反而合适。",
+  "deeperBefore": "钱对你",
+  "deeperEmphasis": "意味着什么",
+  "deeperCta": "看更深 →",
+  "disclaimer": "财运仅供参考 · 投资有风险，最终决定还是你做",
+  "shareCta": "📤 晒我的搞钱黄金日"
+}

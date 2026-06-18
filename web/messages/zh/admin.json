@@ -1,0 +1,42 @@
+{
+  "title": "Molly · 内测看板",
+  "subtitle": "实时漏斗 / AI 覆盖 / 反馈",
+  "checkingLogin": "检查登录…",
+  "passwordPrompt": "请输入管理密码",
+  "passwordPlaceholder": "密码",
+  "loginBtn": "登录",
+  "loginBtnLoading": "…",
+  "errNetwork": "网络错误",
+  "errWrongPassword": "密码不对",
+  "sessionHint": "登录后保持 30 天,不用再输。",
+  "statTesters": "测试者",
+  "statActivated": "激活",
+  "hideTestData": "隐藏测试数据",
+  "refresh": "刷新",
+  "logout": "退出",
+  "funnelHeading": "激活漏斗",
+  "funnelPrevStep": " · 上一步→{pct}%",
+  "steps": {
+    "enter": "进入",
+    "input": "填出生信息",
+    "calibration": "答完校准",
+    "firstRead": "看到首读",
+    "activated": "激活(注册)"
+  },
+  "aiCoverageHeading": "真大师覆盖",
+  "aiCoverageNote": "{real}/{total} 看到首读的人拿到了真解读(其余回退 stub)",
+  "featuresHeading": "功能使用(人数)",
+  "features": {
+    "themeView": "主题深读",
+    "chat": "对话",
+    "share": "分享卡"
+  },
+  "feedbackHeading": "反馈 ({count})",
+  "feedbackEmpty": "还没有反馈",
+  "testersHeading": "测试者",
+  "unnamed": "(未命名)",
+  "ascPrefix": "上升{sign}",
+  "activated": "已激活",
+  "notActivated": "未激活",
+  "eventCount": "{count, plural, other {# 事件}}"
+}

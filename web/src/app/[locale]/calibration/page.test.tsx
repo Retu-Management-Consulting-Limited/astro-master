@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, cleanup, fireEvent, act } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
+import { loadMessages } from "@/i18n/messages";
 
 // jsdom here has no localStorage (node started without --localstorage-file) but
 // zustand/persist captures window.localStorage when the store module is imported.
@@ -48,7 +50,11 @@ function seedStoreAndOpen() {
       ascCandidate: undefined,
     });
   });
-  render(<CalibrationPage />);
+  render(
+    <NextIntlClientProvider locale="zh" messages={loadMessages("zh")}>
+      <CalibrationPage />
+    </NextIntlClientProvider>,
+  );
   // LoadingRitual fires onDone after 1300ms.
   act(() => { vi.advanceTimersByTime(1400); });
 }
