@@ -1,15 +1,16 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
 import { buildCardSVG, svgToPngBlob, type Template, type CardData } from "@/lib/share/card";
 import { BackButton } from "@/components/BackButton";
 import { track } from "@/lib/track";
 
-const HOUSE_ZH = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
 const TPLS: Template[] = ["a", "b", "c", "d"];
 
 export default function SharePage() {
+  const t = useTranslations("share");
   const { chart, ready } = useChartGuard();
   const firstRead = useFunnel((s) => s.firstRead);
   const birthForm = useFunnel((s) => s.birthForm);
@@ -22,11 +23,16 @@ export default function SharePage() {
     const sun = chart.placements.find((p) => p.body === "Sun");
     const moon = chart.placements.find((p) => p.body === "Moon");
     const city = birthForm?.city?.trim();
-    const dedication = city ? `致 · 漂在${city}，假装很好的你` : "致 · 假装很好的你";
-    const signs = `☉ ${sun?.sign ?? "—"}　☽ ${moon?.sign ?? "—"}·${HOUSE_ZH[moon?.house ?? 1]}宫　↑ ${chart.ascSign}`;
-    const quote = (firstRead?.quote ?? "你最大的本事，是让所有人都以为你不需要任何人。").replace(/[「」“”]/g, "");
+    const dedication = city ? t("dedicationWithCity", { city }) : t("dedication");
+    const signs = t("signsFmt", {
+      sun: sun?.sign ?? "—",
+      moon: moon?.sign ?? "—",
+      house: t(`houseOrdinals.${moon?.house ?? 1}`),
+      asc: chart.ascSign,
+    });
+    const quote = (firstRead?.quote ?? t("defaultQuote")).replace(/[「」“”]/g, "");
     return { dedication, quote, signs };
-  }, [chart, firstRead, birthForm]);
+  }, [chart, firstRead, birthForm, t]);
 
   if (!ready || !data) return null;
 
@@ -39,23 +45,23 @@ export default function SharePage() {
       const scale = 3;
       const svg = buildCardSVG(data, tpl, { forExport: true, scale });
       const blob = await svgToPngBlob(svg, 318 * scale, 424 * scale);
-      const file = new File([blob], "molly-card.png", { type: "image/png" });
+      const file = new File([blob], t("shareFileName"), { type: "image/png" });
       const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
       track("share", { tpl });
       if (nav.canShare?.({ files: [file] }) && navigator.share) {
-        await navigator.share({ files: [file], text: "我的本命金句 · Molly 看穿你的本命" });
-        setToast("已唤起分享");
+        await navigator.share({ files: [file], text: t("shareText") });
+        setToast(t("toastShared"));
       } else {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "molly-card.png";
+        a.download = t("shareFileName");
         a.click();
         URL.revokeObjectURL(url);
-        setToast("已保存图片 ✓");
+        setToast(t("toastSaved"));
       }
     } catch {
-      setToast("生成失败，再试一次");
+      setToast(t("toastFailed"));
     } finally {
       setBusy(false);
       setTimeout(() => setToast(null), 1800);
@@ -65,18 +71,18 @@ export default function SharePage() {
   // Honest: both call exportPng → "分享" opens the system share sheet (where
   // 微信/小红书/IG appear), "保存图片" downloads. No fake per-channel deep-links (SHR-1).
   const channels = [
-    { id: "share", ic: "↗", l: "分享", bg: "linear-gradient(135deg,var(--gold),var(--gold-soft))", fg: "#1a1305" },
-    { id: "save", ic: "⤓", l: "保存图片", bg: "#1c2230", fg: "var(--gold)" },
+    { id: "share", ic: "↗", l: t("channels.share"), bg: "linear-gradient(135deg,var(--gold),var(--gold-soft))", fg: "#1a1305" },
+    { id: "save", ic: "⤓", l: t("channels.save"), bg: "#1c2230", fg: "var(--gold)" },
   ];
 
   return (
     <main className="phone" data-testid="share">
-      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>分享卡片</h1>
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{t("title")}</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", padding: "22px 24px 6px" }}>
         <BackButton variant="close" />
-        <span style={{ flex: 1, textAlign: "center", fontSize: 14, color: "var(--cream)", fontWeight: 500 }}>分享这一句</span>
+        <span style={{ flex: 1, textAlign: "center", fontSize: 14, color: "var(--cream)", fontWeight: 500 }}>{t("headerLabel")}</span>
         <span style={{ width: 20 }} />
       </div>
 
@@ -84,10 +90,10 @@ export default function SharePage() {
         <div data-testid="share-card" style={{ width: 318, height: 424, borderRadius: 20, overflow: "hidden", boxShadow: "0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(201,168,97,.2)" }} dangerouslySetInnerHTML={{ __html: cardSVG }} />
 
         <div style={{ display: "flex", gap: 9, marginTop: 16 }}>
-          {TPLS.map((t) => {
-            const thumb = buildCardSVG(data, t);
+          {TPLS.map((tplId) => {
+            const thumb = buildCardSVG(data, tplId);
             return (
-              <button type="button" key={t} data-testid="tpl" aria-label={`样式 ${t.toUpperCase()}`} aria-pressed={tpl === t} onClick={() => setTpl(t)} style={{ width: 44, height: 58, borderRadius: 7, overflow: "hidden", cursor: "pointer", padding: 0, outline: tpl === t ? "2px solid var(--gold)" : "1px solid #2a3344", outlineOffset: tpl === t ? 1 : 0 }} dangerouslySetInnerHTML={{ __html: thumb }} />
+              <button type="button" key={tplId} data-testid="tpl" aria-label={t("tplAria", { tpl: tplId.toUpperCase() })} aria-pressed={tpl === tplId} onClick={() => setTpl(tplId)} style={{ width: 44, height: 58, borderRadius: 7, overflow: "hidden", cursor: "pointer", padding: 0, outline: tpl === tplId ? "2px solid var(--gold)" : "1px solid #2a3344", outlineOffset: tpl === tplId ? 1 : 0 }} dangerouslySetInnerHTML={{ __html: thumb }} />
             );
           })}
         </div>

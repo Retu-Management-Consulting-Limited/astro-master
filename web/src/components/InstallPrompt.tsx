@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { detectA2HS, type A2HSState } from "@/lib/pwa/a2hs";
 import { track } from "@/lib/track";
@@ -13,6 +14,7 @@ const ENGAGE = ["/today", "/chart", "/chat", "/me"];
 const DISMISS_KEY = "molly_install_dismissed";
 
 export function InstallPrompt() {
+  const t = useTranslations("components.installPrompt");
   const pathname = usePathname();
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [show, setShow] = useState(false);
@@ -96,12 +98,12 @@ export function InstallPrompt() {
   };
 
   const info = state === "ios-inapp" || state === "android-webview"; // ❌ can't install here → redirect
-  const title = info ? "想把 Molly 加到桌面？" : "把 Molly 放进你的口袋";
+  const title = info ? t("titleInfo") : t("titleInstall");
   const desc = info
     ? state === "ios-inapp"
-      ? "这里加不了——换个浏览器就行"
-      : "这个窗口加不了——换浏览器就行"
-    : "加到桌面 · 每早一句话，不用每次找我";
+      ? t("descIosInapp")
+      : t("descAndroidWebview")
+    : t("descInstall");
 
   return (
     <div
@@ -115,10 +117,10 @@ export function InstallPrompt() {
           <div style={{ fontSize: 14, color: "var(--cream)", fontWeight: 600 }}>{title}</div>
           <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 2 }}>{desc}</div>
         </div>
-        <button type="button" aria-label="关闭" onClick={() => close(true)} style={{ fontSize: 18, color: "var(--mute)", cursor: "pointer", padding: 4 }}>✕</button>
+        <button type="button" aria-label={t("close")} onClick={() => close(true)} style={{ fontSize: 18, color: "var(--mute)", cursor: "pointer", padding: 4 }}>✕</button>
       </div>
 
-      <StateBody state={state} copied={copied} onInstall={install} onCopy={copyLink} />
+      <StateBody state={state} copied={copied} onInstall={install} onCopy={copyLink} t={t} />
     </div>
   );
 }
@@ -127,33 +129,35 @@ const HINT = { marginTop: 11, fontSize: 12.5, color: "var(--cream-dim)", lineHei
 const G = "var(--gold-soft)";
 const B = "var(--blue)";
 
-function StateBody({ state, copied, onInstall, onCopy }: { state: A2HSState; copied: boolean; onInstall: () => void; onCopy: () => void }) {
+type IPTranslator = ReturnType<typeof useTranslations<"components.installPrompt">>;
+
+function StateBody({ state, copied, onInstall, onCopy, t }: { state: A2HSState; copied: boolean; onInstall: () => void; onCopy: () => void; t: IPTranslator }) {
   switch (state) {
     case "android-bip":
     case "desktop-bip":
       return (
         <button onClick={onInstall} style={{ marginTop: 12, width: "100%", border: "none", borderRadius: 12, padding: "11px 0", fontSize: 14, fontWeight: 600, color: "#1a1408", background: "linear-gradient(180deg,var(--gold-soft),var(--gold))", cursor: "pointer" }}>
-          一键添加到桌面
+          {t("addToHomeBtn")}
         </button>
       );
     case "ios-safari":
       return (
         <div style={HINT}>
-          点底部 <b style={{ color: G }}>分享 ⬆️</b> → 选 <b style={{ color: G }}>添加到主屏幕</b>，Molly 就住进你的手机了。
+          {t("iosSafariBefore")}<b style={{ color: G }}>{t("iosSafariShare")}</b>{t("iosSafariMid")}<b style={{ color: G }}>{t("iosSafariAdd")}</b>{t("iosSafariAfter")}
         </div>
       );
     case "ios-other":
       return (
         <div style={HINT}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}><Num n={1} /> 点右上 <b style={{ color: G }}>⋯</b> 菜单</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 6 }}><Num n={2} /> 选 <b style={{ color: G }}>添加到主屏幕</b></div>
-          <div style={{ marginTop: 9, fontSize: 11.5, color: G }}>想要最顺的体验？用 Safari 打开本页更稳。</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}><Num n={1} /> {t("iosOtherStep1Before")}<b style={{ color: G }}>{t("iosOtherStep1Menu")}</b>{t("iosOtherStep1After")}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 6 }}><Num n={2} /> {t("iosOtherStep2Before")}<b style={{ color: G }}>{t("iosOtherStep2Add")}</b></div>
+          <div style={{ marginTop: 9, fontSize: 11.5, color: G }}>{t("iosOtherTip")}</div>
         </div>
       );
     case "android-menu":
       return (
         <div style={HINT}>
-          点浏览器 <b style={{ color: G }}>菜单 ⋮</b> → 选 <b style={{ color: G }}>安装应用 / 添加到主屏幕</b>，Molly 就住进你的手机了。
+          {t("androidMenuBefore")}<b style={{ color: G }}>{t("androidMenuMenu")}</b>{t("androidMenuMid")}<b style={{ color: G }}>{t("androidMenuAdd")}</b>{t("androidMenuAfter")}
         </div>
       );
     case "ios-inapp":
@@ -161,10 +165,10 @@ function StateBody({ state, copied, onInstall, onCopy }: { state: A2HSState; cop
       return (
         <>
           <div style={HINT}>
-            点右上 <b style={{ color: B }}>···</b> → 选 <b style={{ color: B }}>{state === "ios-inapp" ? "在 Safari 中打开" : "在浏览器打开"}</b>，到那边就能加到桌面。
+            {t("webviewBefore")}<b style={{ color: B }}>{t("webviewDots")}</b>{t("webviewMid")}<b style={{ color: B }}>{state === "ios-inapp" ? t("webviewOpenIosSafari") : t("webviewOpenBrowser")}</b>{t("webviewAfter")}
           </div>
           <button onClick={onCopy} style={{ marginTop: 11, width: "100%", border: "none", borderRadius: 12, padding: "11px 0", fontSize: 14, fontWeight: 600, color: "#0a1018", background: "linear-gradient(180deg,#a9cde8,#8fb6d8)", cursor: "pointer" }}>
-            {copied ? "已复制 ✓ 去浏览器粘贴" : "复制链接，去浏览器打开"}
+            {copied ? t("copyLinkDone") : t("copyLinkBtn")}
           </button>
         </>
       );

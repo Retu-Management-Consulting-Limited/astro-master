@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import type { TimeBelief } from "@/lib/astro/timeBelief";
 import { detectiveBandCopy } from "@/lib/reading/calibrationSignal";
 
@@ -34,20 +35,24 @@ function spanHours(lo: number, hi: number): number {
   return ((hi - lo + HOURS) % HOURS) || HOURS;
 }
 
-// The short lock label that points at the band ("已锁到 X 小时内" / "还很宽").
-// Width-only, intentionally terse — the full honest sentence is the copy line below.
-export function lockLabel(belief: TimeBelief): string {
-  const [lo, hi] = belief.topRange;
-  const hours = spanHours(lo, hi);
-  if (belief.confidence < 0.15 || hours >= 20) return "还很宽 · 多补一件大事能更准";
-  return `已锁到 ${hours} 小时内`;
-}
-
-export function TimeDetective({ belief }: { belief: TimeBelief }) {
+// Pure, i18n-free lock state that points at the band. Returns whether the band
+// is still wide and its width in hours — the component renders the localized
+// label/aria from this. Kept pure (no React context) so the content-freshness
+// unit test can compare wide vs narrow without rendering.
+export function lockState(belief: TimeBelief): { wide: boolean; hours: number } {
   const [lo, hi] = belief.topRange;
   const hours = spanHours(lo, hi);
   const wide = belief.confidence < 0.15 || hours >= 20;
+  return { wide, hours };
+}
+
+export function TimeDetective({ belief }: { belief: TimeBelief }) {
+  const t = useTranslations("components.timeDetective");
+  const [lo, hi] = belief.topRange;
+  const { wide, hours } = lockState(belief);
   const copy = detectiveBandCopy(belief);
+  const lockText = wide ? t("lockWide") : t("lockNarrow", { hours });
+  const bandAria = wide ? t("bandAriaWide") : t("bandAriaNarrow", { hours });
 
   return (
     <div
@@ -63,15 +68,15 @@ export function TimeDetective({ belief }: { belief: TimeBelief }) {
         padding: 16,
       }}
     >
-      <div style={{ fontSize: 13, color: "var(--cream)", marginBottom: 4 }}>我在帮你找回出生时刻</div>
+      <div style={{ fontSize: 13, color: "var(--cream)", marginBottom: 4 }}>{t("heading")}</div>
       <div data-testid="td-lock" style={{ fontSize: 11, color: wide ? "var(--mute)" : "var(--gold-soft)", marginBottom: 14 }}>
-        {lockLabel(belief)}
+        {lockText}
       </div>
 
       {/* 24h band — each hour-bucket is a cell; the belief's topRange lights up gold. */}
       <div
         role="img"
-        aria-label={wide ? "出生时辰还很宽，覆盖大半天" : `出生时辰锁定在 ${hours} 小时内`}
+        aria-label={bandAria}
         style={{ display: "flex", gap: 1, height: 30, borderRadius: 8, overflow: "hidden", border: "1px solid var(--field-bd)" }}
       >
         {Array.from({ length: HOURS }).map((_, h) => {
@@ -99,7 +104,7 @@ export function TimeDetective({ belief }: { belief: TimeBelief }) {
         {copy}
       </div>
       <div style={{ fontSize: 10.5, color: "#5a6173", marginTop: 8 }}>
-        我不是算命——是用你真实经历对天象，反推时辰。
+        {t("footnote")}
       </div>
     </div>
   );

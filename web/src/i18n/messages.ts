@@ -31,6 +31,10 @@ import zhWealth from "../../messages/zh/wealth.json";
 import zhBody from "../../messages/zh/body.json";
 import zhRegister from "../../messages/zh/register.json";
 import zhCalibration from "../../messages/zh/calibration.json";
+import zhHistory from "../../messages/zh/history.json";
+import zhShare from "../../messages/zh/share.json";
+import zhAdmin from "../../messages/zh/admin.json";
+import zhComponents from "../../messages/zh/components.json";
 
 import ruCommon from "../../messages/ru/common.json";
 import ruNav from "../../messages/ru/nav.json";
@@ -49,6 +53,10 @@ import ruWealth from "../../messages/ru/wealth.json";
 import ruBody from "../../messages/ru/body.json";
 import ruRegister from "../../messages/ru/register.json";
 import ruCalibration from "../../messages/ru/calibration.json";
+import ruHistory from "../../messages/ru/history.json";
+import ruShare from "../../messages/ru/share.json";
+import ruAdmin from "../../messages/ru/admin.json";
+import ruComponents from "../../messages/ru/components.json";
 
 export const NAMESPACES = [
   "common",
@@ -68,6 +76,10 @@ export const NAMESPACES = [
   "body",
   "register",
   "calibration",
+  "history",
+  "share",
+  "admin",
+  "components",
 ] as const;
 
 export type Namespace = (typeof NAMESPACES)[number];
@@ -93,6 +105,10 @@ const BUNDLE: Record<AppLocale, Bundle> = {
     body: zhBody,
     register: zhRegister,
     calibration: zhCalibration,
+    history: zhHistory,
+    share: zhShare,
+    admin: zhAdmin,
+    components: zhComponents,
   },
   ru: {
     common: ruCommon,
@@ -112,6 +128,10 @@ const BUNDLE: Record<AppLocale, Bundle> = {
     body: ruBody,
     register: ruRegister,
     calibration: ruCalibration,
+    history: ruHistory,
+    share: ruShare,
+    admin: ruAdmin,
+    components: ruComponents,
   },
 };
 

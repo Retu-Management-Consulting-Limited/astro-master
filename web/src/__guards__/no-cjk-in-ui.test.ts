@@ -60,6 +60,14 @@ const CLEANED_FILES: string[] = [
   // T8: register + calibration
   "src/app/[locale]/register/page.tsx",
   "src/app/[locale]/calibration/page.tsx",
+  // T9: history + share + admin + components.*
+  "src/app/[locale]/history/page.tsx",
+  "src/app/[locale]/share/page.tsx",
+  "src/app/[locale]/admin/page.tsx",
+  "src/components/InstallPrompt.tsx",
+  "src/components/TimeDetective.tsx",
+  "src/components/FeedbackButton.tsx",
+  "src/components/BackButton.tsx",
 ];
 
 // C 区前缀（即便将来扩大扫描面也绝不检查 —— 属子项目 C）。
