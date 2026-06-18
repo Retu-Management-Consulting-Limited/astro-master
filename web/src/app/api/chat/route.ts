@@ -3,7 +3,7 @@ import type { Chart } from "@/lib/astro/chart";
 import { isFullChart } from "@/lib/astro/chart-validate";
 import { safetyFor, facts, personaFor, pronoun, type Gender } from "@/lib/ai/molly";
 import { runLLM } from "@/lib/ai/llm";
-import { detectCrisis, CRISIS_RESPONSE, CHAT_FALLBACK } from "@/lib/ai/safety";
+import { detectCrisis, crisisResponseFor, CHAT_FALLBACK } from "@/lib/ai/safety";
 import { hasLocale } from "next-intl";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { resolveIdentity } from "@/lib/server/identity";
@@ -72,8 +72,8 @@ export async function POST(req: Request) {
   // 1) Crisis short-circuit — deterministic, BEFORE the model. Holds the feeling
   // and hands real help, never astrology.
   const lastUser = [...messages].reverse().find((m) => m.from === "me");
-  if (lastUser && detectCrisis(stripHtml(lastUser.text))) {
-    return NextResponse.json({ text: CRISIS_RESPONSE, crisis: true });
+  if (lastUser && detectCrisis(stripHtml(lastUser.text), locale)) {
+    return NextResponse.json({ text: crisisResponseFor(locale), crisis: true });
   }
 
   // 2) Rate limit per identity.

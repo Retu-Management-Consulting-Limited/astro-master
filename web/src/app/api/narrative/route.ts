@@ -123,7 +123,7 @@ export async function POST(req: Request) {
       if (r.usage) await logUsage({ route: "narrative", ...r.usage }).catch(() => {});
       const ai = parse(r.text);
       const clean = validateMoneyCopy(ai.hopeNote).ok && validateMoneyCopy(ai.prophecy).ok;
-      const safe = !detectCrisis(ai.hopeNote) && !detectCrisis(ai.prophecy);
+      const safe = !detectCrisis(ai.hopeNote, locale) && !detectCrisis(ai.prophecy, locale);
       if (clean && safe && ai.hopeNote) {
         result = {
           ...result,
