@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
+import { loadMessages } from "@/i18n/messages";
 import { TodayCell } from "./TodayCell";
 import { computeChart } from "@/lib/astro/chart";
 import { todayVerdict } from "@/lib/reading/todayVerdict";
@@ -8,6 +10,10 @@ import { dailyReading } from "@/lib/reading/daily";
 import { validateMoneyCopy } from "@/lib/money/guardrail";
 
 afterEach(cleanup);
+
+// TodayCell 文案走 next-intl 翻译（namespace today.cell），需 provider 注入 messages。
+// 默认 locale zh，故既有「身心/财运旺」等中文断言原样保留（zh 逐字搬入 messages）。
+const ZH = loadMessages("zh");
 
 // Fixture A + the three dates the probe found produce one of each state in 2026:
 //   plain 2026-01-01 · red 2026-01-11 · green 2026-01-13
@@ -20,7 +26,11 @@ const GREEN = D("2026-01-13T12:00:00.000Z");
 function renderAt(date: Date, onWealth = vi.fn(), onBody = vi.fn()) {
   const v = todayVerdict(A, date);
   const daily = dailyReading(A, date);
-  render(<TodayCell verdict={v} daily={daily} onWealth={onWealth} onBody={onBody} />);
+  render(
+    <NextIntlClientProvider locale="zh" messages={ZH}>
+      <TodayCell verdict={v} daily={daily} onWealth={onWealth} onBody={onBody} />
+    </NextIntlClientProvider>,
+  );
   return { v, daily, onWealth, onBody };
 }
 
@@ -136,6 +146,38 @@ describe("TodayCell · three-state 今 card", () => {
       expect(dot.style.background).toBe(expected);
       cleanup();
     }
+  });
+
+  // ── T4 i18n：文案走 today.cell namespace；ru 切换后无中文残留 ──
+  it("zh 状态 tag/chip 文案逐字来自 messages（namespace today.cell）", () => {
+    renderAt(GREEN);
+    const card = screen.getByTestId("today-card");
+    expect(card.textContent).toContain("今天 · 宜");
+    expect(card.textContent).toContain("财运旺 · 搞钱黄金日");
+    expect(card.textContent).toContain("看财运日历");
+    expect(card.textContent).toContain("看身心日历");
+  });
+
+  it("切到 ru：状态 tag/chip 出俄文、无中文残留", () => {
+    const RU = loadMessages("ru");
+    const v = todayVerdict(A, GREEN);
+    const daily = dailyReading(A, GREEN);
+    render(
+      <NextIntlClientProvider locale="ru" messages={RU}>
+        <TodayCell verdict={v} daily={daily} onWealth={vi.fn()} onBody={vi.fn()} />
+      </NextIntlClientProvider>,
+    );
+    const card = screen.getByTestId("today-card");
+    // 俄文出现
+    expect(card.textContent).toContain("Финансовая удача");
+    expect(card.textContent).toContain("Тело и разум");
+    // 无 CJK 残留（排除 props 来的 verdict.line/quote —— 那是 C 区动态内容，不在本任务范围）
+    const chrome = [
+      screen.getByTestId("fortune-chip").textContent ?? "",
+      screen.getByTestId("body-chip").textContent ?? "",
+    ].join(" ");
+    expect(chrome).not.toMatch(/[一-鿿]/);
+    cleanup();
   });
 
   it("all rendered money copy passes the money guardrail (真 vs 编 · §8)", () => {

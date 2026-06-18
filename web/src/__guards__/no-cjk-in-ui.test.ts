@@ -45,6 +45,9 @@ const CLEANED_FILES: string[] = [
   "src/app/[locale]/me/page.tsx",
   "src/app/[locale]/me/birth/page.tsx",
   "src/app/[locale]/me/settings/page.tsx",
+  // T4: today + components.todayCell
+  "src/app/[locale]/today/page.tsx",
+  "src/components/TodayCell.tsx",
 ];
 
 // C 区前缀（即便将来扩大扫描面也绝不检查 —— 属子项目 C）。
