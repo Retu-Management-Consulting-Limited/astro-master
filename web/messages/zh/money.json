@@ -1,0 +1,39 @@
+{
+  "entry": {
+    "title": "钱，对你到底意味着什么？",
+    "body": "不是问你想赚多少。是你和钱的关系里，藏着一个连你自己都没说破的真相——我想讲给你听。",
+    "cta": "让 Molly 看穿 →"
+  },
+  "reveal": {
+    "kicker": "钱，对你到底意味着什么",
+    "headLine1": "我知道，钱对你",
+    "headLine2": "从来不只是钱。",
+    "isLabel": "是{label}",
+    "tagTension": "{styleTag} · 也藏着「{secondary}」的拉扯",
+    "tagAligned": "{styleTag} · 与「{secondary}」同向",
+    "blindSpotLabel": "你的盲点 · 也是你的暗面",
+    "seeStory": "看我的金钱故事 →",
+    "confirmLine1": "钱对你是「{primary}」——",
+    "confirmLine2": "这点，我很确定。",
+    "moreLine1": "但我还看到你",
+    "moreLine2": "藏起来的另一面。",
+    "weighTension": "你想要「{primary}」，又放不下「{secondary}」。此刻的你，哪一股更重？",
+    "weighAligned": "「{secondary}」也在你心里。此刻的你，哪一股更重？",
+    "continue": "继续 →",
+    "footnote": "不是我猜错——是我连你藏起来的那面也看到了。"
+  },
+  "story": {
+    "label": "你的金钱故事",
+    "pageDayOne": "第 1 页 · 从今天开始",
+    "pageToday": "第 {page} 页 · 今天",
+    "prev": "承前：{prev}"
+  },
+  "today": {
+    "loading": "Molly 正在翻你的故事……",
+    "ratePrompt": "这一页，准吗？",
+    "rateGood": "好准",
+    "rateMeh": "一般",
+    "rateOff": "不太像",
+    "rated": "收到——我记下了，明天讲得更贴你。"
+  }
+}

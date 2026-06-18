@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useChartGuard } from "@/lib/guard";
 import { detectHighlights } from "@/lib/astro/highlights";
@@ -22,6 +23,7 @@ function pos(lon: number, r: number) {
 }
 
 export default function ChartPage() {
+  const t = useTranslations("chart");
   const { chart, ready } = useChartGuard();
   const understand = useUnderstanding();
   // keystone回喂: a recent low-mood streak lets the highlight acknowledge it (her own
@@ -42,21 +44,21 @@ export default function ChartPage() {
   const moon = chart.placements.find((p) => p.body === "Moon")!;
 
   const themes = [
-    { id: "love", ic: "💔", t: "感情与关系" },
-    { id: "wealth", ic: "💰", t: "财富与时机" },
-    { id: "lonely", ic: "🌧️", t: "孤独与归属" },
-    { id: "self", ic: "🧭", t: "自我与方向" },
+    { id: "love", ic: "💔", t: t("themeLove") },
+    { id: "wealth", ic: "💰", t: t("themeWealth") },
+    { id: "lonely", ic: "🌧️", t: t("themeLonely") },
+    { id: "self", ic: "🧭", t: t("themeSelf") },
   ] as const;
 
   return (
     <main className="phone" data-testid="chart">
-      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>本命盘</h1>
+      <h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{t("srTitle")}</h1>
       <div className="starfield" />
       <div className="grain" />
       <div style={{ position: "relative", zIndex: 3, display: "flex", alignItems: "center", gap: 10, padding: "22px 22px 8px" }}>
         <div className="eye-mini" style={{ width: 32, height: 32 }} />
         <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
-        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>懂你 <b style={{ color: "var(--gold)" }}>{understand}%</b> ✨</span>
+        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--cream-dim)" }}>{t("understandSuffix")} <b style={{ color: "var(--gold)" }}>{understand}%</b> ✨</span>
       </div>
 
       <div style={{ position: "relative", zIndex: 2, flex: 1, overflowY: "auto", padding: "0 20px 12px" }}>
@@ -90,13 +92,13 @@ export default function ChartPage() {
               );
             })}
           </svg>
-          <div style={{ marginTop: 2, fontSize: 12.5, color: "var(--cream-dim)", letterSpacing: ".04em" }}>↑ 上升<b style={{ color: "var(--gold)" }}>{chart.ascSign}</b> · ☉ {sun.sign} · ☽ {moon.sign}</div>
-          <div style={{ marginTop: 8, fontSize: 11, color: "var(--mute)" }}>亮的是你盘上<b style={{ color: "var(--gold)" }}>最强的几处</b> · 你越常来，我越懂你</div>
+          <div style={{ marginTop: 2, fontSize: 12.5, color: "var(--cream-dim)", letterSpacing: ".04em" }}>{t("ascendantPrefix")}<b style={{ color: "var(--gold)" }}>{chart.ascSign}</b> · ☉ {sun.sign} · ☽ {moon.sign}</div>
+          <div style={{ marginTop: 8, fontSize: 11, color: "var(--mute)" }}>{t("strongestBefore")}<b style={{ color: "var(--gold)" }}>{t("strongestBold")}</b> {t("strongestAfter")}</div>
         </div>
 
         <div style={{ marginTop: 20 }}>
-          <div style={{ fontFamily: "var(--serif)", fontSize: 19, color: "var(--cream)", fontWeight: 500, lineHeight: 1.4 }}>你出生那一刻，<i style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>天空替你写下了几件事。</i></div>
-          <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 6, lineHeight: 1.6 }}>不是我评判你，是这张盘本来的样子——我陪你一起读。</div>
+          <div style={{ fontFamily: "var(--serif)", fontSize: 19, color: "var(--cream)", fontWeight: 500, lineHeight: 1.4 }}>{t("headlineBefore")}<i style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>{t("headlineEmphasis")}</i></div>
+          <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 6, lineHeight: 1.6 }}>{t("headlineSub")}</div>
         </div>
         {topHighlights.map((h, i) => {
           const pink = h.bodies.includes("Venus");
@@ -105,8 +107,8 @@ export default function ChartPage() {
             <Link key={i} href={`/theme/${highlightTheme(h.domain)}`} data-testid="highlight" style={{ display: "block", textDecoration: "none", background: "linear-gradient(180deg, rgba(201,168,97,.08), rgba(201,168,97,.02))", border: `1px solid ${pink ? "rgba(230,158,200,.3)" : "rgba(201,168,97,.3)"}`, borderRadius: 16, padding: "14px 15px", marginTop: 11, boxShadow: `0 0 26px -16px ${pink ? "rgba(230,158,200,.5)" : "rgba(201,168,97,.5)"}` }}>
               <div style={{ fontSize: 15, lineHeight: 1.5, color: "var(--cream)", fontWeight: 500 }}>{highlightHeadline(h.domain)}</div>
               <div style={{ fontSize: 11.5, color: pink ? "#f1c2dd" : "var(--gold-soft)", marginTop: 8, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <span aria-hidden="true">✦</span> {h.summary} · 你生来带的
-                {moodNote && <span style={{ color: "var(--blue)" }}>· 也接住了你这几天的低落</span>}
+                <span aria-hidden="true">✦</span> {h.summary} {t("highlightInborn")}
+                {moodNote && <span style={{ color: "var(--blue)" }}>{t("highlightMoodNote")}</span>}
               </div>
               <div style={{ fontSize: 11.5, color: "var(--mute)", marginTop: 9, display: "flex", alignItems: "center" }}>{highlightHook(h.domain)}<b style={{ marginLeft: "auto", color: pink ? "#e69ec8" : "var(--gold)", fontWeight: 500 }}>→</b></div>
             </Link>
@@ -114,15 +116,15 @@ export default function ChartPage() {
         })}
 
         <div style={{ marginTop: 20 }}>
-          {themes.map((t) => (
-            <Link key={t.id} href={`/theme/${t.id}`} data-testid="theme-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 4px", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: 14.5, color: "var(--cream)", textDecoration: "none" }}>
-              <span style={{ fontSize: 16 }}>{t.ic}</span>{t.t}
-              <span style={{ marginLeft: "auto", color: "var(--gold)", fontSize: 13 }}>深读 ›</span>
+          {themes.map((theme) => (
+            <Link key={theme.id} href={`/theme/${theme.id}`} data-testid="theme-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 4px", borderBottom: "1px solid rgba(255,255,255,.05)", fontSize: 14.5, color: "var(--cream)", textDecoration: "none" }}>
+              <span style={{ fontSize: 16 }}>{theme.ic}</span>{theme.t}
+              <span style={{ marginLeft: "auto", color: "var(--gold)", fontSize: 13 }}>{t("themeRead")}</span>
             </Link>
           ))}
         </div>
         <EntryCard surface="chart" />
-        <Link href="/share" style={{ display: "block", margin: "20px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", textDecoration: "none" }}>📤 把我的星盘存成图</Link>
+        <Link href="/share" style={{ display: "block", margin: "20px 0 6px", textAlign: "center", fontSize: 13, color: "var(--gold-soft)", textDecoration: "none" }}>{t("saveCard")}</Link>
       </div>
 
       <TabBar active="chart" />

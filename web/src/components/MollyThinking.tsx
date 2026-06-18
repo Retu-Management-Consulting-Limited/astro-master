@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 // "Molly is thinking" — shown during the slow SDK calls (40-90s) so the user
 // stays. A breathing cosmic eye + rotating, personalized thinking phrases +
 // animated dots. Past a threshold it adds an escalating REASSURANCE line that
-// reframes the slowness as care ("她读得慢，是因为认真地读你") — the single most
+// reframes the slowness as care (reassurance copy) — the single most
 // effective anti-abandonment move on a long wait.
 // `band` = slim inline banner; `bubble` = chat message.
 
@@ -13,22 +14,24 @@ export interface Reassurance {
   text: string;
 }
 
-const DEFAULT_REASSURE: Reassurance[] = [
-  { afterMs: 38000, text: "她读得有点慢——因为她在很认真地读你，别走开。" },
-  { afterMs: 72000, text: "再给她一点点，这一段，她想为你写到对。" },
-];
-
 export function MollyThinking({
   phrases,
   variant = "band",
   style,
-  reassurances = DEFAULT_REASSURE,
+  reassurances,
 }: {
   phrases: string[];
   variant?: "band" | "bubble";
   style?: React.CSSProperties;
   reassurances?: Reassurance[];
 }) {
+  const t = useTranslations("chat");
+  // Default reassurance copy lives in messages; thresholds stay here. Callers may
+  // still override with their own `reassurances`.
+  const reassureList: Reassurance[] = reassurances ?? [
+    { afterMs: 38000, text: t("thinking.reassure1") },
+    { afterMs: 72000, text: t("thinking.reassure2") },
+  ];
   const [i, setI] = useState(0);
   const [elapsed, setElapsed] = useState(0);
 
@@ -45,7 +48,7 @@ export function MollyThinking({
   }, []);
 
   // latest reassurance whose threshold has passed
-  const reassure = [...reassurances].reverse().find((r) => elapsed >= r.afterMs)?.text;
+  const reassure = [...reassureList].reverse().find((r) => elapsed >= r.afterMs)?.text;
 
   const eye = <div className="eye-mini think-eye" style={{ width: 26, height: 26 }} />;
   const dots = (
@@ -75,7 +78,7 @@ export function MollyThinking({
 
   if (variant === "bubble") {
     return (
-      <div data-testid="thinking" role="status" aria-live="polite" aria-label="Molly 正在思考" style={{ maxWidth: "88%", marginBottom: 14, marginRight: "auto", ...style }}>
+      <div data-testid="thinking" role="status" aria-live="polite" aria-label={t("thinking.aria")} style={{ maxWidth: "88%", marginBottom: 14, marginRight: "auto", ...style }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 9, borderRadius: 16, borderBottomLeftRadius: 5, padding: "11px 14px", background: "#141a28", border: "1px solid #232c3e" }}>
           {eye}
           {inner}
@@ -85,7 +88,7 @@ export function MollyThinking({
   }
 
   return (
-    <div data-testid="thinking" role="status" aria-live="polite" aria-label="Molly 正在思考" style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 13px", borderRadius: 12, background: "rgba(201,168,97,.07)", border: "1px solid rgba(201,168,97,.25)", ...style }}>
+    <div data-testid="thinking" role="status" aria-live="polite" aria-label={t("thinking.aria")} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 13px", borderRadius: 12, background: "rgba(201,168,97,.07)", border: "1px solid rgba(201,168,97,.25)", ...style }}>
       {eye}
       {inner}
     </div>

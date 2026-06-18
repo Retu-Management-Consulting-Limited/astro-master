@@ -18,5 +18,8 @@ export default defineConfig({
     port: 3000,
     reuseExistingServer: true,
     timeout: 60000,
+    // RU_PUBLIC 开关：生产默认关（俄语不对用户暴露），但 e2e 必须能测 /ru，
+    // 故在测试用 dev server 显式开。proxy 据此放行 /ru 前缀；关时会重定向走。
+    env: { NEXT_PUBLIC_RU_PUBLIC: "1" },
   },
 });

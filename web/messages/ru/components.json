@@ -1,0 +1,60 @@
+{
+  "backButton": {
+    "back": "Назад",
+    "close": "Закрыть"
+  },
+  "installPrompt": {
+    "close": "Закрыть",
+    "titleInfo": "Хочешь добавить Molly на главный экран?",
+    "titleInstall": "Положи Molly себе в карман",
+    "descIosInapp": "Здесь добавить нельзя — открой в другом браузере",
+    "descAndroidWebview": "В этом окне добавить нельзя — открой в браузере",
+    "descInstall": "На главный экран · одна фраза каждое утро, не надо меня искать",
+    "addToHomeBtn": "Добавить на главный экран в один тап",
+    "iosSafariBefore": "Нажми внизу ",
+    "iosSafariShare": "Поделиться ⬆️",
+    "iosSafariMid": " → выбери ",
+    "iosSafariAdd": "На экран «Домой»",
+    "iosSafariAfter": ", и Molly поселится в твоём телефоне.",
+    "iosOtherStep1Before": "Нажми справа вверху меню ",
+    "iosOtherStep1Menu": "⋯",
+    "iosOtherStep1After": "",
+    "iosOtherStep2Before": "выбери ",
+    "iosOtherStep2Add": "На экран «Домой»",
+    "iosOtherTip": "Хочешь самый плавный вариант? Надёжнее открыть эту страницу в Safari.",
+    "androidMenuBefore": "Нажми в браузере ",
+    "androidMenuMenu": "меню ⋮",
+    "androidMenuMid": " → выбери ",
+    "androidMenuAdd": "Установить приложение / На главный экран",
+    "androidMenuAfter": ", и Molly поселится в твоём телефоне.",
+    "webviewBefore": "Нажми справа вверху ",
+    "webviewDots": "···",
+    "webviewMid": " → выбери ",
+    "webviewOpenIosSafari": "Открыть в Safari",
+    "webviewOpenBrowser": "Открыть в браузере",
+    "webviewAfter": ", там и сможешь добавить на главный экран.",
+    "copyLinkBtn": "Скопировать ссылку и открыть в браузере",
+    "copyLinkDone": "Скопировано ✓ вставь в браузере"
+  },
+  "timeDetective": {
+    "heading": "Я помогаю тебе вернуть момент рождения",
+    "lockWide": "Пока широко · ещё одно крупное событие добавит точности",
+    "lockNarrow": "Сужено до {hours} ч",
+    "bandAriaWide": "Время рождения ещё широко, покрывает почти полдня",
+    "bandAriaNarrow": "Время рождения сужено до {hours} ч",
+    "footnote": "Я не гадаю — я сопоставляю твой реальный опыт с положением небес и так восстанавливаю время."
+  },
+  "feedbackButton": {
+    "fabAria": "Обратная связь",
+    "close": "Закрыть",
+    "panelTitle": "Отзыв беты",
+    "sent": "Получила, спасибо тебе ✓",
+    "placeholder": "Что на этом экране хорошо / странно / где застрял? Хватит одной фразы",
+    "failed": "Не отправилось, что-то с сетью — попробуй ещё раз.",
+    "send": "Отправить"
+  },
+  "loadingRitual": {
+    "line": "Дай мне взглянуть, кто ты……",
+    "sub": "Читаю звёздное небо момента твоего рождения…"
+  }
+}

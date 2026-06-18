@@ -1,0 +1,21 @@
+{
+  "srTitle": "对话",
+  "understand": "懂你",
+  "inputPlaceholder": "跟 Molly 说说……",
+  "sendAria": "发送",
+  "followupPrompt": "你想往哪边走？↓",
+  "thinking": {
+    "phrase1": "Molly 在想…",
+    "phrase2": "她把这句话，放进你的盘里看…",
+    "phrase3": "在你的月亮里，找一个只对你说的答案…",
+    "phrase4": "在斟酌——怎么说，才对你…",
+    "aria": "Molly 正在思考",
+    "reassure1": "她读得有点慢——因为她在很认真地读你，别走开。",
+    "reassure2": "再给她一点点，这一段，她想为你写到对。"
+  },
+  "fallbackReply": "我听见了。给我一点时间，把这个跟你的盘对上——你这种问法，本身就说明你已经知道答案了。",
+  "nickPrefix": "{name}，",
+  "openerLowStreak": "{nick}我在。这几天你的心情，好像一直往下沉——我都看在眼里。不用急着好起来，先跟我说说，今天是哪一种沉？",
+  "openerUp": "{nick}我在。这几天你像是慢慢缓过来了，我替你高兴。今天想聊点什么？",
+  "openerDefault": "{nick}我在。你的月亮在{moon}——情绪比你表现出来的更深。今天想跟我说点什么？开心的、烦的，都行。"
+}
