@@ -54,6 +54,9 @@ const CLEANED_FILES: string[] = [
   // T6: synastry
   "src/app/[locale]/synastry/page.tsx",
   "src/app/[locale]/synastry/invite/[token]/page.tsx",
+  // T7: wealth + body
+  "src/app/[locale]/wealth/page.tsx",
+  "src/app/[locale]/body/page.tsx",
 ];
 
 // C 区前缀（即便将来扩大扫描面也绝不检查 —— 属子项目 C）。

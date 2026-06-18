@@ -1,0 +1,41 @@
+{
+  "title": "🌙 身心日历",
+  "monthLabel": "{year} · {month}月",
+  "levelLabel": {
+    "good": "有劲",
+    "low": "该歇/留意",
+    "calm": "平稳"
+  },
+  "bannerBefore": "🌑 大多数日子平稳——别天天有戏。",
+  "bannerEmphasis": "新月 / 满月",
+  "bannerAfter": "情绪最满，点未来某天看那天身心态。",
+  "weekdays": {
+    "mon": "一",
+    "tue": "二",
+    "wed": "三",
+    "thu": "四",
+    "fri": "五",
+    "sat": "六",
+    "sun": "日"
+  },
+  "dayAriaBase": "{month}月{day}日 · 身心{level}",
+  "dayAriaNew": " · 新月",
+  "dayAriaFull": " · 满月",
+  "dayAriaToday": " · 今天",
+  "todayCellLabel": "今",
+  "legendGood": "有劲",
+  "legendLow": "该歇/留意",
+  "legendCalm": "平稳",
+  "whenToday": "今天 · {day} 号",
+  "whenDate": "{month}月{day}日",
+  "lowHeader": "{when} · 身心 · 该歇 🔴",
+  "goodHeader": "{when} · 身心 · 有劲 🟢",
+  "calmHeader": "{when} · 身心 · 平稳 ⚪",
+  "nextLowBefore": " 下一个该顾一下自己的是 ",
+  "nextLowDay": "{day} 号",
+  "nextLowAfter": "。",
+  "deeperBefore": "你的",
+  "deeperEmphasis": "能量周期 / 自我照顾",
+  "deeperCta": "看更深 →",
+  "disclaimer": "身心仅供参考 · 我说倾向不说病——身体真有信号，请去看医生"
+}
