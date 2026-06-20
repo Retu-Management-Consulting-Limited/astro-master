@@ -37,7 +37,11 @@ function EditBirthForm() {
 
   const [date, setDate] = useState(birthForm?.date ?? "1998-06-13");
   const [time, setTime] = useState(birthForm?.time ?? "");
-  const [knownTime, setKnownTime] = useState(birthForm?.knownTime ?? true); // 默认未知→正午（诚实默认）
+  // 时间输入始终可填——填了即按精确时间排盘（无需先勾框，杜绝静默忽略）。显式勾
+  // 「不知道·用正午盘」强制正午（清空已填时间）。初值跟随已存资料。
+  // 注：downstream `knownTime===true` 表示"未知/正午"（见 birth.ts），由下式派生。
+  const [useNoon, setUseNoon] = useState(birthForm?.knownTime ?? false);
+  const knownTime = useNoon || !time;
   const [country, setCountry] = useState(birthForm?.country ?? "");
   const [city, setCity] = useState(birthForm?.city ?? "");
   const [gender, setG] = useState<"female" | "male">(storedGender ?? "female");
@@ -102,10 +106,10 @@ function EditBirthForm() {
           </div>
           <div>
             <label style={lbl} htmlFor="edit-time">{t("timeLabel")}</label>
-            <input id="edit-time" className="field-inp" type="time" value={time} disabled={knownTime} onChange={(e) => setTime(e.target.value)} style={{ opacity: knownTime ? 0.5 : 1 }} />
-            <button type="button" role="checkbox" aria-checked={!knownTime} onClick={() => setKnownTime(!knownTime)} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer", padding: "10px 0", textAlign: "left" }}>
-              <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", background: !knownTime ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{!knownTime ? "✓" : ""}</span>
-              <span style={{ fontSize: 13, color: "var(--cream-dim)" }}>{t("knownTimeCheckbox")}</span>
+            <input id="edit-time" className="field-inp" type="time" value={time} disabled={useNoon} onChange={(e) => setTime(e.target.value)} style={{ opacity: useNoon ? 0.5 : 1 }} />
+            <button type="button" role="checkbox" aria-checked={useNoon} onClick={() => { const next = !useNoon; setUseNoon(next); if (next) setTime(""); }} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 11, cursor: "pointer", padding: "10px 0", textAlign: "left" }}>
+              <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 6, border: "1px solid #39414f", flex: "0 0 auto", background: useNoon ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1305", fontSize: 12, fontWeight: 700 }}>{useNoon ? "✓" : ""}</span>
+              <span style={{ fontSize: 13, color: "var(--cream-dim)" }}>{t("noonOptOutCheckbox")}</span>
             </button>
             {knownTime && <p style={{ fontSize: 12.5, color: "var(--mute)", lineHeight: 1.6, marginTop: 8 }}>{t("unknownTimeHintBefore")}<b style={{ color: "var(--cream-dim)", fontWeight: 400 }}>{t("unknownTimeHintNoon")}</b>{t("unknownTimeHintAfter")}</p>}
           </div>

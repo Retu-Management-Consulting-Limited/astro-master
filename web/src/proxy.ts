@@ -4,6 +4,12 @@ import { routing } from "@/i18n/routing";
 import { ruEnabled } from "@/i18n/exposure";
 
 const intlMiddleware = createMiddleware(routing);
+// Gated variant (RU_PUBLIC off): locale detection OFF. Without this, a ru-browser
+// visitor to an unprefixed path (e.g. "/") gets auto-redirected to /ru by
+// Accept-Language detection → the gate below strips /ru back to "/" → detection
+// redirects to /ru again → infinite loop. With detection off, unprefixed paths
+// always resolve to the default locale; explicit /ru is still stripped by the gate.
+const intlMiddlewareGated = createMiddleware({ ...routing, localeDetection: false });
 
 // Next 16: this is the `proxy` convention, formerly `middleware`.
 //
@@ -26,8 +32,9 @@ export function proxy(req: NextRequest) {
     }
   }
 
-  // (2) next-intl + mid cookie。
-  const res = intlMiddleware(req);
+  // (2) next-intl + mid cookie。flag 关时用 detection-off 变体，避免 ru 浏览器在
+  //     无前缀路径上被检测重定向到 /ru → 与上面的剥离形成死循环。
+  const res = (ruEnabled() ? intlMiddleware : intlMiddlewareGated)(req);
   if (!req.cookies.get("mid")?.value) {
     res.cookies.set("mid", crypto.randomUUID(), {
       httpOnly: true,
