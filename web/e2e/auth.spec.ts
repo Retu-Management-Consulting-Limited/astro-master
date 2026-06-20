@@ -23,6 +23,11 @@ async function walkToRegister(page: Page) {
   await page.goto("/");
   await page.getByRole("link", { name: /看穿你/ }).click();
   await expect(page).toHaveURL(/\/input/);
+  // P3-7: birth fields no longer pre-filled — enter them before submitting.
+  await page.locator("#birth-year").selectOption("1990");
+  await page.locator("#birth-month").selectOption("5");
+  await page.locator("#birth-day").selectOption("15");
+  await page.locator("#birth-city").fill("北京");
   await page.getByRole("button", { name: /看你的盘/ }).click();
   const opt = page.locator('[data-testid="cal-opt"]').first();
   await opt.waitFor({ state: "visible", timeout: 8000 });

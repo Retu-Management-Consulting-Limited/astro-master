@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { detectA2HS, type A2HSState } from "@/lib/pwa/a2hs";
+import { useUIStore } from "@/lib/ui-store";
 import { track } from "@/lib/track";
 
 interface BIPEvent extends Event {
@@ -20,6 +21,7 @@ export function InstallPrompt() {
   const [show, setShow] = useState(false);
   const [state, setState] = useState<A2HSState>("none");
   const [copied, setCopied] = useState(false);
+  const crisisActive = useUIStore((s) => s.crisisActive); // P1-4
 
   // Register service worker (production only — avoids dev HMR / stale-chunk issues).
   // updateViaCache:"none" → the browser never serves sw.js from HTTP cache, so new
@@ -70,7 +72,8 @@ export function InstallPrompt() {
     return () => clearTimeout(t);
   }, [pathname, deferred]);
 
-  if (!show || state === "standalone" || state === "none") return null;
+  // P1-4: never nudge a user who is in crisis this session (constitution §9).
+  if (!show || state === "standalone" || state === "none" || crisisActive) return null;
 
   const close = (remember: boolean) => {
     setShow(false);

@@ -24,7 +24,7 @@ export default function InputPage() {
   const router = useRouter();
   const setChart = useFunnel((s) => s.setChart);
   const setGender = useFunnel((s) => s.setGender);
-  const [date, setDate] = useState("1998-06-13");
+  const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   // 时间输入框始终可填——填了时间即按精确时间排盘，无需先勾任何框（消除「填了却被
   // 静默忽略」的错交）。留空 → 正午盘（诚实默认，不预填假精确值）。用户也可显式勾
@@ -33,8 +33,10 @@ export default function InputPage() {
   const [useNoon, setUseNoon] = useState(false);
   // 填了时间就当"知道"用它；没填或显式勾正午 → 未知（正午盘）。
   const knownTime = useNoon || !time;
-  const [country, setCountry] = useState(t("defaultCountry"));
-  const [city, setCity] = useState(t("defaultCity"));
+  // R2 / P3-7: don't prefill a concrete place (城市决定上升/宫位，预填假值会被
+  // 用户忽略而静默错交)。留空 + 占位提示，逼用户填真实出生地。
+  const [country, setCountry] = useState("");
+  const [city, setCity] = useState("");
   const [gender, setG] = useState<"female" | "male">("female");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -113,11 +115,11 @@ export default function InputPage() {
           <div style={{ display: "flex", gap: 12 }}>
             <div className="reveal" style={{ flex: 1, animationDelay: ".85s" }}>
               <label style={lbl} htmlFor="birth-country">{t("countryLabel")}</label>
-              <input id="birth-country" className="field-inp" type="text" autoComplete="country-name" value={country} onChange={(e) => setCountry(e.target.value)} />
+              <input id="birth-country" className="field-inp" type="text" autoComplete="country-name" placeholder={t("countryPlaceholder")} value={country} onChange={(e) => setCountry(e.target.value)} />
             </div>
             <div className="reveal" style={{ flex: 1, animationDelay: ".85s" }}>
               <label style={lbl} htmlFor="birth-city">{t("cityLabel")}</label>
-              <input id="birth-city" className="field-inp" type="text" autoComplete="address-level2" value={city} onChange={(e) => { setCity(e.target.value); setErr(null); }} style={{ borderColor: err ? "var(--red)" : undefined }} />
+              <input id="birth-city" className="field-inp" type="text" autoComplete="address-level2" placeholder={t("cityPlaceholder")} value={city} onChange={(e) => { setCity(e.target.value); setErr(null); }} style={{ borderColor: err ? "var(--red)" : undefined }} />
             </div>
           </div>
           {err && <div role="alert" style={{ fontSize: 12.5, color: "var(--red)" }}>⚠ {err} {t("errCityHint")}</div>}
@@ -125,7 +127,12 @@ export default function InputPage() {
 
         <div className="reveal" style={{ marginTop: "auto", animationDelay: "1s" }}>
           <button className="gold-btn" onClick={submit} disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>{loading ? t("submitLoading") : t("submit")}</button>
-          <div style={{ marginTop: 14, textAlign: "center", fontSize: 11.5, color: "var(--mute)" }}>{t("privacyNote")}</div>
+          {/* P1-3: returning users on a fresh device land here via deep-link redirect.
+              Give them a way back to their saved chart instead of forcing a re-entry. */}
+          <div style={{ marginTop: 14, textAlign: "center", fontSize: 12.5, color: "var(--cream-dim)" }}>
+            {t("haveAccount")}<button type="button" onClick={() => router.push("/register?mode=login")} style={{ display: "inline", color: "var(--gold-soft)", cursor: "pointer", fontSize: "inherit" }}>{t("loginRestore")}</button>
+          </div>
+          <div style={{ marginTop: 10, textAlign: "center", fontSize: 11.5, color: "var(--mute)" }}>{t("privacyNote")}</div>
         </div>
       </div>
     </main>
