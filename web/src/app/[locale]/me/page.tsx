@@ -1,5 +1,6 @@
 "use client";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { signLabel } from "@/i18n/glossary";
 import { useRouter } from "@/i18n/navigation";
 import { useFunnel } from "@/lib/store";
 import { useChartGuard } from "@/lib/guard";
@@ -11,6 +12,7 @@ import { useUnderstanding } from "@/lib/understanding";
 
 export default function MePage() {
   const t = useTranslations("me");
+  const locale = useLocale();
   const router = useRouter();
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
@@ -41,7 +43,7 @@ export default function MePage() {
           <div className="eye-mini" style={{ width: 60, height: 60 }} />
           <div>
             <div style={{ fontSize: 18, color: "var(--cream)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 240 }}>{nickname ?? t("nicknameFallback")}</div>
-            <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 3 }}>{metLabel(joinedAt)} · {t("rowAscendant")}{chart.ascSign}</div>
+            <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 3 }}>{metLabel(joinedAt)} · {t("rowAscendant")}{signLabel(chart.ascSign, locale)}</div>
           </div>
         </div>
 

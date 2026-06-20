@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { signLabel } from "@/i18n/glossary";
 import { useEffect, useState } from "react";
 import { useChartGuard } from "@/lib/guard";
 import { detectHighlights } from "@/lib/astro/highlights";
@@ -24,6 +25,7 @@ function pos(lon: number, r: number) {
 
 export default function ChartPage() {
   const t = useTranslations("chart");
+  const locale = useLocale();
   const { chart, ready } = useChartGuard();
   const understand = useUnderstanding();
   // keystone回喂: a recent low-mood streak lets the highlight acknowledge it (her own
@@ -92,7 +94,7 @@ export default function ChartPage() {
               );
             })}
           </svg>
-          <div style={{ marginTop: 2, fontSize: 12.5, color: "var(--cream-dim)", letterSpacing: ".04em" }}>{t("ascendantPrefix")}<b style={{ color: "var(--gold)" }}>{chart.ascSign}</b> · ☉ {sun.sign} · ☽ {moon.sign}</div>
+          <div style={{ marginTop: 2, fontSize: 12.5, color: "var(--cream-dim)", letterSpacing: ".04em" }}>{t("ascendantPrefix")}<b style={{ color: "var(--gold)" }}>{signLabel(chart.ascSign, locale)}</b> · ☉ {signLabel(sun.sign, locale)} · ☽ {signLabel(moon.sign, locale)}</div>
           <div style={{ marginTop: 8, fontSize: 11, color: "var(--mute)" }}>{t("strongestBefore")}<b style={{ color: "var(--gold)" }}>{t("strongestBold")}</b> {t("strongestAfter")}</div>
         </div>
 
