@@ -30,6 +30,8 @@ const ZH: Record<string, string> = { Sun: "太阳", Moon: "月亮", Mercury: "�
 // ru planet names for cross-aspect rendering (mirrors ZH; aligned with the shared glossary).
 const RU_PLANET: Record<string, string> = { Sun: "Солнце", Moon: "Луна", Mercury: "Меркурий", Venus: "Венера", Mars: "Марс", Jupiter: "Юпитер", Saturn: "Сатурн" };
 const strip = (label: string) => label.replace(/^[^一-龥]+/, "");
+// ru labels carry a Cyrillic word after the emoji; strip up to the first Cyrillic letter.
+const stripRu = (label: string) => label.replace(/^[^А-Яа-яЁё]+/, "");
 
 function chartSig(c: Chart): string {
   return c.ascSign + "|" + c.placements.map((p) => `${p.body}${p.sign}${p.house}`).join(",");
@@ -40,11 +42,11 @@ const TYPE_LABEL_RU: Record<RelType, string> = { lover: "влюблённые", 
 
 function synPrompt(result: SynResult, selfFacts: string, otherFacts: string, otherName: string, locale: AppLocale): string {
   if (locale === "ru") {
-    const dims = result.dims.map((d) => `${strip(d.label)}: ${d.value}`).join("; ");
+    const dims = result.dims.map((d) => `${stripRu(d.label)}: ${d.value}`).join("; ");
     const aspects = result.dims
       .flatMap((d) =>
         d.aspects.map(
-          (x) => `«${strip(d.label)}» твоя ${RU_PLANET[x.a] ?? x.a} ${x.angle}° — ${RU_PLANET[x.b] ?? x.b} (${otherName}) (${x.kind === "harmony" ? "гармония" : "напряжение"})`,
+          (x) => `«${stripRu(d.label)}» твоя ${RU_PLANET[x.a] ?? x.a} ${x.angle}° — ${RU_PLANET[x.b] ?? x.b} (${otherName}) (${x.kind === "harmony" ? "гармония" : "напряжение"})`,
         ),
       )
       .join("\n");
@@ -116,8 +118,8 @@ export async function POST(req: Request) {
   if (!type || !REL_TYPES.includes(type as RelType)) return NextResponse.json({ error: "bad type" }, { status: 400 });
 
   const relType = type as RelType;
-  const result = synastry(selfChart, otherChart, relType);
-  const scaffold = synScaffold(result, body.selfName, otherName);
+  const result = synastry(selfChart, otherChart, relType, locale);
+  const scaffold = synScaffold(result, body.selfName, otherName, locale);
 
   const cacheKey = `syn:${relType}:${chartSig(selfChart)}:${chartSig(otherChart)}`;
   const cached = await cacheGet(cacheKey).catch(() => null);

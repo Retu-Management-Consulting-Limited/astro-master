@@ -1,4 +1,6 @@
 import type { SynResult, RelType } from "@/lib/astro/synastry";
+import type { AppLocale } from "@/i18n/routing";
+import { currentLocale } from "./locale";
 
 // Per-RelType deterministic synastry reading. Replaces the old 5-type-shared
 // mad-lib (synastry/page.tsx reading()), whose "得有一个人先松口" catch-line was
@@ -17,7 +19,10 @@ export interface SynRead {
   catchLine: string;
 }
 
-const strip = (label: string) => label.replace(/^[^一-龥]+/, ""); // drop the emoji prefix
+const strip = (label: string) => label.replace(/^[^一-龥]+/, ""); // drop the emoji prefix (zh word follows)
+// ru labels carry the same emoji prefix but a Cyrillic word; drop everything up to
+// the first Cyrillic letter so the word survives (the zh strip above would eat it all).
+const stripRu = (label: string) => label.replace(/^[^А-Яа-яЁё]+/, "");
 
 interface Tmpl {
   vibe: (hn: string, ln: string) => string;
@@ -53,13 +58,47 @@ const BANK: Record<RelType, Tmpl> = {
   },
 };
 
-export function synScaffold(result: SynResult, _selfName?: string, _otherName?: string): SynRead {
+// Russian per-RelType scaffold. Faithful mirror of the zh BANK: same structure
+// (vibe = the high/low tension, body = strongest/weakest + the cost, catchLine =
+// the screenshot-able line pointing at an agency move), same intensity — never
+// softened, never amplified beyond what the real low dimension already says (§8.1).
+// zh path stays byte-unchanged; this branch is selected only on /ru.
+const BANK_RU: Record<RelType, Tmpl> = {
+  lover: {
+    vibe: (hn, ln) => `${hn} — на полную, но ${ln} — ваш риф`,
+    body: ({ hn, hv, ln, lv }) => `Сильнее всего у вас «${hn}» — ${hv}, искрит с первого касания. Но «${ln}» всего ${lv}: это не закрыть, и даже самый жаркий огонь остынет.`,
+    catchLine: (_hn, ln) => `Вас погубит не нелюбовь, а упрямство — каждый ждёт, кто первым уступит в «${ln}».`,
+  },
+  partner: {
+    vibe: (hn, ln) => `${hn} — сработает, но ${ln} — ваше минное поле`,
+    body: ({ hn, hv, ln, lv }) => `Дороже всего у вас «${hn}» — ${hv}, вместе и правда заработаете. Но «${ln}» всего ${lv}: не проговорите это — поссоритесь в день дележа денег.`,
+    catchLine: (_hn, ln) => `Ваша слабина не в навыках, а в «${ln}», что так и не прояснили — молчание рано или поздно вас доконает.`,
+  },
+  colleague: {
+    vibe: (hn, ln) => `${hn} — сладится, но ${ln} — источник трений`,
+    body: ({ hn, hv, ln, lv }) => `Ровнее всего у вас «${hn}» — ${hv}, дело движется вперёд. Но «${ln}» всего ${lv}: не разграничите это — чем дольше работаете, тем сильнее изматываете друг друга.`,
+    catchLine: (_hn, ln) => `Вас подведут не способности, а «${ln}», о котором никто не скажет вслух — будете копить и истощать друг друга.`,
+  },
+  friend: {
+    vibe: (hn, ln) => `${hn} — глубоко, но ${ln} — ваша скрытая угроза`,
+    body: ({ hn, hv, ln, lv }) => `Искреннее всего у вас «${hn}» — ${hv}, на этом можно открыть душу. Но «${ln}» всего ${lv}: не позаботитесь — со временем тихо сотрётся.`,
+    catchLine: (_hn, ln) => `Вас разведёт не отсутствие чувств, а «${ln}» — кто-то всё терпит молча, пока не устанет терпеть.`,
+  },
+  family: {
+    vibe: (hn, ln) => `${hn} — ещё живо, но ${ln} — ваша старая рана`,
+    body: ({ hn, hv, ln, lv }) => `Глубже всего у вас «${hn}» — ${hv}, это родство в крови. Но «${ln}» всего ${lv}: рана не залечена, и даже самые близкие ранят друг друга.`,
+    catchLine: (_hn, ln) => `Вам не любви не хватает, а того, чтобы кто-то первым уступил в «${ln}» — пока держите лицо, боль не уйдёт.`,
+  },
+};
+
+export function synScaffold(result: SynResult, _selfName?: string, _otherName?: string, locale: AppLocale = currentLocale()): SynRead {
   const dims = [...result.dims].sort((a, b) => b.value - a.value);
   const hi = dims[0];
   const lo = dims[dims.length - 1];
-  const hn = strip(hi.label);
-  const ln = strip(lo.label);
-  const t = BANK[result.type];
+  const ru = locale === "ru";
+  const hn = ru ? stripRu(hi.label) : strip(hi.label);
+  const ln = ru ? stripRu(lo.label) : strip(lo.label);
+  const t = (ru ? BANK_RU : BANK)[result.type];
   return {
     vibe: t.vibe(hn, ln),
     body: t.body({ hn, hv: hi.value, ln, lv: lo.value }),

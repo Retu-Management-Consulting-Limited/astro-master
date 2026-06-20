@@ -1,4 +1,6 @@
 import type { Chart, BodyName } from "./chart";
+import type { AppLocale } from "@/i18n/routing";
+import { currentLocale } from "@/lib/reading/locale";
 
 export type RelType = "lover" | "partner" | "colleague" | "friend" | "family";
 
@@ -124,8 +126,37 @@ const CONFIG: Record<RelType, { key: string; label: string; pairs: Pair[]; mode:
   ],
 };
 
-export function synastry(a: Chart, b: Chart, type: RelType): SynResult {
-  const dims = CONFIG[type].map((d) => ({ key: d.key, label: d.label, value: dimScore(a, b, d.pairs, d.mode), aspects: dimAspects(a, b, d.pairs) }));
+// Russian dimension labels, keyed `${type}.${key}` to mirror CONFIG 1:1. zh labels
+// in CONFIG stay byte-unchanged; ru is a parallel table selected by locale. Emoji
+// prefix is preserved identically so the chip/glyph layout is unchanged — only the
+// Chinese word is swapped for the natural Russian astrology term.
+const LABEL_RU: Record<string, string> = {
+  "lover.spark": "❤️‍🔥 Влечение",
+  "lover.safety": "🛟 Надёжность",
+  "lover.understand": "💬 Понимание",
+  "lover.longterm": "⏳ Надолго",
+  "partner.sync": "🤝 Сработанность",
+  "partner.complement": "🧩 Взаимодополнение",
+  "partner.trust": "🔒 Доверие",
+  "partner.money": "💰 Деньги вместе",
+  "colleague.fit": "🤝 Слаженность",
+  "colleague.complement": "🧩 Взаимодополнение",
+  "colleague.boundary": "🚧 Границы",
+  "friend.heart": "💛 Искренность",
+  "friend.talk": "💬 Разговор",
+  "friend.boundary": "🚧 Границы",
+  "family.understand": "💗 Понимание",
+  "family.wound": "🩹 Раны",
+  "family.reconcile": "🕊️ Примирение",
+};
+
+export function synastry(a: Chart, b: Chart, type: RelType, locale: AppLocale = currentLocale()): SynResult {
+  const dims = CONFIG[type].map((d) => ({
+    key: d.key,
+    label: locale === "ru" ? (LABEL_RU[`${type}.${d.key}`] ?? d.label) : d.label,
+    value: dimScore(a, b, d.pairs, d.mode),
+    aspects: dimAspects(a, b, d.pairs),
+  }));
   const total = Math.round(dims.reduce((s, d) => s + d.value, 0) / dims.length);
   return { type, total, dims };
 }
