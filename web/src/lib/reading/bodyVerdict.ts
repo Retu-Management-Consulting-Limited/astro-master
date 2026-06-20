@@ -6,6 +6,7 @@ import { bodyLevelToState } from "../astro/body";
 import type { TodayState } from "./todayVerdict";
 import { dailyAspect } from "./daily";
 import type { AppLocale } from "@/i18n/routing";
+import { currentLocale } from "./locale";
 
 // ── 身心判词（bodyVerdict）· T4 Phase 2 ─────────────────────────────────────
 // 对称于 todayVerdict（财运判词），把身心评分引擎 body.ts 的三态翻成「该怎么待
@@ -290,7 +291,7 @@ function detectZone(chart: Chart, date: Date, ord: number, locale: AppLocale = "
   return { region, line, why, ask, refer };
 }
 
-export function bodyVerdict(chart: Chart, date: Date, locale: AppLocale = "zh"): BodyVerdict {
+export function bodyVerdict(chart: Chart, date: Date, locale: AppLocale = currentLocale()): BodyVerdict {
   const b = dayBody(
     chart,
     date.getUTCFullYear(),
