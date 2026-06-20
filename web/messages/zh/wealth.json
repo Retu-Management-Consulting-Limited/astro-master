@@ -7,6 +7,7 @@
   },
   "goldenBefore": "✨ 本月搞钱黄金日：",
   "goldenAfter": " —— 别错过这几天",
+  "goldenEmpty": "🌿 本月没有特别旺的搞钱日——稳为主，按你的节奏来就好。",
   "eventsHeading": "本月大事件",
   "weekdays": {
     "mon": "一",

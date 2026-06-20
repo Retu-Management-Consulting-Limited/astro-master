@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useFunnel } from "@/lib/store";
+import { useUIStore } from "@/lib/ui-store";
 import { useChartGuard } from "@/lib/guard";
 import { fetchChatReply, fetchFollowups, AI_ON } from "@/lib/reading/remote";
 import { TabBar } from "@/components/TabBar";
@@ -30,6 +31,7 @@ export default function ChatPage() {
   const { chart, ready } = useChartGuard();
   const nickname = useFunnel((s) => s.nickname);
   const firstRead = useFunnel((s) => s.firstRead);
+  const setCrisisActive = useUIStore((s) => s.setCrisisActive);
   const understand = useUnderstanding();
 
   const CHAT_THINKING = [t("thinking.phrase1"), t("thinking.phrase2"), t("thinking.phrase3"), t("thinking.phrase4")];
@@ -119,6 +121,7 @@ export default function ChatPage() {
     const route = routeUserMessage(t, { aiOn: AI_ON, hasChart: !!chart });
     if (route.kind === "crisis") {
       track("chat_crisis");
+      setCrisisActive(true); // P1-4: suppress A2HS / growth nudges for the rest of this session
       setMsgs((m) => [...m, { from: "molly", text: route.text }]);
       setTyping(false);
       return;

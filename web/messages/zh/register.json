@@ -11,6 +11,12 @@
     "skip": "以后再说"
   },
   "ready": "✓ 你的盘已经准备好了",
+  "noChartBadge": "还没有你的盘",
+  "noChartHeading1": "先让 Molly",
+  "noChartHeading2": "看你的盘。",
+  "noChartSub": "注册是为了留住你的盘——但你还没有盘。先花一分钟，让我看你的本命。",
+  "goInput": "先让 Molly 看我的盘 →",
+  "nicknameNoEmail": "这里填个名字就好，邮箱留到下面那栏",
   "signupHeading1": "给我一个名字，",
   "signupHeading2": "我把这一切，都记住。",
   "loginHeading1": "欢迎回来，",
