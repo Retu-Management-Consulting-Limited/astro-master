@@ -20,10 +20,12 @@ describe("proxy: next-intl + mid cookie", () => {
     expect(res.cookies.get("mid")?.value).toBeUndefined();
   });
 
-  it("redirects ru Accept-Language visitor to /ru on root", () => {
+  it("flag 关时 ru Accept-Language 访客访问 / 不被重定向到 /ru（防死循环）", () => {
+    // flag 关（vitest 默认不设）→ gated 变体关掉 locale 检测。否则：/ → 检测跳
+    // /ru → 闸剥回 / → 又跳 /ru …… 无限重定向（生产真出过）。这里钉死「/ 不跳 /ru」。
     const res = proxy(req("/", { "accept-language": "ru-RU,ru;q=0.9" }));
-    expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toContain("/ru");
+    const loc = res.headers.get("location");
+    if (loc) expect(new URL(loc).pathname).not.toBe("/ru");
   });
 });
 
@@ -67,5 +69,12 @@ describe("proxy: RU_PUBLIC 开 → /ru 原样放行", () => {
     if (res.status === 307 || res.status === 308) {
       expect(new URL(res.headers.get("location")!).pathname).not.toBe("/");
     }
+  });
+
+  it("flag 开时 ru Accept-Language 访客 / → /ru（检测开启；/ru 放行故无死循环）", () => {
+    vi.stubEnv("NEXT_PUBLIC_RU_PUBLIC", "1");
+    const res = proxy(req("/", { "accept-language": "ru-RU,ru;q=0.9" }));
+    expect(res.status).toBe(307);
+    expect(new URL(res.headers.get("location")!).pathname).toBe("/ru");
   });
 });

@@ -9,6 +9,7 @@
   "dateLabel": "Дата рождения",
   "timeLabel": "Время рождения",
   "knownTimeCheckbox": "Я знаю точное время рождения",
+  "noonOptOutCheckbox": "Я не знаю точное время (построю карту на полдень)",
   "unknownTimeHintBefore": "Не знаешь — ничего страшного: пока построю карту на",
   "unknownTimeHintNoon": "полдень",
   "unknownTimeHintAfter": ". Когда узнаешь точное время, возвращайся и уточни — карта станет точнее.",

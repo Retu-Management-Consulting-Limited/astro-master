@@ -9,6 +9,7 @@
   "dateLabel": "出生日期",
   "timeLabel": "出生时间",
   "knownTimeCheckbox": "我知道准确的出生时间",
+  "noonOptOutCheckbox": "我不知道准确时间（按正午盘推算）",
   "unknownTimeHintBefore": "不知道也没关系——先按",
   "unknownTimeHintNoon": "正午",
   "unknownTimeHintAfter": "给你排盘。等你哪天问到准确时间再回来补，盘会更准。",
