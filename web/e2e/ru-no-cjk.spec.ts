@@ -26,22 +26,31 @@ const SEED = JSON.stringify({
 
 // 覆盖所有承载确定性内容的用户面 /ru 路由（chat/reading 纯 LLM 暂不入闸，靠 locale
 // 穿透单独保证；其内容若漏中文由后续扩展覆盖）。
+//
+// 注意：/ru/calibration 与 /ru/synastry 不在此「首屏即出」清单里——它们的中文内容
+// 藏在交互后才渲染的分支（calibration 的人生大事题、synastry 的合盘解读正文），
+// 默认 seed 的首屏走不到，会假绿。它们各有一个【驱动到内容分支】的专用 test（见下）。
 const ROUTES = [
   "/ru",
   "/ru/input",
   "/ru/register",
-  "/ru/calibration",
   "/ru/today",
   "/ru/chart",
   "/ru/body",
   "/ru/wealth",
   "/ru/money",
-  "/ru/synastry",
   "/ru/theme/love",
   "/ru/me",
   "/ru/me/settings",
   "/ru/history",
 ];
+
+// 已配对 partner chart——用同一个 computeChart 产出结构完整的盘（过 isFullChart），
+// 让 synastry 页能加载出【真实合盘】分支（demo=false → 渲染 synScaffold 解读正文）。
+const partnerChart = computeChart({ year: 1992, month: 3, day: 8, hour: 9, minute: 0, lat: 55.75, lng: 37.61, tz: 3 });
+const SAVED_PARTNERS = JSON.stringify([
+  { token: "e2e-seed-token", name: "Борис", chart: partnerChart, at: 1718000000000 },
+]);
 
 async function cjkOnPage(page: Page): Promise<string[]> {
   return page.evaluate(() => {
@@ -73,3 +82,54 @@ for (const route of ROUTES) {
     expect(leaks, `中文泄漏于 ${route}：${leaks.join("  ·  ")}`).toEqual([]);
   });
 }
+
+// ── /ru/calibration：驱动到「人生大事」内容分支 ──────────────────────────────
+// 首屏是自我特质题（两问，纯 messages）；真正藏中文的是第三步的人生大事题
+// （EVENT_OPTIONS / calibrationEvents）。点两次特质选项推进到事件步再断言，
+// 否则永远停在首屏 = 假绿。
+test("ru 渲染零中文：/ru/calibration（人生大事内容分支）", async ({ page }) => {
+  await page.goto("/ru/calibration", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("html")).toHaveAttribute("lang", "ru");
+  // LoadingRitual 先挡一拍，等特质选项出现再开始点。
+  await page.waitForSelector('[data-testid="cal-opt"]', { timeout: 5000 });
+  // 两道特质题，每题点第一个选项推进（pick() 有 280ms 过渡）。
+  for (let q = 0; q < 2; q++) {
+    await page.locator('[data-testid="cal-opt"]').first().click();
+    await page.waitForTimeout(350);
+  }
+  // 到达人生大事步：等事件 chip 渲染，并展开一个事件的年龄滑块（更多内容）。
+  await page.waitForSelector('[data-testid="cal-event"]', { timeout: 5000 });
+  await page.locator('[data-testid="cal-event"]').first().click();
+  await page.waitForTimeout(300);
+  const leaks = await cjkOnPage(page);
+  expect(leaks, `中文泄漏于 /ru/calibration（events）：${leaks.join("  ·  ")}`).toEqual([]);
+});
+
+// ── /ru/synastry：驱动到合盘解读正文分支 ─────────────────────────────────────
+// 首屏只有邀请面板 + 关系类型按钮（部分 messages）；真正藏中文的是选一个关系类型
+// 后渲染的 Result——demo 分支出维度名（synastry.ts CONFIG label），真实配对分支出
+// synScaffold 解读正文（vibe/body/catchLine）。这里 seed 一个已配对 partner，使
+// Result 走【真实】分支（demo=false），覆盖全部合盘内容表。
+test("ru 渲染零中文：/ru/synastry（合盘解读正文分支）", async ({ page }) => {
+  // 额外塞入已合的人，使 realPartner 可被打开（demo=false 真实解读分支）。
+  await page.addInitScript((s) => localStorage.setItem("molly_syn_partners", s as string), SAVED_PARTNERS);
+  await page.goto("/ru/synastry", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("html")).toHaveAttribute("lang", "ru");
+  // 打开已保存的 partner → 回到选关系类型 → 选第一个类型渲染 Result 正文。
+  await page.waitForSelector('[data-testid="syn-saved-open"]', { timeout: 5000 });
+  await page.locator('[data-testid="syn-saved-open"]').first().click();
+  await page.waitForTimeout(300);
+  await page.waitForSelector('[data-testid="syn-type"]', { timeout: 5000 });
+  await page.locator('[data-testid="syn-type"]').first().click();
+  // 等 Result 解读正文挂载（synScaffold 即时出）。
+  await page.waitForSelector('[data-testid="syn-result"]', { timeout: 5000 });
+  await page.waitForTimeout(500);
+  // 顺手展开一个维度下钻，覆盖相位/星体名（PLANETS/ASPECTS 已是 glossary，应不漏）。
+  const dim = page.locator('[data-testid="syn-dim"]').first();
+  if (await dim.count()) {
+    await dim.click();
+    await page.waitForTimeout(200);
+  }
+  const leaks = await cjkOnPage(page);
+  expect(leaks, `中文泄漏于 /ru/synastry（result）：${leaks.join("  ·  ")}`).toEqual([]);
+});
