@@ -73,9 +73,17 @@ function WealthView() {
           <h1 style={{ fontFamily: "var(--serif)", fontSize: 25, color: "var(--cream)", fontWeight: 600 }}>{t("title")}</h1>
           <span style={{ fontSize: 13, color: "var(--mute)" }}>{t("monthLabel", { year, month })}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(127,201,154,.09)", border: "1px solid rgba(127,201,154,.28)", borderRadius: 11, padding: "8px 12px", margin: "12px 0 16px", fontSize: 12.5, color: "var(--green)" }}>
-          {t("goldenBefore")}<b style={{ color: "#ade3c2" }}>{m.goldenDays.map((g) => `${month}/${g}`).join(" · ")}</b>{t("goldenAfter")}
-        </div>
+        {/* P2-5: only promise "黄金日" when there actually are any — otherwise an
+            empty list rendered "本月搞钱黄金日：—— 别错过这几天" (self-contradicting). */}
+        {m.goldenDays.length > 0 ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(127,201,154,.09)", border: "1px solid rgba(127,201,154,.28)", borderRadius: 11, padding: "8px 12px", margin: "12px 0 16px", fontSize: 12.5, color: "var(--green)" }}>
+            {t("goldenBefore")}<b style={{ color: "#ade3c2" }}>{m.goldenDays.map((g) => `${month}/${g}`).join(" · ")}</b>{t("goldenAfter")}
+          </div>
+        ) : (
+          <div data-testid="wealth-golden-empty" style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 11, padding: "8px 12px", margin: "12px 0 16px", fontSize: 12.5, color: "var(--cream-dim)" }}>
+            {t("goldenEmpty")}
+          </div>
+        )}
 
         {m.events.length > 0 && (
           <div data-testid="wealth-events" style={{ margin: "-4px 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>

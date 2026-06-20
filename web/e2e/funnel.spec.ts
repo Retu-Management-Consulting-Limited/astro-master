@@ -27,6 +27,12 @@ async function walkToToday(page: Page) {
   await page.goto("/");
   await page.getByRole("link", { name: /看穿你/ }).click();
   await expect(page).toHaveURL(/\/input/);
+  // birth fields are no longer pre-filled (P3-7: no fake default place/date) —
+  // the walk must enter them explicitly before submitting.
+  await page.locator("#birth-year").selectOption("1990");
+  await page.locator("#birth-month").selectOption("5");
+  await page.locator("#birth-day").selectOption("15");
+  await page.locator("#birth-city").fill("北京");
   await page.getByRole("button", { name: /看你的盘/ }).click();
   // 2 self-trait questions (back-compat ASC opener) …
   const opt = page.locator('[data-testid="cal-opt"]').first();

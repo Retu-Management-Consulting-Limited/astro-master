@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useFunnel, snapshotOf } from "@/lib/store";
@@ -25,6 +25,15 @@ export default function RegisterPage() {
   const [notifyStep, setNotifyStep] = useState(false); // post-signup permission ask
   const [enabling, setEnabling] = useState(false);
 
+  // P1-3: a chart-less visitor is almost always a returning user on a fresh
+  // device (deep-linked from a push/share). Honor ?mode=login so /input's
+  // "已有账号？登录恢复" entry lands straight in the login state.
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get("mode") === "login") setMode("login");
+    } catch {}
+  }, []);
+
   // Guest / local-only path — keeps activation friction-free. (E2E entry point.)
   function continueLocal() {
     const nm = name.trim() || t("defaultNickname");
@@ -37,6 +46,9 @@ export default function RegisterPage() {
   async function submitAccount() {
     if (busy) return;
     setErr(null);
+    // P3-9: nickname is a display name, not an email — catch the common slip so
+    // Molly never ends up addressing the user by their email address.
+    if (mode === "signup" && name.includes("@")) { setErr(t("nicknameNoEmail")); return; }
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -90,6 +102,10 @@ export default function RegisterPage() {
   const lbtn = { display: "flex", alignItems: "center", justifyContent: "center", gap: 10, width: "100%", padding: 15, borderRadius: 13, fontSize: 15, fontWeight: 500, border: "1px solid #2b3445", background: "#11151f", color: "var(--cream)", cursor: "pointer" } as const;
   const gold = { ...lbtn, border: "none", background: "linear-gradient(100deg,var(--gold-deep),var(--gold) 50%,var(--gold-soft) 70%)", color: "#1a1305", fontWeight: 600 } as const;
 
+  // P0-1: signing up to "留住你的盘" makes no sense without a chart. Show a
+  // chart-first prompt instead of a sign-up form that would persist an empty chart.
+  const noChartSignup = mode === "signup" && !chart;
+
   // Post-signup: one-tap daily-reminder opt-in (opt-out framing).
   if (notifyStep) {
     return (
@@ -128,19 +144,28 @@ export default function RegisterPage() {
           <span style={{ fontWeight: 500, letterSpacing: ".4em", fontSize: 12, color: "var(--gold)", textIndent: ".4em" }}>MOLLY</span>
         </div>
 
-        <div className="reveal" style={{ marginTop: 30, alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(127,201,154,.1)", border: "1px solid rgba(127,201,154,.28)", borderRadius: 30, padding: "7px 14px", fontSize: 12, color: "var(--green)" }}>{t("ready")}</div>
+        {/* P0-1: never claim a chart is "ready" when there is none. Badge only in
+            signup; its text + tone follow whether the chart actually exists. */}
+        {mode === "signup" && (
+          <div className="reveal" data-testid="ready-badge" style={{ marginTop: 30, alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 8, background: chart ? "rgba(127,201,154,.1)" : "rgba(201,168,97,.1)", border: `1px solid ${chart ? "rgba(127,201,154,.28)" : "rgba(201,168,97,.28)"}`, borderRadius: 30, padding: "7px 14px", fontSize: 12, color: chart ? "var(--green)" : "var(--gold-soft)" }}>{chart ? t("ready") : t("noChartBadge")}</div>
+        )}
 
         <div className="reveal" style={{ marginTop: 18, fontFamily: "var(--serif)", fontSize: 32, color: "var(--cream)", fontWeight: 500, lineHeight: 1.34, animationDelay: ".2s" }}>
           {mode === "signup" ? (
-            <>{t("signupHeading1")}<br /><span style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>{t("signupHeading2")}</span></>
+            chart ? (
+              <>{t("signupHeading1")}<br /><span style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>{t("signupHeading2")}</span></>
+            ) : (
+              <>{t("noChartHeading1")}<br /><span style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>{t("noChartHeading2")}</span></>
+            )
           ) : (
             <>{t("loginHeading1")}<br /><span style={{ color: "var(--gold-soft)", fontStyle: "italic" }}>{t("loginHeading2")}</span></>
           )}
         </div>
         <p className="reveal" style={{ marginTop: 13, fontWeight: 300, fontSize: 14.5, color: "var(--cream-dim)", lineHeight: 1.7, animationDelay: ".35s" }}>
-          {mode === "signup" ? t("signupSub") : t("loginSub")}
+          {mode === "signup" ? (chart ? t("signupSub") : t("noChartSub")) : t("loginSub")}
         </p>
 
+        {!noChartSignup && (
         <div className="reveal" style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12, animationDelay: ".5s" }}>
           {mode === "signup" && (
             <div>
@@ -158,16 +183,23 @@ export default function RegisterPage() {
           </div>
           {err && <div data-testid="auth-err" style={{ fontSize: 12.5, color: "var(--red)" }}>⚠ {err}</div>}
         </div>
+        )}
 
         <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 11 }}>
-          <button data-testid="account-submit" onClick={submitAccount} disabled={busy} style={{ ...gold, opacity: busy ? 0.7 : 1 }}>
-            {busy ? t("submitBusy") : mode === "signup" ? t("submitSignup") : t("submitLogin")}
-          </button>
+          {noChartSignup ? (
+            <button data-testid="go-input" onClick={() => router.push("/input")} style={gold}>{t("goInput")}</button>
+          ) : (
+            <>
+              <button data-testid="account-submit" onClick={submitAccount} disabled={busy} style={{ ...gold, opacity: busy ? 0.7 : 1 }}>
+                {busy ? t("submitBusy") : mode === "signup" ? t("submitSignup") : t("submitLogin")}
+              </button>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "2px 0", color: "var(--mute)", fontSize: 12 }}>
-            <span style={{ flex: 1, height: 1, background: "#1f2735" }} />{t("otherMethods")}<span style={{ flex: 1, height: 1, background: "#1f2735" }} />
-          </div>
-          <button title={t("comingSoon")} disabled style={{ ...lbtn, opacity: 0.45, cursor: "not-allowed" }}>{t("googleContinue")}</button>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "2px 0", color: "var(--mute)", fontSize: 12 }}>
+                <span style={{ flex: 1, height: 1, background: "#1f2735" }} />{t("otherMethods")}<span style={{ flex: 1, height: 1, background: "#1f2735" }} />
+              </div>
+              <button title={t("comingSoon")} disabled style={{ ...lbtn, opacity: 0.45, cursor: "not-allowed" }}>{t("googleContinue")}</button>
+            </>
+          )}
         </div>
 
         <div style={{ marginTop: 16, textAlign: "center", fontSize: 13, color: "var(--cream-dim)" }}>
