@@ -124,6 +124,29 @@ export const TERMS: Record<string, { zh: string; ru: string }> = {
   molly: { zh: "Molly", ru: "Molly" },
 };
 
+// ── 显示层映射 helper ────────────────────────────────────────────────────────
+// chart 把 sign/planet 存成 zh 字符串（见 chart.ts），.tsx 直接渲染时对 ru 用户
+// 会冒中文。这里按 zh 名反查 ru，在【显示处】映射（locale=zh 原样返回，不改存储）。
+
+function zhToRu(table: Record<string, { zh: string; ru: string }>): Record<string, string> {
+  const m: Record<string, string> = {};
+  for (const v of Object.values(table)) m[v.zh] = v.ru;
+  return m;
+}
+const SIGN_ZH_RU = zhToRu(SIGNS);
+const PLANET_ZH_RU = zhToRu(PLANETS);
+
+/** 把 chart 存的中文星座名按 locale 映射到显示名（未知值原样回退）。 */
+export function signLabel(zhSign: string | undefined, locale: string): string {
+  if (!zhSign) return zhSign ?? "";
+  return locale === "ru" ? (SIGN_ZH_RU[zhSign] ?? zhSign) : zhSign;
+}
+/** 把中文天体名按 locale 映射到显示名（未知值原样回退）。 */
+export function planetLabel(zhPlanet: string | undefined, locale: string): string {
+  if (!zhPlanet) return zhPlanet ?? "";
+  return locale === "ru" ? (PLANET_ZH_RU[zhPlanet] ?? zhPlanet) : zhPlanet;
+}
+
 /** 扁平词数（用于守护断言 ~90 词阈值）。 */
 export const GLOSSARY_SIZE =
   Object.keys(PLANETS).length +

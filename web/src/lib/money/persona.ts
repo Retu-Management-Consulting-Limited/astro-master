@@ -1,5 +1,7 @@
 import type { Chart, Placement } from "@/lib/astro/chart";
 import { MEANING_KEYS, MEANING_ZH, type MeaningKey, type Meaning, type MoneyPersona, type Precision } from "./types";
+import { currentLocale } from "@/lib/reading/locale";
+import type { AppLocale } from "@/i18n/routing";
 
 // signIndex: 0白羊 1金牛 2双子 3巨蟹 4狮子 5处女 6天秤 7天蝎 8射手 9摩羯 10水瓶 11双鱼
 // Each meaning gets weighted points from: planets in the money houses (2/8),
@@ -69,8 +71,19 @@ function relationOf(primary: MeaningKey, secondary: MeaningKey): Meaning["relati
   return opposed ? "tension" : "reinforce";
 }
 
-function styleFor(primary: MeaningKey, chart: Chart): string {
+function styleFor(primary: MeaningKey, chart: Chart, locale: AppLocale): string {
   const fast = chart.placements.some((p) => p.body === "Mars" && (p.house === 2 || p.house === 8));
+  if (locale === "ru") {
+    const baseRu: Record<MeaningKey, string> = {
+      freedom: "на расширение",
+      security: "на сбережение",
+      status: "на рывок вперёд",
+      worth: "по велению сердца",
+      control: "держащий всё в руках",
+      care: "оберегающий близких",
+    };
+    return `${fast ? "Порывистый" : "Уравновешенный"} тип, ${baseRu[primary]}`;
+  }
   const base: Record<MeaningKey, string> = {
     freedom: "扩张",
     security: "守成",
@@ -82,7 +95,18 @@ function styleFor(primary: MeaningKey, chart: Chart): string {
   return `${fast ? "冲动" : "稳健"}${base[primary]}型`;
 }
 
-function strengthsFor(primary: MeaningKey, secondary: MeaningKey): string[] {
+function strengthsFor(primary: MeaningKey, secondary: MeaningKey, locale: AppLocale): string[] {
+  if (locale === "ru") {
+    const libRu: Record<MeaningKey, string> = {
+      freedom: "не боишься действовать",
+      security: "крепко стоишь на ногах",
+      status: "мыслишь крупно",
+      worth: "у тебя точное чутьё",
+      control: "видишь насквозь",
+      care: "тянешь на себе",
+    };
+    return [libRu[primary], libRu[secondary], "умеешь развернуться"];
+  }
   const lib: Record<MeaningKey, string> = {
     freedom: "敢出手",
     security: "稳得住",
@@ -94,7 +118,18 @@ function strengthsFor(primary: MeaningKey, secondary: MeaningKey): string[] {
   return [lib[primary], lib[secondary], "敢转向"];
 }
 
-function blindSpotFor(primary: MeaningKey): string {
+function blindSpotFor(primary: MeaningKey, locale: AppLocale): string {
+  if (locale === "ru") {
+    const mapRu: Record<MeaningKey, string> = {
+      freedom: "Ты платишь за свои чувства — потому что любишь смелее и живёшь смелее других. Это не твоя вина, это положение твоего Марса.",
+      security: "Ты так хочешь устойчивости, что упускаешь своё — это не трусость, ты просто слишком хочешь уберечь всех.",
+      status: "Ты боишься отстать и легко тратишь ради лица — но направь этот запал по адресу, и он станет твоим двигателем.",
+      worth: "Тебе жалко тратить на себя, и при этом ты не удержишься от утешительных покупок — ты просто ещё не до конца поверила, что достойна.",
+      control: "Ты хочешь удержать всё — и деньги связывают тебя в ответ. Твоя глубина — это и дар, и груз.",
+      care: "Ты раздаёшь деньги другим, а себе оставляешь меньше всех — и твою отдачу тоже должен кто-то подхватить.",
+    };
+    return mapRu[primary];
+  }
   const map: Record<MeaningKey, string> = {
     freedom: "你为情绪买单——因为你比别人更敢爱、更敢活。这不是你的错，是你火星的位置。",
     security: "你太想稳，反而错过——这不是胆小，是你太想护住所有人。",
@@ -106,7 +141,7 @@ function blindSpotFor(primary: MeaningKey): string {
   return map[primary];
 }
 
-export function moneyPersona(chart: Chart, precision: Precision = "exact"): MoneyPersona {
+export function moneyPersona(chart: Chart, precision: Precision = "exact", locale: AppLocale = currentLocale()): MoneyPersona {
   const scores = scoreMeanings(chart);
   const [primary, secondary] = topTwo(scores);
   const meaning: Meaning = { primary, secondary, relation: relationOf(primary, secondary) };
@@ -114,9 +149,9 @@ export function moneyPersona(chart: Chart, precision: Precision = "exact"): Mone
     meaning,
     precision,
     scores,
-    strengths: strengthsFor(primary, secondary),
-    blindSpot: blindSpotFor(primary),
-    styleTag: styleFor(primary, chart),
+    strengths: strengthsFor(primary, secondary, locale),
+    blindSpot: blindSpotFor(primary, locale),
+    styleTag: styleFor(primary, chart, locale),
   };
 }
 

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { MEANING_ZH, type MeaningKey, type MoneyPersona } from "@/lib/money/types";
+import { useLocale, useTranslations } from "next-intl";
+import { MEANING_RU, MEANING_ZH, type MeaningKey, type MoneyPersona } from "@/lib/money/types";
 
 // S1 钩尖揭示 + S1b meaning 修正 (v4「看得更多」framing). Styling lifted from
 // design/19-money-mirror.html (Dark Celestial Luxe). The screen asserts the
@@ -16,9 +16,10 @@ export function Reveal({
   onCorrect: (m: MeaningKey) => void;
 }) {
   const t = useTranslations("money.reveal");
+  const meaningLabels = useLocale() === "ru" ? MEANING_RU : MEANING_ZH;
   const [step, setStep] = useState<"reveal" | "correct">("reveal");
-  const primary = MEANING_ZH[persona.meaning.primary];
-  const secondary = MEANING_ZH[persona.meaning.secondary];
+  const primary = meaningLabels[persona.meaning.primary];
+  const secondary = meaningLabels[persona.meaning.secondary];
 
   if (step === "reveal") {
     return (
@@ -88,7 +89,7 @@ export function Reveal({
             onClick={() => onCorrect(k)}
             className="rounded-full border border-[#2b3a4e] px-3.5 py-2 text-[13px] text-[#a9c4dd] hover:border-[#8fb6d8] hover:text-[#cfe2f2]"
           >
-            {MEANING_ZH[k].label}
+            {meaningLabels[k].label}
           </button>
         ))}
       </div>

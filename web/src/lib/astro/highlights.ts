@@ -1,4 +1,7 @@
 import type { Chart, Placement, Aspect, BodyName } from "./chart";
+import { currentLocale } from "../reading/locale";
+import type { AppLocale } from "@/i18n/routing";
+import { PLANETS, SIGNS, ASPECTS, HOUSES } from "@/i18n/glossary";
 
 export type Domain = "love" | "career" | "self" | "mind" | "shadow" | "lonely";
 
@@ -19,6 +22,46 @@ const BODY_ZH: Record<string, string> = {
 const ASPECT_ZH: Record<string, string> = {
   conjunction: "合", sextile: "六分", square: "刑", trine: "拱", opposition: "冲",
 };
+
+// ── ru summary parts (i18n / M1) ──────────────────────────────────────────────
+// summary 是会渲染到 /ru/chart 的天体·相位短语，按 locale 选 ru。术语全引 glossary
+// 单一真相源（行星/星座/相位/宫位），zh 分支逐字不变。ASC/MC 在 glossary 里对应
+// Ascendant/Midheaven。
+const BODY_RU: Record<string, string> = {
+  Sun: PLANETS.Sun.ru, Moon: PLANETS.Moon.ru, Mercury: PLANETS.Mercury.ru,
+  Venus: PLANETS.Venus.ru, Mars: PLANETS.Mars.ru, Jupiter: PLANETS.Jupiter.ru,
+  Saturn: PLANETS.Saturn.ru, Uranus: PLANETS.Uranus.ru, Neptune: PLANETS.Neptune.ru,
+  Pluto: PLANETS.Pluto.ru, ASC: PLANETS.Ascendant.ru, MC: PLANETS.Midheaven.ru,
+};
+const ASPECT_RU: Record<string, string> = {
+  conjunction: ASPECTS.conjunction.ru, sextile: ASPECTS.sextile.ru, square: ASPECTS.square.ru,
+  trine: ASPECTS.trine.ru, opposition: ASPECTS.opposition.ru,
+};
+const SIGN_ZH_TO_RU: Record<string, string> = Object.fromEntries(
+  Object.values(SIGNS).map((v) => [v.zh, v.ru]),
+);
+
+// 一个 summary 短语的 zh / ru 双版，靠 locale 选。kind 决定结构：
+//   aspect   "太阳刑土星"        → "Солнце Квадратура Сатурн"
+//   angular  "金星天蝎·七宫"     → "Венера Скорпион · Дом 7"（带 sign+house）
+//   stellium "处女座3星聚集"     → "3 планеты в знаке Дева"
+//   luminary "月亮巨蟹·四宫"     → "Луна Рак · Дом 4"
+function aspectSummary(a: Aspect["a"], type: string, b: Aspect["b"], ru: boolean): string {
+  if (ru) return `${BODY_RU[a] ?? a} ${ASPECT_RU[type] ?? type} ${BODY_RU[b] ?? b}`;
+  return `${BODY_ZH[a]}${ASPECT_ZH[type]}${BODY_ZH[b]}`;
+}
+function placementSummary(body: string, sign: string, house: number, ru: boolean): string {
+  if (ru) {
+    const s = SIGN_ZH_TO_RU[sign] ?? sign;
+    const h = HOUSES[String(house)]?.ru ?? `Дом ${house}`;
+    return `${BODY_RU[body] ?? body} ${s} · ${h}`;
+  }
+  return `${BODY_ZH[body]}${sign}·${house}宫`;
+}
+function stelliumSummary(sign: string, count: number, ru: boolean): string {
+  if (ru) return `${count} планеты в знаке ${SIGN_ZH_TO_RU[sign] ?? sign}`;
+  return `${sign}座${count}星聚集`;
+}
 // importance weight per body for ranking
 const WEIGHT: Record<string, number> = {
   Sun: 5, Moon: 5, ASC: 5, Venus: 4, Mars: 4, MC: 4, Mercury: 3,
@@ -36,7 +79,8 @@ function houseDomain(house: number): Domain {
   return "shadow";
 }
 
-export function detectHighlights(chart: Chart): Highlight[] {
+export function detectHighlights(chart: Chart, locale: AppLocale = currentLocale()): Highlight[] {
+  const ru = locale === "ru";
   const byBody = new Map<string, Placement>();
   for (const p of chart.placements) byBody.set(p.body, p);
   const out: Highlight[] = [];
@@ -53,7 +97,7 @@ export function detectHighlights(chart: Chart): Highlight[] {
       kind: "aspect",
       score,
       bodies: [a.a, a.b],
-      summary: `${BODY_ZH[a.a]}${ASPECT_ZH[a.type]}${BODY_ZH[a.b]}`,
+      summary: aspectSummary(a.a, a.type, a.b, ru),
       domain,
     });
   }
@@ -66,7 +110,7 @@ export function detectHighlights(chart: Chart): Highlight[] {
         kind: "angular",
         score: (WEIGHT[p.body] ?? 2) * 2.5 + 4,
         bodies: [p.body],
-        summary: `${BODY_ZH[p.body]}${p.sign}·${p.house}宫`,
+        summary: placementSummary(p.body, p.sign, p.house, ru),
         domain: houseDomain(p.house),
       });
     }
@@ -84,7 +128,7 @@ export function detectHighlights(chart: Chart): Highlight[] {
         kind: "stellium",
         score: 14 + ps.length,
         bodies: ps.map((p) => p.body),
-        summary: `${ps[0].sign}座${ps.length}星聚集`,
+        summary: stelliumSummary(ps[0].sign, ps.length, ru),
         domain: houseDomain(ps[0].house),
       });
     }
@@ -98,7 +142,7 @@ export function detectHighlights(chart: Chart): Highlight[] {
       kind: "luminary",
       score: 8,
       bodies: [body],
-      summary: `${BODY_ZH[body]}${p.sign}·${p.house}宫`,
+      summary: placementSummary(body, p.sign, p.house, ru),
       domain: houseDomain(p.house),
     });
   }

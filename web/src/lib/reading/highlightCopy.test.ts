@@ -11,7 +11,7 @@ describe("highlight copy (#1)", () => {
   });
 
   it("STRONG: distinct domains give distinct headlines (not one Barnum line for all)", () => {
-    const seen = DOMAINS.map(highlightHeadline);
+    const seen = DOMAINS.map((d) => highlightHeadline(d));
     expect(new Set(seen).size).toBe(DOMAINS.length);
   });
 

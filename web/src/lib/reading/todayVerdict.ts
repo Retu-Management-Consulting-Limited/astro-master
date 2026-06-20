@@ -5,6 +5,7 @@ import type { TimeBelief } from "../astro/rectify";
 import { bodyVerdict, type BodyVerdict } from "./bodyVerdict";
 import type { AppLocale } from "@/i18n/routing";
 import { PLANETS, HOUSES } from "@/i18n/glossary";
+import { currentLocale } from "./locale";
 
 // 今日财运 → 一句"该怎么过今天"的笃定判词。纯逻辑、确定性、无 AI。
 //
@@ -356,7 +357,7 @@ function buildNatalHit(chart: Chart, target: string, mode: "planet" | "house", l
   return "今天月亮照到你这张盘"; // 四角在 planet 模式下的通用降级，绝不点宫
 }
 
-export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief, locale: AppLocale = "zh"): TodayVerdict {
+export function todayVerdict(chart: Chart, date: Date, belief?: TimeBelief, locale: AppLocale = currentLocale()): TodayVerdict {
   const w = dayWealth(chart, date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
   const state = levelToState(w.level);
   const lean = moneyLean(chart);

@@ -1,6 +1,7 @@
 import type { Chart, BodyName, Placement } from "@/lib/astro/chart";
 import type { AppLocale } from "@/i18n/routing";
 import { PLANETS, SIGNS, HOUSES } from "@/i18n/glossary";
+import { currentLocale } from "./locale";
 
 // zh sign name (what chart.ts emits, e.g. "天蝎") → ru ("Скорпион"). Single-source
 // glossary so星盘术语 never drifts across the i18n tasks.
@@ -197,7 +198,7 @@ function deepReadOf(id: ThemeId, houseZh: string): string {
   }
 }
 
-export function generateThemeRead(chart: Chart, id: ThemeId, locale: AppLocale = "zh"): ThemeRead {
+export function generateThemeRead(chart: Chart, id: ThemeId, locale: AppLocale = currentLocale()): ThemeRead {
   const cfg = CFG[id];
   const p = find(chart, cfg.planet);
   const sign = p?.sign ?? "—";

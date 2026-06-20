@@ -1,4 +1,6 @@
 import { bodyLongitude, isRetrograde, type Chart, type BodyName } from "./chart";
+import { currentLocale } from "../reading/locale";
+import type { AppLocale } from "@/i18n/routing";
 
 export type WealthLevel = "wang" | "ping" | "shen"; // 旺 / 平 / 慎
 
@@ -94,6 +96,25 @@ export const MONEY_PLANETS: MoneyPlanet[] = [
   { body: "Mercury", valence: 0,  name: "水星谈钱·宜签约谈判",  scoreAspects: [],           scoreOrb: 0,  scoreWeight: 0, eventAspects: [{ angle: 0, orb: 4 }] },
 ];
 
+// Russian voice for each money planet's named factor. zh `name` fields above are
+// byte-unchanged; ru is a parallel table keyed by body, selected by locale. The
+// "·" inner separator mirrors the zh source so the .tsx renders it the same way.
+const MONEY_PLANET_NAME_RU: Partial<Record<BodyName, string>> = {
+  Jupiter: "Юпитер расширяет достаток",
+  Venus:   "Венера освещает казну",
+  Sun:     "Солнце согревает достаток",
+  Mars:    "Марс бьёт по деньгам · легко спустить сгоряча",
+  Saturn:  "Сатурн давит на деньги · держи в кулаке, будь осторожна",
+  Mercury: "Меркурий о деньгах · время для договоров и переговоров",
+};
+
+// Resolve a money planet's display name in the active locale. Off /ru this returns
+// the zh `name` (default locale → zh), so existing callers stay byte-identical.
+export function moneyPlanetName(body: BodyName, zhName: string, locale: AppLocale = currentLocale()): string {
+  if (locale === "ru") return MONEY_PLANET_NAME_RU[body] ?? zhName;
+  return zhName;
+}
+
 const EVENT_GAIN = 1.5;
 const EVENT_CAP = 36;
 const DRIVER_MIN = 1.5; // a 主驱动 must clear this raw term magnitude
@@ -128,7 +149,7 @@ export function dayDriver(chart: Chart, date: Date): Driver | undefined {
   let best: DriverTerm | undefined;
   for (const t of eventTerms(chart, date)) if (!best || Math.abs(t.value) > Math.abs(best.value)) best = t;
   if (!best || Math.abs(best.value) < DRIVER_MIN) return undefined;
-  return { planet: best.planet, name: best.name, valence: best.value > 0 ? 1 : -1 };
+  return { planet: best.planet, name: moneyPlanetName(best.planet, best.name), valence: best.value > 0 ? 1 : -1 };
 }
 
 // Daily 财运 score: a fast layer (transiting Moon vs natal benefic/malefic) plus
@@ -289,7 +310,7 @@ export function monthEvents(chart: Chart, year: number, month: number): EventWin
     for (const w of mergeWindows(hits, 2)) {
       let peakDay = w.start;
       for (let d = w.start; d <= w.end; d++) if ((strength[d] ?? 0) > (strength[peakDay] ?? 0)) peakDay = d;
-      out.push({ planet: p.body, name: p.name, valence: p.valence, startDay: w.start, endDay: w.end, peakDay });
+      out.push({ planet: p.body, name: moneyPlanetName(p.body, p.name), valence: p.valence, startDay: w.start, endDay: w.end, peakDay });
     }
   }
   return out.sort((a, b) => a.startDay - b.startDay);
