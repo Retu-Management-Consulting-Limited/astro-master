@@ -1,6 +1,7 @@
 import { bodyLongitude, SIGNS_ZH, type Chart, type BodyName } from "../astro/chart";
 import type { AppLocale } from "@/i18n/routing";
 import { SIGNS } from "@/i18n/glossary";
+import { currentLocale } from "./locale";
 
 // ru sign names in zodiac order (Aries..Pisces), drawn from the single-source glossary.
 const SIGNS_RU = [
@@ -336,7 +337,7 @@ export interface DailyReading {
   quality: Quality;
 }
 
-export function dailyReading(chart: Chart, date: Date, locale: AppLocale = "zh"): DailyReading {
+export function dailyReading(chart: Chart, date: Date, locale: AppLocale = currentLocale()): DailyReading {
   const ord = dayOrdinal(date);
   const today = moonAspect(chart, date);
 

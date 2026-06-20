@@ -7,6 +7,8 @@
 // is the chart, not Molly (R18② "天空替你写下的", ally not judge).
 import type { Domain } from "../astro/highlights";
 import type { ThemeId } from "./theme";
+import type { AppLocale } from "@/i18n/routing";
+import { currentLocale } from "./locale";
 
 const HEADLINE: Record<Domain, string> = {
   love: "你爱一个人，从不浅尝。一旦认定，就把自己整个交出去。",
@@ -15,6 +17,16 @@ const HEADLINE: Record<Domain, string> = {
   mind: "你的脑子很少真正停下来——它替你想得太多，也太远。",
   lonely: "你习惯把最深的情绪，藏在连自己都快找不到的地方。",
   shadow: "你身上有一股连你自己都有点怕的力量，它一直都在。",
+};
+
+// ru — 忠实镜像中文原意，自然地道俄语；不弱化也不加码情绪（宪法 §8）。zh 逐字不变。
+const HEADLINE_RU: Record<Domain, string> = {
+  love: "Когда ты любишь, ты не любишь вполсилы. Решив однажды, ты отдаёшь себя целиком.",
+  career: "Ты рождён быть на виду — это желание быть замеченным и доводить дело до конца в тебе настоящее.",
+  self: "Ты всё время ищешь ответ на один вопрос: кто я на самом деле и куда мне идти.",
+  mind: "Твой ум почти не останавливается по-настоящему — он думает за тебя слишком много и слишком далеко.",
+  lonely: "Ты привык прятать самые глубокие чувства туда, где даже сам почти не можешь их найти.",
+  shadow: "В тебе есть сила, которой ты и сам немного боишься, — и она была с тобой всегда.",
 };
 
 // invitation, gives the user control (R18③ — never "I'll expose you")
@@ -27,6 +39,16 @@ const HOOK: Record<Domain, string> = {
   shadow: "陪你认识它",
 };
 
+// ru — приглашение, оставляет выбор за пользователем (R18③ — никогда «я тебя разоблачу»).
+const HOOK_RU: Record<Domain, string> = {
+  love: "Хочешь, расскажу тебе об этом",
+  career: "Посмотрю вместе с тобой, куда это ведёт",
+  self: "Поищу вместе с тобой",
+  mind: "Расскажу тебе",
+  lonely: "Поищу вместе с тобой, не спеша",
+  shadow: "Познакомлю тебя с ней вместе с тобой",
+};
+
 // which deep-read a highlight opens into (theme ids: love/wealth/lonely/self)
 const THEME_OF: Record<Domain, ThemeId> = {
   love: "love",
@@ -37,11 +59,11 @@ const THEME_OF: Record<Domain, ThemeId> = {
   shadow: "lonely",
 };
 
-export function highlightHeadline(d: Domain): string {
-  return HEADLINE[d];
+export function highlightHeadline(d: Domain, locale: AppLocale = currentLocale()): string {
+  return locale === "ru" ? HEADLINE_RU[d] : HEADLINE[d];
 }
-export function highlightHook(d: Domain): string {
-  return HOOK[d];
+export function highlightHook(d: Domain, locale: AppLocale = currentLocale()): string {
+  return locale === "ru" ? HOOK_RU[d] : HOOK[d];
 }
 export function highlightTheme(d: Domain): ThemeId {
   return THEME_OF[d];
